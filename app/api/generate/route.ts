@@ -75,6 +75,7 @@ export async function POST(req: NextRequest) {
     const prompt = composePrompt({
       styleId: body.styleId,
       customPrompt: body.customPrompt,
+      aspectRatio: body.aspectRatio,
     });
 
     const parts: unknown[] = [
