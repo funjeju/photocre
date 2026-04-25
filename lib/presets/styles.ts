@@ -8,7 +8,7 @@ export type StylePreset = {
 
 export const STYLES: StylePreset[] = [
   {
-    id: 'none',
+    id: 'beauty',
     name: '뽀샤시',
     description: '밝고 선명한 뷰티 보정',
     thumbnailSrc: '/style-samples/none.png',

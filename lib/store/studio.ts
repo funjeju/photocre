@@ -72,7 +72,7 @@ export const useStudioStore = create<StudioState>((set) => ({
   cropData: null,
   aspectRatio: '1:1',
   croppedImage: null,
-  styleId: 'none',
+  styleId: 'beauty',
   customPrompt: '',
   frameId: 'polaroid-classic',
   backgroundId: 'studio-gray',
@@ -101,7 +101,7 @@ export const useStudioStore = create<StudioState>((set) => ({
   setIsCropDialogOpen: (v) => set({ isCropDialogOpen: v }),
   reset: () => set({
     sourceImage: null, cropData: null, croppedImage: null,
-    styleId: 'none', customPrompt: '',
+    styleId: 'beauty', customPrompt: '',
     frameId: 'polaroid-classic', backgroundId: 'studio-gray',
     customBackground: null, textOverlay: null,
     generatedImageUrl: null, generationId: null, isGenerating: false,
