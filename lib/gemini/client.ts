@@ -1,6 +1,6 @@
 import { GoogleGenAI } from '@google/genai';
 
-export const MODEL = 'gemini-2.0-flash-preview-image-generation';
+export const MODEL = 'gemini-2.5-flash-image';
 
 let _client: GoogleGenAI | null = null;
 
