@@ -46,7 +46,7 @@ function useImage(src: string | null): HTMLImageElement | null {
 export function ResultViewer() {
   const {
     generatedImageUrl, textOverlay, frameId, backgroundId, customBackground,
-    aspectRatio, setGeneratedImageUrl, setGenerationId,
+    aspectRatio, setGeneratedImageUrl, setGenerationId, setTextOverlay,
   } = useStudioStore();
   const stageRef = useRef<Konva.Stage>(null);
 
@@ -79,10 +79,7 @@ export function ResultViewer() {
   const displayW = Math.round(canvasW * displayScale);
   const displayH = Math.round(canvasH * displayScale);
 
-  const [textPos, setTextPos] = useState({ x: 0.5, y: 0.9 });
-  useEffect(() => {
-    if (textOverlay) setTextPos(textOverlay.position);
-  }, [textOverlay]);
+  const textPos = textOverlay?.position ?? { x: 0.5, y: 0.9 };
 
   const showBgImage = backgroundId === 'custom' && customBgImage;
   const fontSize = textOverlay ? Math.max(16, textOverlay.fontSize * fScale) : 24;
@@ -151,10 +148,11 @@ export function ResultViewer() {
                   align={textOverlay.alignment}
                   draggable
                   onDragEnd={(e) => {
-                    setTextPos({
+                    const newPos = {
                       x: Math.min(1, Math.max(0, (e.target.x() + canvasW / 2) / canvasW)),
                       y: Math.min(1, Math.max(0, (e.target.y() + fontSize / 2) / canvasH)),
-                    });
+                    };
+                    if (textOverlay) setTextOverlay({ ...textOverlay, position: newPos });
                   }}
                 />
               )}
