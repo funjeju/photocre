@@ -53,7 +53,6 @@ function readTemplateImageAsBase64(imagePath: string): { base64: string; mimeTyp
 
 function composeCoverPrompt(
   templateStyle: string,
-  photoCount: number,
   texts: Record<string, string>,
   templateName: string,
 ): string {
@@ -88,6 +87,36 @@ COMPOSITION RULES:
 OUTPUT: A single magazine cover image in portrait orientation (4:5 or 3:4 ratio).`;
 }
 
+function composeFaceSwapPrompt(templateName: string): string {
+  return `You are a professional photo retouching artist specializing in face compositing.
+
+TASK: Face swap — replace the face in the magazine cover with the face from the provided person photo.
+
+IMAGE 1 (magazine cover): The original ${templateName} magazine cover. This is your base image.
+IMAGE 2 (person photo): Contains the face you will transplant onto the magazine cover.
+
+CRITICAL RULES — READ CAREFULLY:
+1. Keep IMAGE 1 (the magazine cover) COMPLETELY INTACT:
+   - The body, shoulders, hair, clothing, pose, hands must remain EXACTLY as in the original
+   - All text, logos, titles, graphic elements stay in their exact positions
+   - The background, colors, lighting, and overall composition must NOT change
+   - The head position, angle, and size must stay exactly where it is in the original
+
+2. Replace ONLY the face region:
+   - Extract the facial features (eyes, nose, mouth, jaw shape, skin tone) from IMAGE 2
+   - Place them onto the face area in IMAGE 1
+   - Match the lighting direction and intensity from IMAGE 1 so the skin looks natural
+   - Blend the edges smoothly — no visible seams or color mismatches
+   - Adjust skin tone to match the original cover's color grading
+
+3. Quality requirements:
+   - The result must look like a real, professionally edited magazine cover
+   - The face replacement must be completely seamless and believable
+   - Maintain the original magazine cover's print quality and sharpness
+
+OUTPUT: The complete magazine cover image with ONLY the face replaced. Everything else must be pixel-perfect to the original.`;
+}
+
 export async function POST(req: NextRequest) {
   let uid: string;
   let email: string;
@@ -102,6 +131,7 @@ export async function POST(req: NextRequest) {
     photoBase64s: string[];
     photoTypes: string[];
     texts: Record<string, string>;
+    mode?: 'style' | 'faceswap';
   };
 
   const template = getCoverTemplate(body.templateId);
@@ -122,12 +152,10 @@ export async function POST(req: NextRequest) {
   try {
     const { base64: templateBase64, mimeType: templateMime } = readTemplateImageAsBase64(template.imagePath);
 
-    const prompt = composeCoverPrompt(
-      template.style,
-      body.photoBase64s.length,
-      body.texts,
-      template.name,
-    );
+    const isFaceSwap = body.mode === 'faceswap';
+    const prompt = isFaceSwap
+      ? composeFaceSwapPrompt(template.name)
+      : composeCoverPrompt(template.style, body.texts, template.name);
 
     const parts: unknown[] = [
       { text: prompt },

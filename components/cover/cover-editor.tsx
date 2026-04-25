@@ -3,7 +3,7 @@
 import { useState, useCallback } from 'react';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
-import { ArrowLeft, Sparkles, Loader2, Plus, X } from 'lucide-react';
+import { ArrowLeft, Sparkles, Loader2, Plus, X, Wand2, ScanFace } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -79,11 +79,14 @@ function PhotoSlot({
   );
 }
 
+type Mode = 'style' | 'faceswap';
+
 export function CoverEditor() {
   const { user } = useAuth();
   const [selected, setSelected] = useState<CoverTemplate | null>(null);
   const [photos, setPhotos] = useState<{ url: string; blob: Blob }[]>([]);
   const [texts, setTexts] = useState<Record<string, string>>({});
+  const [mode, setMode] = useState<Mode>('style');
   const [isGenerating, setIsGenerating] = useState(false);
   const [resultUrl, setResultUrl] = useState<string | null>(null);
 
@@ -131,6 +134,7 @@ export function CoverEditor() {
           photoBase64s,
           photoTypes,
           texts,
+          mode,
         }),
       });
 
@@ -227,6 +231,53 @@ export function CoverEditor() {
         </div>
 
         <div className="flex-1 overflow-y-auto px-5 py-5 flex flex-col gap-6">
+
+          {/* 생성 모드 선택 */}
+          <div className="flex flex-col gap-2">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">생성 모드</p>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={() => setMode('style')}
+                className={cn(
+                  'flex flex-col items-center gap-1.5 rounded-2xl border-2 px-3 py-3 text-left transition-all',
+                  mode === 'style'
+                    ? 'border-accent bg-accent/5 ring-2 ring-accent ring-offset-1'
+                    : 'border-border hover:border-foreground/20',
+                )}
+              >
+                <Wand2 className={cn('size-4', mode === 'style' ? 'text-accent' : 'text-muted-foreground')} />
+                <span className={cn('text-xs font-semibold leading-tight', mode === 'style' ? 'text-accent' : '')}>
+                  스타일 합성
+                </span>
+                <span className="text-[10px] text-muted-foreground leading-snug text-center">
+                  템플릿 스타일로<br/>새 커버 생성
+                </span>
+              </button>
+              <button
+                onClick={() => setMode('faceswap')}
+                className={cn(
+                  'flex flex-col items-center gap-1.5 rounded-2xl border-2 px-3 py-3 text-left transition-all',
+                  mode === 'faceswap'
+                    ? 'border-accent bg-accent/5 ring-2 ring-accent ring-offset-1'
+                    : 'border-border hover:border-foreground/20',
+                )}
+              >
+                <ScanFace className={cn('size-4', mode === 'faceswap' ? 'text-accent' : 'text-muted-foreground')} />
+                <span className={cn('text-xs font-semibold leading-tight', mode === 'faceswap' ? 'text-accent' : '')}>
+                  얼굴 합성
+                </span>
+                <span className="text-[10px] text-muted-foreground leading-snug text-center">
+                  원본 표지에<br/>내 얼굴만 교체
+                </span>
+              </button>
+            </div>
+            {mode === 'faceswap' && (
+              <p className="text-[11px] text-muted-foreground leading-relaxed bg-muted/40 rounded-xl px-3 py-2">
+                표지 원본의 포즈·의상·배경은 그대로 유지되고, 얼굴 부분만 업로드한 사진의 얼굴로 자연스럽게 교체됩니다.
+              </p>
+            )}
+          </div>
+
           {/* 사진 업로드 */}
           <div className="flex flex-col gap-3">
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
@@ -248,26 +299,28 @@ export function CoverEditor() {
             </p>
           </div>
 
-          {/* 편집 텍스트 */}
-          <div className="flex flex-col gap-4">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-              핵심 텍스트 편집
-            </p>
-            <p className="text-[11px] text-muted-foreground -mt-2">
-              2-3개의 주요 텍스트만 편집할 수 있습니다. 나머지는 AI가 자동으로 채웁니다.
-            </p>
-            {selected.editableTexts.map((field) => (
-              <div key={field.key} className="flex flex-col gap-1.5">
-                <Label className="text-sm">{field.label}</Label>
-                <Input
-                  value={texts[field.key] ?? ''}
-                  onChange={(e) => setTexts((prev) => ({ ...prev, [field.key]: e.target.value }))}
-                  placeholder={field.placeholder}
-                  className="text-sm rounded-xl"
-                />
-              </div>
-            ))}
-          </div>
+          {/* 편집 텍스트 — 스타일 모드에서만 */}
+          {mode === 'style' && (
+            <div className="flex flex-col gap-4">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                핵심 텍스트 편집
+              </p>
+              <p className="text-[11px] text-muted-foreground -mt-2">
+                2-3개의 주요 텍스트만 편집할 수 있습니다. 나머지는 AI가 자동으로 채웁니다.
+              </p>
+              {selected.editableTexts.map((field) => (
+                <div key={field.key} className="flex flex-col gap-1.5">
+                  <Label className="text-sm">{field.label}</Label>
+                  <Input
+                    value={texts[field.key] ?? ''}
+                    onChange={(e) => setTexts((prev) => ({ ...prev, [field.key]: e.target.value }))}
+                    placeholder={field.placeholder}
+                    className="text-sm rounded-xl"
+                  />
+                </div>
+              ))}
+            </div>
+          )}
 
           {/* 템플릿 참고 이미지 */}
           <div className="flex flex-col gap-2">
