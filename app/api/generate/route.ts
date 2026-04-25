@@ -98,29 +98,32 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'No image generated' }, { status: 500 });
     }
 
-    const outputUrl = await saveToStorage(imagePart.inlineData.data, uid, 'output');
+    const { data: imageData, mimeType } = imagePart.inlineData;
+    const dataUrl = `data:${mimeType};base64,${imageData}`;
 
+    // Storage 저장 + Firestore 기록은 백그라운드로 (CORS 우회 — 표시는 dataUrl 직접 사용)
     const genRef = adminDb().collection('users').doc(uid).collection('generations').doc();
-    await genRef.set({
-      inputImagePath: inputPath,
-      outputImagePath: outputUrl,
-      prompt,
-      model: MODEL,
-      cost: 1,
-      presets: { styleId: body.styleId, customPrompt: body.customPrompt ?? '' },
-      createdAt: new Date(),
-      status: 'success',
-    });
+    saveToStorage(imageData, uid, 'output').then((outputUrl) => {
+      genRef.set({
+        inputImagePath: inputPath,
+        outputImagePath: outputUrl,
+        prompt,
+        model: MODEL,
+        cost: 1,
+        presets: { styleId: body.styleId, customPrompt: body.customPrompt ?? '' },
+        createdAt: new Date(),
+        status: 'success',
+      });
+      adminDb().collection('credits_ledger').add({
+        uid,
+        delta: -1,
+        reason: 'generate',
+        relatedId: genRef.id,
+        createdAt: new Date(),
+      });
+    }).catch((e) => console.error('[generate] storage save failed:', e));
 
-    await adminDb().collection('credits_ledger').add({
-      uid,
-      delta: -1,
-      reason: 'generate',
-      relatedId: genRef.id,
-      createdAt: new Date(),
-    });
-
-    return NextResponse.json({ outputUrl, generationId: genRef.id });
+    return NextResponse.json({ outputUrl: dataUrl, generationId: genRef.id });
   } catch (e: unknown) {
     console.error('[generate]', e);
     return NextResponse.json({ error: 'Generation failed' }, { status: 500 });
