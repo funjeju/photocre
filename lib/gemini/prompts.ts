@@ -1,32 +1,33 @@
 const IDENTITY_BY_INTENSITY: Record<number, string> = {
   30: `IDENTITY (STRICT — barely stylized):
-- The person must look almost identical to the original photo
-- Apply only the faintest hint of the style — skin texture, very subtle color shift at most
-- Face shape, features, expression: preserve at ~90%, virtually unchanged
+- The subject (person, animal, or object) must look almost identical to the original photo
+- Apply only the faintest hint of the style — surface texture, very subtle color shift at most
+- Face/features shape and expression: preserve at ~90%, virtually unchanged
 - A viewer should immediately recognize this as the same photo with a slight filter`,
 
   50: `IDENTITY (BALANCED):
-- The person must remain clearly recognizable as the same individual
-- Allow natural style-appropriate facial rendering (e.g. slightly smoother skin, mild cel shading)
-- Preserve overall face shape and identity at ~60% — stylize within that constraint
-- Both the original person AND the target style should be clearly visible`,
+- The subject must remain clearly recognizable as the same individual
+- Allow natural style-appropriate rendering (e.g. slightly stylized fur/skin, mild cel shading)
+- Preserve overall appearance and identity at ~60% — stylize within that constraint
+- Both the original subject AND the target style should be clearly visible`,
 
   70: `IDENTITY (LOOSE — style takes priority):
-- The person should be recognizable, but style transformation is the priority
-- Allow strong stylization of face, skin, and features in the target style
-- Preserve identity at ~30% — enough to know it's the same person, but heavily stylized
-- The result should LOOK LIKE the target art style first, real person second`,
+- The subject should be recognizable, but style transformation is the priority
+- Allow strong stylization of features, surface texture, and colors in the target style
+- Preserve identity at ~30% — enough to know it's the same subject, but heavily stylized
+- The result should LOOK LIKE the target art style first, original subject second`,
 
   100: `IDENTITY (NONE — full artistic transformation):
 - Ignore identity preservation entirely. Style is everything.
-- Transform the person completely into the target art style with zero compromise
+- Transform the subject completely into the target art style with zero compromise
 - Render as if this were an original artwork in the target style, not a photo conversion
-- Face, skin, hair, clothing, background — ALL must be 100% in the target style
-- The result must be indistinguishable from native ${''/* placeholder */} artwork`,
+- All features, textures, colors, and background — ALL must be 100% in the target style
+- The result must be indistinguishable from native artwork`,
 };
 
 export const FINAL_PROMPT = (style: string, intensity: number = 70) => `
 You are an expert image-to-image style transfer system.
+The input image may contain a person, an animal, an object, or a scene — handle all equally.
 
 Your task is to re-render the provided image into the following visual style:
 "${style}"
@@ -36,15 +37,15 @@ ${IDENTITY_BY_INTENSITY[intensity] ?? IDENTITY_BY_INTENSITY[70]}
 STYLE TRANSFORMATION:
 - Apply the requested style ${intensity === 100 ? 'at ABSOLUTE MAXIMUM — no holding back' : intensity >= 70 ? 'strongly and visibly' : intensity === 50 ? 'clearly but balanced with the original' : 'very subtly, barely noticeable'}
 - Transform rendering: textures, materials, shading, lighting, linework — all in target style
-- Ensure the entire image — face, hair, clothing, background — is consistently transformed
+- Ensure the entire image — subject features, body, and background — is consistently transformed
 - The style change must be ${intensity === 100 ? 'total and complete' : intensity >= 70 ? 'obvious and striking' : 'gentle and subtle'}
 
 CONSISTENCY:
-- Keep original hair color, clothing color and type consistent with the source
-- Body pose and composition must stay the same
+- Keep original colors (fur, hair, clothing, skin) consistent with the source
+- Body pose, species, and composition must stay the same
 
 NEGATIVE CONSTRAINTS:
-- No grotesque or extreme face distortion
+- No grotesque or extreme distortion of the subject
 - No added elements, props, or accessories not in the original
 - No text, watermark, or frame
 
