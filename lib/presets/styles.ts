@@ -13,7 +13,7 @@ export const STYLES: StylePreset[] = [
     description: '밝고 선명한 뷰티 보정',
     thumbnailSrc: '/style-samples/none.png',
     promptFragment:
-      'Retouch this photo with a soft beauty effect: brighten exposure, smooth skin tone evenly, add a gentle soft-glow, boost clarity and vibrancy. Must remain a photorealistic portrait — do NOT convert to illustration or change facial structure.',
+      'Transform this photo with professional beauty retouching: brighten overall exposure by +1.5 stops, apply heavy skin smoothing and pore removal, add strong soft-focus glow effect, boost saturation and vibrancy significantly, enhance eye brightness. Keep photorealistic — no illustration or painting conversion.',
   },
   {
     id: 'ghibli',
@@ -21,7 +21,7 @@ export const STYLES: StylePreset[] = [
     description: '수채화, 따뜻한 팔레트',
     thumbnailSrc: '/style-samples/ghibli.png',
     promptFragment:
-      'Apply Studio Ghibli watercolor painting rendering: soft hand-drawn brushwork, warm lush color palette, gentle watercolor texture. Change ONLY the painting style — do NOT alter face shape, proportions, or clothing.',
+      'COMPLETELY transform this photo into Studio Ghibli hand-drawn animation style. The entire image must look like a frame from a Miyazaki film — soft watercolor textures, warm amber-and-green palette, gentle hand-painted brushwork visible throughout, simplified but expressive facial features drawn in Ghibli style. This is a full art style conversion, NOT a filter.',
   },
   {
     id: 'pixar-3d',
@@ -29,7 +29,7 @@ export const STYLES: StylePreset[] = [
     description: '귀여운 3D 렌더링',
     thumbnailSrc: '/style-samples/pixar-3d.png',
     promptFragment:
-      'Apply Pixar 3D CGI rendering technique: smooth subsurface scattering on skin, soft studio lighting, vibrant color grading, premium CGI texture quality. Change ONLY the rendering style — do NOT alter face shape or proportions.',
+      'COMPLETELY transform this photo into Pixar 3D CGI animation style. The entire image must look like a frame from a Pixar movie — smooth subsurface scattering skin, large expressive CGI eyes, soft studio three-point lighting, vibrant saturated colors, premium Pixar render quality with visible 3D depth and texture. This is a full 3D CGI conversion, NOT a filter.',
   },
   {
     id: 'anime',
@@ -37,7 +37,7 @@ export const STYLES: StylePreset[] = [
     description: '클린 라인아트, 셀 셰이딩',
     thumbnailSrc: '/style-samples/anime.png',
     promptFragment:
-      'Apply Japanese anime illustration rendering: clean crisp line art, cel shading with flat color fills, high-contrast lighting. Change ONLY the drawing style — do NOT alter face shape or proportions.',
+      'COMPLETELY transform this photo into Japanese anime illustration style. The entire image must look like a frame from a high-quality anime series — clean crisp black outlines, flat cel-shaded colors, large stylized anime eyes, simplified smooth skin with anime-style shading, vivid saturated palette. This is a full anime art conversion, NOT a filter.',
   },
   {
     id: 'disney-3d',
@@ -45,7 +45,7 @@ export const STYLES: StylePreset[] = [
     description: '디즈니 3D 렌더링',
     thumbnailSrc: '/style-samples/disney-3d.png',
     promptFragment:
-      'Apply Disney 3D CGI rendering technique: smooth warm skin shading, bright cheerful lighting, rich color saturation, premium Disney animation texture quality. Change ONLY the rendering style — do NOT alter face shape, eye size, or proportions.',
+      'COMPLETELY transform this photo into Disney 3D CGI animation style. The entire image must look like a frame from a Disney animated film — warm glowing skin with Disney-characteristic smooth shading, bright cheerful studio lighting, slightly enlarged expressive eyes in Disney style, rich color saturation, premium Disney render quality. This is a full 3D CGI conversion, NOT a filter.',
   },
   {
     id: 'oil-painting',
@@ -53,7 +53,7 @@ export const STYLES: StylePreset[] = [
     description: '붓 터치, 임파스토',
     thumbnailSrc: '/style-samples/oil-painting.png',
     promptFragment:
-      'Apply oil painting rendering: visible impasto brush strokes, rich saturated colors, classical portrait painting texture, canvas surface. Change ONLY the painting style — do NOT alter face shape or proportions.',
+      'COMPLETELY transform this photo into a classical oil painting. The entire image must look like a hand-painted portrait on canvas — thick impasto brushstrokes visible throughout, rich deeply saturated colors, traditional portrait painting composition, visible canvas texture beneath, painterly rendering of all surfaces including skin hair and clothing. This is a full painting conversion, NOT a filter.',
   },
   {
     id: 'pencil-sketch',
@@ -61,7 +61,7 @@ export const STYLES: StylePreset[] = [
     description: '모노크롬 선화',
     thumbnailSrc: '/style-samples/pencil-sketch.png',
     promptFragment:
-      'Apply pencil sketch rendering: detailed graphite linework, hatching and cross-hatching for shading, monochrome. Change ONLY the drawing style — do NOT alter face shape or proportions.',
+      'COMPLETELY transform this photo into a detailed pencil sketch drawing. The entire image must look like an artist\'s hand-drawn graphite sketch — monochrome with only pencil lines and shading, visible hatching and cross-hatching throughout, paper texture showing through, no photographic elements remaining. This is a full drawing conversion, NOT a filter.',
   },
 ];
 

@@ -24,7 +24,7 @@ export function composePrompt(options: ComposeOptions): string {
     BASE_INSTRUCTION,
     `- Output image aspect ratio: ${ratioLabel}`,
     '',
-    `Style: ${style.promptFragment}`,
+    `TARGET STYLE [${style.name.toUpperCase()}]: ${style.promptFragment}`,
   ];
 
   if (options.customPrompt?.trim()) {
