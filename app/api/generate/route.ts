@@ -4,7 +4,7 @@ import { getGenAI, MODEL } from '@/lib/gemini/client';
 import { composePrompt, getAspectRatioParam } from '@/lib/gemini/compose';
 
 export const runtime = 'nodejs';
-export const maxDuration = 60;
+export const maxDuration = 300;
 
 async function verifyToken(req: NextRequest): Promise<{ uid: string; email: string }> {
   const auth = req.headers.get('Authorization')?.replace('Bearer ', '');

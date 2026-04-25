@@ -5,6 +5,20 @@ import { ko } from '@/lib/i18n/ko';
 
 /* ─── helpers ─────────────────────────────────────────────── */
 
+function rr(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.arcTo(x + w, y, x + w, y + r, r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.arcTo(x + w, y + h, x + w - r, y + h, r);
+  ctx.lineTo(x + r, y + h);
+  ctx.arcTo(x, y + h, x, y + h - r, r);
+  ctx.lineTo(x, y + r);
+  ctx.arcTo(x, y, x + r, y, r);
+  ctx.closePath();
+}
+
 function cover(
   ctx: CanvasRenderingContext2D,
   img: HTMLImageElement,
@@ -40,8 +54,9 @@ function drawTshirtPhoto(
   W: number, H: number,
 ) {
   ctx.drawImage(prodImg, 0, 0, W, H);
-  const px = Math.round(W * 0.28), py = Math.round(H * 0.30);
-  const pw = Math.round(W * 0.43), ph = Math.round(H * 0.31);
+  // 앞면 전체 인쇄 영역 — 칼라 아래 ~ 밑단 위
+  const px = Math.round(W * 0.20), py = Math.round(H * 0.26);
+  const pw = Math.round(W * 0.58), ph = Math.round(H * 0.42);
   multiplyRect(ctx, userImg, px, py, pw, ph);
 }
 
@@ -55,8 +70,9 @@ function drawMugPhoto(
   W: number, H: number,
 ) {
   ctx.drawImage(prodImg, 0, 0, W, H);
-  const px = Math.round(W * 0.27), py = Math.round(H * 0.11);
-  const pw = Math.round(W * 0.38), ph = Math.round(H * 0.67);
+  // 가운데(녹색 핸들) 머그 흰 몸체
+  const px = Math.round(W * 0.22), py = Math.round(H * 0.10);
+  const pw = Math.round(W * 0.42), ph = Math.round(H * 0.77);
   multiplyRect(ctx, userImg, px, py, pw, ph);
 }
 
@@ -70,9 +86,14 @@ function drawCushionPhoto(
   W: number, H: number,
 ) {
   ctx.drawImage(prodImg, 0, 0, W, H);
-  const px = Math.round(W * 0.05), py = Math.round(H * 0.09);
-  const pw = Math.round(W * 0.44), ph = Math.round(H * 0.80);
-  multiplyRect(ctx, userImg, px, py, pw, ph);
+  // 왼쪽 쿠션 정면 흰 면
+  const px = Math.round(W * 0.04), py = Math.round(H * 0.09);
+  const pw = Math.round(W * 0.44), ph = Math.round(H * 0.76);
+  ctx.save();
+  ctx.globalCompositeOperation = 'multiply';
+  rr(ctx, px, py, pw, ph, 8); ctx.clip();
+  cover(ctx, userImg, px, py, pw, ph);
+  ctx.restore();
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -85,8 +106,9 @@ function drawTotebagPhoto(
   W: number, H: number,
 ) {
   ctx.drawImage(prodImg, 0, 0, W, H);
-  const px = Math.round(W * 0.52), py = Math.round(H * 0.12);
-  const pw = Math.round(W * 0.42), ph = Math.round(H * 0.78);
+  // 오른쪽 아이보리 백 몸체 (핸들 아래부터)
+  const px = Math.round(W * 0.53), py = Math.round(H * 0.24);
+  const pw = Math.round(W * 0.43), ph = Math.round(H * 0.70);
   multiplyRect(ctx, userImg, px, py, pw, ph);
 }
 
@@ -100,8 +122,9 @@ function drawGriptokPhoto(
   W: number, H: number,
 ) {
   ctx.drawImage(prodImg, 0, 0, W, H);
-  const cx = Math.round(W * 0.39), cy = Math.round(H * 0.44);
-  const rx = Math.round(W * 0.30), ry = Math.round(H * 0.27);
+  // 흰 원반 face — 살짝 좌편향, 원형에 가까운 타원
+  const cx = Math.round(W * 0.34), cy = Math.round(H * 0.42);
+  const rx = Math.round(W * 0.29), ry = Math.round(H * 0.28);
   ctx.save();
   ctx.globalCompositeOperation = 'multiply';
   ctx.beginPath(); ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2); ctx.clip();
@@ -119,8 +142,9 @@ function drawMinicanvasPhoto(
   W: number, H: number,
 ) {
   ctx.drawImage(prodImg, 0, 0, W, H);
-  const px = Math.round(W * 0.08), py = Math.round(H * 0.08);
-  const pw = Math.round(W * 0.44), ph = Math.round(H * 0.60);
+  // 왼쪽 캔버스 흰 면
+  const px = Math.round(W * 0.07), py = Math.round(H * 0.08);
+  const pw = Math.round(W * 0.43), ph = Math.round(H * 0.63);
   multiplyRect(ctx, userImg, px, py, pw, ph);
 }
 

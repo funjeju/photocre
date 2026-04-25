@@ -2,6 +2,7 @@
 
 import { Sparkles, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import imageCompression from 'browser-image-compression';
 import { Button } from '@/components/ui/button';
 import { useStudioStore } from '@/lib/store/studio';
 import { useAuth } from '@/lib/firebase/auth-context';
@@ -36,7 +37,13 @@ export function GenerateButton() {
     setIsGenerating(true);
     try {
       const idToken = await user.getIdToken();
-      const imageBase64 = await blobToBase64(img.blob);
+      const resizedBlob = await imageCompression(img.blob, {
+        maxWidthOrHeight: 1024,
+        useWebWorker: true,
+        fileType: 'image/webp',
+        initialQuality: 0.85,
+      });
+      const imageBase64 = await blobToBase64(resizedBlob);
 
       console.log('[generate] styleId:', sid, '| aspectRatio:', aspectRatio);
 
