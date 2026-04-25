@@ -17,15 +17,41 @@ const CoverTextEditor = dynamic(
   { ssr: false },
 );
 
-function blobToBase64(blob: Blob): Promise<string> {
+const MAX_PHOTO_PX = 1200;
+
+function resizeToBase64(blob: Blob): Promise<{ base64: string; mimeType: string }> {
   return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      const result = reader.result as string;
-      resolve(result.split(',')[1]);
+    const url = URL.createObjectURL(blob);
+    const img = new window.Image();
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const { naturalWidth: w, naturalHeight: h } = img;
+      const scale = Math.min(1, MAX_PHOTO_PX / Math.max(w, h));
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(w * scale);
+      canvas.height = Math.round(h * scale);
+      const ctx = canvas.getContext('2d');
+      if (!ctx) { reject(new Error('canvas context unavailable')); return; }
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      canvas.toBlob(
+        (resized) => {
+          if (!resized) { reject(new Error('canvas toBlob failed')); return; }
+          const reader = new FileReader();
+          reader.onload = () => {
+            const result = reader.result as string;
+            const comma = result.indexOf(',');
+            if (comma === -1) { reject(new Error('unexpected dataURL format')); return; }
+            resolve({ base64: result.slice(comma + 1), mimeType: 'image/webp' });
+          };
+          reader.onerror = () => reject(reader.error ?? new Error('FileReader error'));
+          reader.readAsDataURL(resized);
+        },
+        'image/webp',
+        0.88,
+      );
     };
-    reader.onerror = reject;
-    reader.readAsDataURL(blob);
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('image load failed')); };
+    img.src = url;
   });
 }
 
@@ -123,9 +149,15 @@ export function CoverEditor() {
     setIsGenerating(true);
     setResultUrl(null);
     try {
-      const idToken = await user.getIdToken();
-      const photoBase64s = await Promise.all(photos.map((p) => blobToBase64(p.blob)));
-      const photoTypes = photos.map((p) => p.blob.type || 'image/jpeg');
+      const idToken = await user.getIdToken(true);
+      const resized = await Promise.all(photos.map((p) => resizeToBase64(p.blob)));
+      const photoBase64s = resized.map((r) => r.base64);
+      const photoTypes = resized.map((r) => r.mimeType);
+
+      if (photoBase64s.some((b) => !b || b.length < 100)) {
+        toast.error('사진을 읽을 수 없습니다. 다시 업로드해 주세요.');
+        return;
+      }
 
       const res = await fetch('/api/cover-generate', {
         method: 'POST',
@@ -143,6 +175,8 @@ export function CoverEditor() {
       if (!res.ok) {
         if (data.code === 'INSUFFICIENT_CREDITS') {
           toast.error('크레딧이 부족합니다.');
+        } else if (data.code === 'INVALID_PHOTO') {
+          toast.error('사진 데이터가 올바르지 않습니다. 사진을 다시 업로드해 주세요.');
         } else {
           toast.error(data.error ?? '생성 실패. 다시 시도해주세요.');
         }

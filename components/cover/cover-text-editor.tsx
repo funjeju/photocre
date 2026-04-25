@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useCallback, useId } from 'react';
 import { Stage, Layer, Image as KonvaImage, Text, Transformer } from 'react-konva';
 import type Konva from 'konva';
-import { Plus, Trash2, Download, ArrowLeft, AlignLeft, AlignCenter, AlignRight, RotateCcw } from 'lucide-react';
+import { Plus, Trash2, Download, ArrowLeft, AlignLeft, AlignCenter, AlignRight, RotateCcw, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -440,6 +440,16 @@ export function CoverTextEditor({
 
         {/* 하단 버튼 */}
         <div className="p-4 border-t border-border shrink-0 flex flex-col gap-2">
+          <button
+            onClick={() => window.location.reload()}
+            className="flex items-center justify-center gap-2 w-full rounded-2xl border border-border text-muted-foreground hover:border-foreground/30 hover:text-foreground transition-colors h-9 text-xs font-medium"
+          >
+            <RefreshCw className="size-3.5" />
+            새로 만들기
+          </button>
+          <p className="text-[10px] text-muted-foreground text-center leading-relaxed">
+            결과물이 마음에 안 드시면 새로 만들기 후 다시 생성해 보세요
+          </p>
           <Button
             onClick={handleExport}
             disabled={isExporting}

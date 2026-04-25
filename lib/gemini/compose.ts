@@ -30,8 +30,10 @@ export function composePrompt(options: ComposeOptions): string {
     ASPECT_RATIO_LABELS[options.aspectRatio ?? ''] ??
     'same aspect ratio as the input image';
 
+  const intensity = options.transformIntensity ?? 70;
+
   const parts = [
-    FINAL_PROMPT(styleDesc),
+    FINAL_PROMPT(styleDesc, intensity),
 
     '',
 
@@ -39,7 +41,6 @@ export function composePrompt(options: ComposeOptions): string {
 - Aspect ratio: ${ratioLabel}`,
   ];
 
-  const intensity = options.transformIntensity ?? 70;
   parts.push('', INTENSITY_PROMPT[intensity] ?? INTENSITY_PROMPT[70]);
 
   if (options.backgroundPrompt?.trim()) {

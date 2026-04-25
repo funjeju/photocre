@@ -88,31 +88,30 @@ OUTPUT: A single magazine cover image in portrait orientation (4:5 or 3:4 ratio)
 }
 
 function composeFaceSwapPrompt(templateName: string): string {
-  return `You are an expert magazine cover art director and photo compositor.
+  return `You are a professional retouching artist performing a precise face replacement on a magazine cover.
 
-IMAGE 1: The original ${templateName} magazine cover. Use ONLY as a style/layout reference.
-IMAGE 2: The person who will be the cover model. This is the ONLY person who should appear in the result.
+IMAGE 1: The original ${templateName} magazine cover. This is your base canvas — preserve it almost entirely.
+IMAGE 2: The face donor. Extract ONLY the face from this image.
 
-TASK: Create a new magazine cover where IMAGE 2's person is the sole cover model, styled to match ${templateName}'s visual identity.
+TASK: Replace the face of the cover model in IMAGE 1 with the face from IMAGE 2.
 
-CRITICAL — ABOUT THE PEOPLE:
-- The person from IMAGE 1 must NOT appear in the result at all. Do not mix, blend, or reference their face, skin, hair, or features.
-- IMAGE 2's person is the ONLY subject. Render them as they are — preserve their actual facial features, face shape, skin tone, and hair.
-- Do not average or merge the two people's faces together.
+WHAT TO PRESERVE FROM IMAGE 1 (keep pixel-perfect):
+- Every piece of text, logo, title, and all typographic elements — exact position and style
+- Background, set design, color palette, and all graphic elements
+- The cover model's body, neck, shoulders, clothing, hands, and pose
+- Hair (adapt edges naturally where face meets hair)
+- Overall color grading, lighting direction, and mood of the image
 
-WHAT TO TAKE FROM IMAGE 1 (layout & style only):
-- Magazine title, logo, and all typographic elements — keep them in exact positions
-- Background composition, color palette, and graphic design elements
-- Lighting direction, mood, and color grading style
-- The overall framing and how much of the frame the model occupies
+FACE REPLACEMENT — CRITICAL RULES:
+- Identify the face region of IMAGE 1's cover model (forehead to chin, ear to ear)
+- COMPLETELY remove IMAGE 1's face features from that region — eyes, nose, mouth, face shape, skin texture: gone
+- Insert IMAGE 2's face into that exact region at the correct scale and perspective
+- IMAGE 2's facial features must appear 100% as they are: their eye shape, nose, lips, face contour, skin tone — all preserved exactly
+- ABSOLUTE PROHIBITION: Do NOT blend, average, or merge any features from IMAGE 1's face with IMAGE 2's face. Zero mixing. IMAGE 1's face must contribute nothing to the final face.
+- Adapt the lighting and color tone of IMAGE 2's face to match IMAGE 1's lighting conditions so the face looks naturally lit for the scene
+- Blend the edges (hairline, jawline, neck transition) seamlessly — no visible seam or halo
 
-WHAT TO DO WITH IMAGE 2's PERSON:
-- Place them in the same position and framing as the original cover model
-- Apply ${templateName}'s lighting and color treatment to them naturally
-- Style their appearance to match the magazine's aesthetic level
-- They should look like they were actually photographed for this cover
-
-OUTPUT: A complete ${templateName} magazine cover. IMAGE 2's person as the cover model. All original text/graphics intact. No trace of IMAGE 1's original person.`;
+OUTPUT: The ${templateName} magazine cover with IMAGE 2's face placed naturally on the original cover model's body. Everything else identical to IMAGE 1. The result must look like the person from IMAGE 2 was the original cover model.`;
 }
 
 export async function POST(req: NextRequest) {
@@ -135,6 +134,15 @@ export async function POST(req: NextRequest) {
   const template = getCoverTemplate(body.templateId);
   if (!template) {
     return NextResponse.json({ error: 'Invalid template' }, { status: 400 });
+  }
+
+  if (!Array.isArray(body.photoBase64s) || body.photoBase64s.length === 0) {
+    return NextResponse.json({ error: 'No photos provided' }, { status: 400 });
+  }
+  const invalidPhoto = body.photoBase64s.findIndex((b) => !b || b.length < 100);
+  if (invalidPhoto !== -1) {
+    console.error(`[cover-generate] photo[${invalidPhoto}] is empty or too small (len=${body.photoBase64s[invalidPhoto]?.length ?? 0})`);
+    return NextResponse.json({ error: 'Invalid photo data', code: 'INVALID_PHOTO' }, { status: 400 });
   }
 
   try {
@@ -181,6 +189,10 @@ export async function POST(req: NextRequest) {
     ) as { inlineData: { mimeType: string; data: string } } | undefined;
 
     if (!imagePart?.inlineData?.data) {
+      const textPart = response.candidates?.[0]?.content?.parts?.find(
+        (p: unknown) => (p as Record<string, unknown>).text,
+      ) as { text?: string } | undefined;
+      console.error('[cover-generate] no image in response. text:', textPart?.text ?? '(none)', 'finishReason:', response.candidates?.[0]?.finishReason);
       return NextResponse.json({ error: 'No image generated' }, { status: 500 });
     }
 

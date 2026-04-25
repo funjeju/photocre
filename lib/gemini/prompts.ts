@@ -1,28 +1,46 @@
-export const FINAL_PROMPT = (style: string) => `
+const IDENTITY_BY_INTENSITY: Record<number, string> = {
+  30: `IDENTITY (STRICT — barely stylized):
+- The person must look almost identical to the original photo
+- Apply only the faintest hint of the style — skin texture, very subtle color shift at most
+- Face shape, features, expression: preserve at ~90%, virtually unchanged
+- A viewer should immediately recognize this as the same photo with a slight filter`,
+
+  50: `IDENTITY (BALANCED):
+- The person must remain clearly recognizable as the same individual
+- Allow natural style-appropriate facial rendering (e.g. slightly smoother skin, mild cel shading)
+- Preserve overall face shape and identity at ~60% — stylize within that constraint
+- Both the original person AND the target style should be clearly visible`,
+
+  70: `IDENTITY (LOOSE — style takes priority):
+- The person should be recognizable, but style transformation is the priority
+- Allow strong stylization of face, skin, and features in the target style
+- Preserve identity at ~30% — enough to know it's the same person, but heavily stylized
+- The result should LOOK LIKE the target art style first, real person second`,
+
+  100: `IDENTITY (NONE — full artistic transformation):
+- Ignore identity preservation entirely. Style is everything.
+- Transform the person completely into the target art style with zero compromise
+- Render as if this were an original artwork in the target style, not a photo conversion
+- Face, skin, hair, clothing, background — ALL must be 100% in the target style
+- The result must be indistinguishable from native ${''/* placeholder */} artwork`,
+};
+
+export const FINAL_PROMPT = (style: string, intensity: number = 70) => `
 You are an expert image-to-image style transfer system.
 
 Your task is to re-render the provided image into the following visual style:
 "${style}"
 
-IDENTITY (BALANCED — allow stylization while keeping the person recognizable):
-- The person must remain clearly recognizable as the same individual
-- Allow natural style-appropriate facial rendering (e.g. smoother skin in CGI, line art in anime)
-- Preserve overall face shape and identity at ~50% — stylize freely within that constraint
-- Keep original pose, expression, camera angle, and composition
+${IDENTITY_BY_INTENSITY[intensity] ?? IDENTITY_BY_INTENSITY[70]}
 
-STYLE TRANSFORMATION (PRIORITY):
-- Apply the requested style strongly, visibly, and consistently across the entire image
+STYLE TRANSFORMATION:
+- Apply the requested style ${intensity === 100 ? 'at ABSOLUTE MAXIMUM — no holding back' : intensity >= 70 ? 'strongly and visibly' : intensity === 50 ? 'clearly but balanced with the original' : 'very subtly, barely noticeable'}
 - Transform rendering: textures, materials, shading, lighting, linework — all in target style
-- Facial features should be rendered in the target style (not photo-realistic unless the style requires it)
-- Do NOT reinterpret the subject as a completely different character
-
-STYLE EXECUTION DETAILS:
-- Use style-appropriate lighting, materials, textures, and rendering techniques
 - Ensure the entire image — face, hair, clothing, background — is consistently transformed
-- The style change must be obvious and striking, not subtle
+- The style change must be ${intensity === 100 ? 'total and complete' : intensity >= 70 ? 'obvious and striking' : 'gentle and subtle'}
 
 CONSISTENCY:
-- Keep original hair color, clothing color and type consistent
+- Keep original hair color, clothing color and type consistent with the source
 - Body pose and composition must stay the same
 
 NEGATIVE CONSTRAINTS:
@@ -31,9 +49,8 @@ NEGATIVE CONSTRAINTS:
 - No text, watermark, or frame
 
 OUTPUT QUALITY:
-- High quality, sharp, clean rendering
+- High quality, sharp, clean rendering in the target style
 - No artifacts, no blur, no deformation
-- The result must clearly show the style while preserving identity perfectly
 `.trim();
 
 export const STYLE_MAP: Record<string, string> = {
