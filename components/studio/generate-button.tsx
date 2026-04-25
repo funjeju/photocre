@@ -6,32 +6,43 @@ import { Button } from '@/components/ui/button';
 import { useStudioStore } from '@/lib/store/studio';
 import { useAuth } from '@/lib/firebase/auth-context';
 import { blobToBase64 } from '@/lib/canvas/export';
+import { STYLES } from '@/lib/presets/styles';
 import { ko } from '@/lib/i18n/ko';
+
+const STYLES_MAP = Object.fromEntries(STYLES.map((s) => [s.id, s.name]));
 
 export function GenerateButton() {
   const { user } = useAuth();
-  const {
-    croppedImage, styleId, customPrompt, aspectRatio,
-    isGenerating, setIsGenerating, setGeneratedImageUrl, setGenerationId,
-  } = useStudioStore();
+  const isGenerating = useStudioStore((s) => s.isGenerating);
+  const croppedImage = useStudioStore((s) => s.croppedImage);
+  const styleId = useStudioStore((s) => s.styleId);
+  const setIsGenerating = useStudioStore((s) => s.setIsGenerating);
+  const setGeneratedImageUrl = useStudioStore((s) => s.setGeneratedImageUrl);
+  const setGenerationId = useStudioStore((s) => s.setGenerationId);
 
-  const canAct = !!croppedImage && !isGenerating && styleId !== 'none';
+  const canAct = !!croppedImage && !isGenerating;
 
   async function handleGenerate() {
     if (!canAct || !user) return;
 
+    // 클릭 시점에 store 최신값 직접 읽기 — 스테일 클로저 방지
+    const { croppedImage: img, styleId: sid, customPrompt, aspectRatio } = useStudioStore.getState();
+    if (!img) return;
+
     setIsGenerating(true);
     try {
       const idToken = await user.getIdToken();
-      const imageBase64 = await blobToBase64(croppedImage!.blob);
+      const imageBase64 = await blobToBase64(img.blob);
+
+      console.log('[generate] styleId:', sid, '| aspectRatio:', aspectRatio);
 
       const res = await fetch('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${idToken}` },
         body: JSON.stringify({
           imageBase64,
-          imageType: croppedImage!.blob.type || 'image/webp',
-          styleId,
+          imageType: img.blob.type || 'image/webp',
+          styleId: sid,
           aspectRatio,
           customPrompt: customPrompt.trim() || undefined,
         }),
@@ -73,7 +84,8 @@ export function GenerateButton() {
         <>
           <Sparkles className="size-4" />
           {ko.studio.generate.button}
-          <span className="ml-1 text-xs opacity-60">• {ko.studio.ai.credit}</span>
+          <span className="ml-auto text-xs opacity-50 font-normal">{STYLES_MAP[styleId] ?? styleId}</span>
+          <span className="text-xs opacity-60">• {ko.studio.ai.credit}</span>
         </>
       )}
     </Button>

@@ -72,6 +72,8 @@ export async function POST(req: NextRequest) {
   try {
     const inputPath = await saveToStorage(body.imageBase64, uid, 'input');
 
+    console.log('[generate] styleId received:', body.styleId, '| aspectRatio:', body.aspectRatio);
+
     const prompt = composePrompt({
       styleId: body.styleId,
       customPrompt: body.customPrompt,
