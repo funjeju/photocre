@@ -94,6 +94,14 @@ export function CoverEditor() {
     setResultUrl(null);
   }
 
+  function switchTemplate(t: CoverTemplate) {
+    setSelected(t);
+    setTexts({});
+    setResultUrl(null);
+    // 사진은 새 템플릿 maxPhotos에 맞게 잘라냄
+    setPhotos((prev) => prev.slice(0, t.maxPhotos));
+  }
+
   function setPhoto(i: number, url: string, blob: Blob) {
     setPhotos((prev) => {
       const next = [...prev];
@@ -300,35 +308,65 @@ export function CoverEditor() {
         </div>
       </div>
 
-      {/* 우측 프리뷰 */}
-      <div className="flex-1 overflow-auto bg-muted/30 flex items-start justify-center p-8">
-        <div className="flex flex-col items-center gap-4">
-          <p className="text-xs text-muted-foreground tracking-widest uppercase">
-            {resultUrl ? 'Result' : 'Template Reference'}
-          </p>
+      {/* 우측: 프리뷰 + 템플릿 전환 */}
+      <div className="flex-1 overflow-auto bg-muted/30 flex flex-col items-center gap-6 p-8">
+        {/* 현재 템플릿 프리뷰 */}
+        <div className="flex flex-col items-center gap-3">
+          <p className="text-xs text-muted-foreground tracking-widest uppercase">Template Reference</p>
           <div
             className="rounded-2xl overflow-hidden"
-            style={{ boxShadow: '0 8px 40px rgba(0,0,0,0.18)', maxWidth: 340 }}
+            style={{ boxShadow: '0 8px 40px rgba(0,0,0,0.18)', maxWidth: 300 }}
           >
             <Image
-              src={resultUrl ?? selected.imagePath}
-              alt={resultUrl ? '생성 결과' : selected.name}
-              width={340}
-              height={453}
+              src={selected.imagePath}
+              alt={selected.name}
+              width={300}
+              height={400}
               className="w-full object-cover"
-              unoptimized={resultUrl?.startsWith('data:') ?? false}
             />
           </div>
-          {!resultUrl && photos.length === 0 && (
+          {photos.length === 0 && (
             <p className="text-[11px] text-muted-foreground text-center max-w-[240px]">
-              왼쪽에서 사진을 업로드하고 커버 만들기를 누르면 AI가 이 스타일로 합성합니다
+              사진을 업로드하고 커버 만들기를 누르면 AI가 이 스타일로 합성합니다
             </p>
           )}
-          {resultUrl && (
-            <p className="text-[11px] text-muted-foreground">
-              다시 만들려면 커버 만들기를 다시 누르세요 (1 크레딧 추가 소모)
-            </p>
-          )}
+        </div>
+
+        {/* 템플릿 전환 스트립 */}
+        <div className="w-full max-w-2xl">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+            다른 템플릿으로 변경
+          </p>
+          <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+            {COVER_TEMPLATES.map((t) => (
+              <button
+                key={t.id}
+                onClick={() => switchTemplate(t)}
+                className="flex-shrink-0 flex flex-col gap-1.5 focus:outline-none group"
+              >
+                <div className={cn(
+                  'w-20 aspect-[3/4] rounded-xl overflow-hidden border-2 transition-all',
+                  t.id === selected.id
+                    ? 'border-accent ring-2 ring-accent ring-offset-2'
+                    : 'border-border group-hover:border-foreground/30 group-hover:shadow-md',
+                )}>
+                  <Image
+                    src={t.imagePath}
+                    alt={t.name}
+                    width={80}
+                    height={107}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <p className={cn(
+                  'text-[10px] text-center leading-tight truncate w-20',
+                  t.id === selected.id ? 'text-accent font-semibold' : 'text-muted-foreground',
+                )}>
+                  {t.name}
+                </p>
+              </button>
+            ))}
+          </div>
         </div>
       </div>
     </div>
