@@ -63,19 +63,7 @@ export function ResultViewer() {
   const displayW = Math.round(canvasW * displayScale);
   const displayH = Math.round(canvasH * displayScale);
 
-  // 프레임 패딩 (canvasW 기준)
   const scale = canvasW / 512;
-  const pad = {
-    top: frame.konva.top * scale,
-    right: frame.konva.right * scale,
-    bottom: frame.konva.bottom * scale,
-    left: frame.konva.left * scale,
-  };
-
-  const imgX = pad.left;
-  const imgY = pad.top;
-  const imgW = canvasW - pad.left - pad.right;
-  const imgH = canvasH - pad.top - pad.bottom;
 
   const [textPos, setTextPos] = useState({ x: 0.5, y: 0.9 });
   useEffect(() => {
@@ -127,7 +115,7 @@ export function ResultViewer() {
               )}
 
               {mainImage && (
-                <KonvaImage image={mainImage} x={imgX} y={imgY} width={imgW} height={imgH} />
+                <KonvaImage image={mainImage} x={0} y={0} width={canvasW} height={canvasH} />
               )}
 
               {textOverlay?.content && (

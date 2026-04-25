@@ -91,61 +91,45 @@ export function LivePreview() {
   return (
     <div className="w-full flex justify-center">
       <div style={{ width: '100%', maxWidth: PREVIEW_MAX_W }}>
-        {/* 배경 박스 */}
-        <div
-          className="rounded-xl overflow-hidden"
-          style={{ ...bgStyle, padding: backgroundId === 'keep-original' ? 0 : 8 }}
-        >
-          {/* 프레임 래퍼 */}
-          <div ref={frameRef} style={frame.css.wrapper} className="relative">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={croppedImage.previewUrl}
-              alt="미리보기"
-              style={{ display: 'block', width: '100%', height: 'auto', ...frame.css.image }}
-            />
+        {/* 원본 크롭 이미지 — 프레임/배경 없이 그대로 표시 */}
+        <div ref={frameRef} className="relative rounded-xl overflow-hidden">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={croppedImage.previewUrl}
+            alt="미리보기"
+            style={{ display: 'block', width: '100%', height: 'auto' }}
+          />
 
-            {/* 폴라로이드 캡션 영역 */}
-            {frame.css.showCaption && (
-              <div
-                className="flex items-center justify-center"
-                style={{ background: frame.css.captionBg, minHeight: 28, paddingTop: 4, paddingBottom: 4 }}
+          {/* 드래그 가능한 텍스트 레이어 */}
+          {textOverlay && (
+            <div className="absolute inset-0 pointer-events-none">
+              <span
+                className="absolute pointer-events-auto cursor-move select-none touch-none"
+                style={{
+                  left: `${textX * 100}%`,
+                  top: `${textY * 100}%`,
+                  transform: 'translate(-50%, -50%)',
+                  fontFamily: textOverlay.fontFamily,
+                  fontSize: textFontSize,
+                  color: textOverlay.content ? textOverlay.color : 'rgba(255,255,255,0.5)',
+                  textShadow: '0 1px 4px rgba(0,0,0,0.7)',
+                  textAlign: textOverlay.alignment as React.CSSProperties['textAlign'],
+                  whiteSpace: 'pre-wrap',
+                  maxWidth: '90%',
+                  lineHeight: 1.2,
+                }}
+                onPointerDown={handlePointerDown}
+                onPointerMove={handlePointerMove}
+                onPointerUp={handlePointerUp}
               >
-                <span style={{ fontSize: 9, color: '#bbb' }}>텍스트 영역</span>
-              </div>
-            )}
-
-            {/* 드래그 가능한 텍스트 레이어 */}
-            {textOverlay && (
-              <div className="absolute inset-0 pointer-events-none">
-                <span
-                  className="absolute pointer-events-auto cursor-move select-none touch-none"
-                  style={{
-                    left: `${textX * 100}%`,
-                    top: `${textY * 100}%`,
-                    transform: 'translate(-50%, -50%)',
-                    fontFamily: textOverlay.fontFamily,
-                    fontSize: textFontSize,
-                    color: textOverlay.content ? textOverlay.color : 'rgba(255,255,255,0.5)',
-                    textShadow: '0 1px 4px rgba(0,0,0,0.7)',
-                    textAlign: textOverlay.alignment as React.CSSProperties['textAlign'],
-                    whiteSpace: 'pre-wrap',
-                    maxWidth: '90%',
-                    lineHeight: 1.2,
-                  }}
-                  onPointerDown={handlePointerDown}
-                  onPointerMove={handlePointerMove}
-                  onPointerUp={handlePointerUp}
-                >
-                  {textOverlay.content || 'TEXT'}
-                </span>
-              </div>
-            )}
-          </div>
+                {textOverlay.content || 'TEXT'}
+              </span>
+            </div>
+          )}
         </div>
 
         <p className="mt-3 text-center text-[10px] text-muted-foreground">
-          미리보기 · 완성하기를 누르면 고화질로 저장됩니다
+          AI 변환 전 미리보기 · 프레임/배경은 생성 후 적용됩니다
         </p>
       </div>
     </div>
