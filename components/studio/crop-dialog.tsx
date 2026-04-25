@@ -39,6 +39,15 @@ export function CropDialog() {
       const result = await getCroppedBlob(sourceImage.previewUrl, croppedAreaPixels);
       setCroppedImage(result);
       setCropData(croppedAreaPixels);
+
+      // 크롭된 실제 비율로 Gemini 파라미터 자동 세팅
+      const r = croppedAreaPixels.width / croppedAreaPixels.height;
+      if (r > 1.6) setAspectRatio('16:9');
+      else if (r > 1.1) setAspectRatio('4:5');
+      else if (r < 0.65) setAspectRatio('9:16');
+      else if (r < 0.85) setAspectRatio('3:4');
+      else setAspectRatio('1:1');
+
       setIsCropDialogOpen(false);
     } catch {
       /* toast 처리는 getCroppedBlob 바깥에서 */
