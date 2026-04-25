@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutGrid, Layers, History, Wand2, LogOut, BookImage, Newspaper } from 'lucide-react';
+import { LayoutGrid, Layers, History, Wand2, LogOut, BookImage, Newspaper, ShoppingBag, Package, ShieldCheck } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,6 +13,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/lib/firebase/auth-context';
+import { useCartStore } from '@/lib/store/cart';
 import { CreditsBadge } from '@/components/shared/credits-badge';
 import { ko } from '@/lib/i18n/ko';
 
@@ -29,6 +30,7 @@ export function Header() {
   const pathname = usePathname();
   const router = useRouter();
   const { user, signOut } = useAuth();
+  const cartCount = useCartStore((s) => s.totalCount());
 
   async function handleSignOut() {
     await signOut();
@@ -70,8 +72,21 @@ export function Header() {
           ))}
         </nav>
 
-        <div className="flex items-center gap-3 ml-auto">
+        <div className="flex items-center gap-2 ml-auto">
           <CreditsBadge />
+
+          {/* 장바구니 */}
+          <Link
+            href="/cart"
+            className="relative flex size-8 items-center justify-center rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
+          >
+            <ShoppingBag className="size-4" />
+            {cartCount > 0 && (
+              <span className="absolute -right-0.5 -top-0.5 flex size-4 items-center justify-center rounded-full bg-accent text-[9px] font-bold text-accent-foreground">
+                {cartCount > 9 ? '9+' : cartCount}
+              </span>
+            )}
+          </Link>
 
           {/* 아바타 + 드롭다운 */}
           <DropdownMenu>
@@ -88,6 +103,15 @@ export function Header() {
                 <p className="text-sm font-medium truncate">{user?.displayName}</p>
                 <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
               </div>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => router.push('/orders')} className="gap-2">
+                <Package className="size-4" />
+                주문 내역
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => router.push('/admin/orders')} className="gap-2">
+                <ShieldCheck className="size-4" />
+                어드민
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleSignOut} className="text-destructive gap-2">
                 <LogOut className="size-4" />

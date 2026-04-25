@@ -61,8 +61,52 @@ export const GenerationSchema = z.object({
   error: z.string().optional(),
 });
 
+export const OrderItemSchema = z.object({
+  productId: z.string(),
+  productName: z.string(),
+  customImageUrl: z.string(),
+  generationId: z.string().nullable(),
+  selectedOptions: z.record(z.string(), z.string()),
+  quantity: z.number().int().positive(),
+  unitPrice: z.number().positive(),
+});
+
+export const ShippingAddressSchema = z.object({
+  name: z.string().min(1),
+  phone: z.string().min(9),
+  zipCode: z.string().length(5),
+  address: z.string().min(1),
+  addressDetail: z.string().optional(),
+  memo: z.string().optional(),
+});
+
+export const OrderSchema = z.object({
+  id: z.string(),
+  userId: z.string(),
+  userEmail: z.string(),
+  userName: z.string(),
+  items: z.array(OrderItemSchema),
+  totalPrice: z.number(),
+  shippingFee: z.number(),
+  shippingAddress: ShippingAddressSchema,
+  paymentMethod: z.literal('bank_transfer'),
+  paymentStatus: z.enum(['pending', 'paid', 'cancelled', 'refunded']),
+  orderStatus: z.enum(['received', 'processing', 'shipped', 'delivered', 'cancelled']),
+  shippingInfo: z.object({
+    carrier: z.string().optional(),
+    trackingNumber: z.string().optional(),
+    shippedAt: z.unknown().optional(),
+  }).optional(),
+  adminMemo: z.string().optional(),
+  createdAt: z.unknown(),
+  updatedAt: z.unknown(),
+});
+
 export type TextOverlay = z.infer<typeof TextOverlaySchema>;
 export type Recipe = z.infer<typeof RecipeSchema>;
 export type Template = z.infer<typeof TemplateSchema>;
 export type User = z.infer<typeof UserSchema>;
 export type Generation = z.infer<typeof GenerationSchema>;
+export type OrderItem = z.infer<typeof OrderItemSchema>;
+export type ShippingAddress = z.infer<typeof ShippingAddressSchema>;
+export type Order = z.infer<typeof OrderSchema>;

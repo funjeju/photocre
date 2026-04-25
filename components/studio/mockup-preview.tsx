@@ -1,7 +1,10 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { ShoppingBag } from 'lucide-react';
 import { ko } from '@/lib/i18n/ko';
+import { useStudioStore } from '@/lib/store/studio';
 
 /* ═══════════════════════════════════════════════════════════════
    LOW-LEVEL HELPERS
@@ -312,6 +315,8 @@ function useProductImgs(): Record<string, HTMLImageElement | null> {
 export function MockupPreview({ imageUrl }: { imageUrl: string }) {
   const [img, setImg] = useState<HTMLImageElement | null>(null);
   const productImgs = useProductImgs();
+  const router = useRouter();
+  const generationId = useStudioStore((s) => s.generationId);
 
   useEffect(() => {
     if (!imageUrl) return;
@@ -320,6 +325,12 @@ export function MockupPreview({ imageUrl }: { imageUrl: string }) {
     i.onload = () => setImg(i);
     i.src = imageUrl;
   }, [imageUrl]);
+
+  function handleItemClick(id: string) {
+    const params = new URLSearchParams();
+    if (generationId) params.set('gid', generationId);
+    router.push(`/product/${id}?${params.toString()}`);
+  }
 
   return (
     <div className="flex flex-col gap-3 pt-4 border-t border-border/40 w-full">
@@ -332,12 +343,23 @@ export function MockupPreview({ imageUrl }: { imageUrl: string }) {
 
       <div className="grid grid-cols-3 gap-x-4 gap-y-6 w-full">
         {ITEMS.map((item) => (
-          <MockupCanvas
+          <button
             key={item.id}
-            {...item}
-            img={img}
-            productImg={productImgs[item.id] ?? null}
-          />
+            onClick={() => handleItemClick(item.id)}
+            className="group relative flex flex-col items-center gap-2 rounded-xl p-1 transition-all hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 cursor-pointer"
+          >
+            <MockupCanvas
+              {...item}
+              img={img}
+              productImg={productImgs[item.id] ?? null}
+            />
+            <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-background/70 opacity-0 transition-opacity group-hover:opacity-100">
+              <div className="flex items-center gap-1.5 rounded-full bg-accent px-3 py-1.5 text-xs font-medium text-accent-foreground shadow">
+                <ShoppingBag className="size-3.5" />
+                주문하기
+              </div>
+            </div>
+          </button>
         ))}
       </div>
     </div>
