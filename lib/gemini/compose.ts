@@ -1,5 +1,4 @@
-import { getStyle } from '@/lib/presets/styles';
-import { BASE_INSTRUCTION, QUALITY_FRAGMENT } from './prompts';
+import { FINAL_PROMPT, STYLE_MAP } from './prompts';
 
 const ASPECT_RATIO_LABELS: Record<string, string> = {
   '1:1': 'square (1:1)',
@@ -17,21 +16,28 @@ interface ComposeOptions {
 }
 
 export function composePrompt(options: ComposeOptions): string {
-  const style = getStyle(options.styleId);
-  const ratioLabel = ASPECT_RATIO_LABELS[options.aspectRatio ?? ''] ?? 'same aspect ratio as the input image';
+  const styleDesc = STYLE_MAP[options.styleId] ?? STYLE_MAP['beauty'];
+  const ratioLabel =
+    ASPECT_RATIO_LABELS[options.aspectRatio ?? ''] ??
+    'same aspect ratio as the input image';
 
   const parts = [
-    BASE_INSTRUCTION,
-    `- Output image aspect ratio: ${ratioLabel}`,
+    FINAL_PROMPT(styleDesc),
+
     '',
-    `TARGET STYLE [${style.name.toUpperCase()}]: ${style.promptFragment}`,
+
+    `OUTPUT SETTING:
+- Aspect ratio: ${ratioLabel}`,
   ];
 
   if (options.customPrompt?.trim()) {
-    parts.push('', `Additional user requirements: ${options.customPrompt.trim()}`);
+    parts.push(
+      '',
+      `USER REQUIREMENTS (must not break identity preservation):
+${options.customPrompt.trim()}`,
+    );
   }
 
-  parts.push(QUALITY_FRAGMENT);
   return parts.join('\n');
 }
 
