@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { adminAuth, adminDb, adminStorage } from '@/lib/firebase/admin';
 import { getGenAI, MODEL } from '@/lib/gemini/client';
 import { getCoverTemplate } from '@/lib/presets/cover-templates';
+import fs from 'fs';
+import path from 'path';
 
 export const runtime = 'nodejs';
 export const maxDuration = 90;
@@ -40,8 +42,15 @@ async function saveToStorage(base64: string, uid: string, folder: string, ext = 
   return `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodedPath}?alt=media`;
 }
 
+function readTemplateImageAsBase64(imagePath: string): { base64: string; mimeType: string } {
+  const fullPath = path.join(process.cwd(), 'public', imagePath);
+  const buffer = fs.readFileSync(fullPath);
+  const ext = path.extname(imagePath).toLowerCase().replace('.', '');
+  const mimeType = ext === 'jpg' ? 'image/jpeg' : `image/${ext}`;
+  return { base64: buffer.toString('base64'), mimeType };
+}
+
 function composeCoverPrompt(
-  templateStyle: string,
   layoutDescription: string,
   texts: Record<string, string>,
   templateName: string,
@@ -51,30 +60,28 @@ function composeCoverPrompt(
     .map(([k, v]) => `  - ${k}: "${v}"`)
     .join('\n');
 
-  return `You are an expert magazine cover art director and compositor.
+  return `You are a professional magazine cover compositor.
 
-MAGAZINE: ${templateName}
+IMAGE 1: The ${templateName} magazine cover background. This image contains the background, typography, logo, and all graphic design elements — but intentionally has NO person in it. This is your base canvas.
+IMAGE 2: The person to place on the cover. This is your ONLY model.
 
-VISUAL STYLE:
-${templateStyle}
+TASK: Place IMAGE 2's person into IMAGE 1's canvas to create a complete, natural-looking ${templateName} magazine cover.
 
-COMPOSITION BLUEPRINT — follow this exactly to place the uploaded person:
+PERSON PLACEMENT BLUEPRINT — follow this precisely:
 ${layoutDescription}
 
-YOUR TASK:
-1. Take the uploaded person photo as your ONLY model.
-2. Preserve their actual face, hair color, skin tone, and clothing exactly as they appear — do not alter or replace any aspect of their appearance.
-3. Place them in the exact composition described in the COMPOSITION BLUEPRINT above (position, framing, scale, pose direction, relationship to text).
-4. Recreate the magazine's visual environment (background color/style, lighting mood, color grading) as described in VISUAL STYLE.
-5. Add the magazine title, logo, and all typographic elements in the correct positions as described in the COMPOSITION BLUEPRINT.
+PERSON RULES (critical):
+- Use IMAGE 2's person exactly as they are: preserve their face, hair color, skin tone, and clothing without any alteration
+- Position, scale, and frame them exactly as described in the PERSON PLACEMENT BLUEPRINT
+- Adapt the lighting and color grading on the person to harmonize with IMAGE 1's atmosphere — but do not change their appearance
+- The person should look like they were professionally photographed specifically for this cover
 
-TEXT TO INCLUDE:
-${textLines || '  - Use placeholder text matching the magazine style'}
+BACKGROUND RULES:
+- Keep IMAGE 1's background, text, logo, and all design elements intact
+- The only addition to IMAGE 1 is IMAGE 2's person placed in the correct position
+${textLines ? `\nTEXT OVERRIDE (replace these specific text elements from IMAGE 1 with the values below):\n${textLines}` : ''}
 
-OUTPUT RULES:
-- Portrait orientation, 3:4 aspect ratio, print-ready quality
-- The result must look exactly like a real ${templateName} magazine cover, featuring the uploaded person as the cover model
-- The uploaded person's actual appearance (face, outfit, hair) must be faithfully preserved`;
+OUTPUT: A complete, print-ready ${templateName} magazine cover at 3:4 aspect ratio. IMAGE 1's design with IMAGE 2's person naturally placed in it.`;
 }
 
 export async function POST(req: NextRequest) {
@@ -118,10 +125,14 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const prompt = composeCoverPrompt(template.style, template.layoutDescription, body.texts, template.name);
+    const { base64: bgBase64, mimeType: bgMime } = readTemplateImageAsBase64(template.imagePath);
+    const prompt = composeCoverPrompt(template.layoutDescription, body.texts, template.name);
 
     const parts: unknown[] = [
       { text: prompt },
+      // IMAGE 1: person-less background canvas
+      { inlineData: { mimeType: bgMime, data: bgBase64 } },
+      // IMAGE 2+: user's person photo(s)
       ...body.photoBase64s.map((b64, i) => ({
         inlineData: { mimeType: body.photoTypes[i] || 'image/webp', data: b64 },
       })),
