@@ -8,6 +8,7 @@ export const ko = {
     apply: 'Apply',
     templates: 'Templates',
     history: 'History',
+    magazine: 'Magazine',
   },
   auth: {
     loginTitle: '당신만의 감성을\n한 번의 클릭으로,\n계속 이어가세요.',

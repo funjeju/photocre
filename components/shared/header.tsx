@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutGrid, Layers, History, Wand2, LogOut } from 'lucide-react';
+import { LayoutGrid, Layers, History, Wand2, LogOut, BookImage } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,6 +18,7 @@ import { ko } from '@/lib/i18n/ko';
 
 const NAV_ITEMS = [
   { href: '/studio', label: ko.nav.studio, icon: Wand2 },
+  { href: '/magazine', label: ko.nav.magazine, icon: BookImage },
   { href: '/apply', label: ko.nav.apply, icon: Layers },
   { href: '/templates', label: ko.nav.templates, icon: LayoutGrid },
   { href: '/history', label: ko.nav.history, icon: History },

@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Inter, Noto_Sans_KR } from 'next/font/google';
+import { Inter, Noto_Sans_KR, Playfair_Display } from 'next/font/google';
 import { Toaster } from 'sonner';
 import { AuthProvider } from '@/lib/firebase/auth-context';
 import './globals.css';
@@ -17,6 +17,13 @@ const notoSansKR = Noto_Sans_KR({
   display: 'swap',
 });
 
+const playfairDisplay = Playfair_Display({
+  subsets: ['latin'],
+  variable: '--font-playfair',
+  weight: ['400', '600', '700'],
+  display: 'swap',
+});
+
 export const metadata: Metadata = {
   title: 'Framelab — 감성 이미지 스튜디오',
   description:
@@ -25,7 +32,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ko" className={`${inter.variable} ${notoSansKR.variable} h-full antialiased`}>
+    <html lang="ko" className={`${inter.variable} ${notoSansKR.variable} ${playfairDisplay.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
         <AuthProvider>
           {children}
