@@ -61,57 +61,38 @@ function composeCoverPrompt(
     .map(([k, v]) => `  - ${k}: "${v}"`)
     .join('\n');
 
-  return `You are an expert magazine cover compositor.
+  return `You are an expert magazine cover art director.
 
-TASK: Create a magazine cover image by compositing the provided person photo(s) into the style of the reference magazine cover template.
+IMAGE 1: The ${templateName} magazine cover reference. Use ONLY for layout and visual style — DO NOT use its person.
+IMAGE 2 (and beyond): The person(s) to feature on the cover. These are your ONLY models.
 
-TEMPLATE STYLE: ${templateStyle}
+TASK: Create a brand-new ${templateName}-style magazine cover featuring the person(s) from IMAGE 2+.
 
-INSTRUCTIONS:
-1. Study the reference magazine cover (first image) carefully — analyze its layout, typography placement, color palette, mood, and visual style.
-2. Take the person photo(s) (remaining images) and place the subject(s) naturally into that magazine cover style.
-3. Recreate the overall magazine cover composition with the new person as the cover model.
-4. Apply the magazine's visual style: color grading, lighting mood, background, and graphic elements.
-5. The result must look like a real ${templateName} magazine cover featuring this person.
+CRITICAL — ABOUT THE PEOPLE:
+- The person appearing in IMAGE 1 must NOT appear in the output in any form.
+- Do NOT copy, reference, or be influenced by IMAGE 1's model: not their face, hair, clothing, body shape, pose, or any physical attribute.
+- IMAGE 2's person is the sole subject. Use their actual face, hair, skin tone, and clothing exactly as they appear in their photo.
+- Their outfit and appearance from IMAGE 2 should be preserved — do not replace or alter their clothes to match IMAGE 1's model.
 
-TEXT TO INCLUDE (place these prominently according to the template layout):
+WHAT TO TAKE FROM IMAGE 1 (design only):
+- Magazine title / logo — placement, font style, and color treatment
+- Overall layout: how the model is framed within the cover
+- Color palette, mood, and lighting atmosphere
+- Background style and graphic design elements
+- Typography hierarchy for headline and body text
+
+WHAT TO DO WITH IMAGE 2's PERSON:
+- Place them as the cover model in a natural, editorial pose suited to ${templateName}'s aesthetic
+- Apply the magazine's color grading and lighting mood to the scene — not to alter their look, but to match the atmosphere
+- They should look like they were professionally photographed for this exact cover
+
+TEXT TO INCLUDE (place prominently per the template layout):
 ${textLines || '  - Use placeholder text matching the magazine style'}
 
-COMPOSITION RULES:
-- Person(s) should be the focal point, positioned as in the original template
-- Replicate the magazine logo/title placement and style (use the text provided above for the title)
-- Include decorative text elements around the portrait in the magazine's typographic style
-- Maintain the original template's aspect ratio and color mood
-- Output should look print-ready and professional
-
-OUTPUT: A single magazine cover image in portrait orientation (4:5 or 3:4 ratio).`;
-}
-
-function composeFaceSwapPrompt(templateName: string): string {
-  return `You are a professional retouching artist performing a precise face replacement on a magazine cover.
-
-IMAGE 1: The original ${templateName} magazine cover. This is your base canvas — preserve it almost entirely.
-IMAGE 2: The face donor. Extract ONLY the face from this image.
-
-TASK: Replace the face of the cover model in IMAGE 1 with the face from IMAGE 2.
-
-WHAT TO PRESERVE FROM IMAGE 1 (keep pixel-perfect):
-- Every piece of text, logo, title, and all typographic elements — exact position and style
-- Background, set design, color palette, and all graphic elements
-- The cover model's body, neck, shoulders, clothing, hands, and pose
-- Hair (adapt edges naturally where face meets hair)
-- Overall color grading, lighting direction, and mood of the image
-
-FACE REPLACEMENT — CRITICAL RULES:
-- Identify the face region of IMAGE 1's cover model (forehead to chin, ear to ear)
-- COMPLETELY remove IMAGE 1's face features from that region — eyes, nose, mouth, face shape, skin texture: gone
-- Insert IMAGE 2's face into that exact region at the correct scale and perspective
-- IMAGE 2's facial features must appear 100% as they are: their eye shape, nose, lips, face contour, skin tone — all preserved exactly
-- ABSOLUTE PROHIBITION: Do NOT blend, average, or merge any features from IMAGE 1's face with IMAGE 2's face. Zero mixing. IMAGE 1's face must contribute nothing to the final face.
-- Adapt the lighting and color tone of IMAGE 2's face to match IMAGE 1's lighting conditions so the face looks naturally lit for the scene
-- Blend the edges (hairline, jawline, neck transition) seamlessly — no visible seam or halo
-
-OUTPUT: The ${templateName} magazine cover with IMAGE 2's face placed naturally on the original cover model's body. Everything else identical to IMAGE 1. The result must look like the person from IMAGE 2 was the original cover model.`;
+OUTPUT RULES:
+- Portrait orientation, 3:4 aspect ratio
+- Print-ready quality, sharp and clean
+- Result must look like a real ${templateName} cover with IMAGE 2's person as the model`;
 }
 
 export async function POST(req: NextRequest) {
@@ -128,7 +109,6 @@ export async function POST(req: NextRequest) {
     photoBase64s: string[];
     photoTypes: string[];
     texts: Record<string, string>;
-    mode?: 'style' | 'faceswap';
   };
 
   const template = getCoverTemplate(body.templateId);
@@ -158,10 +138,7 @@ export async function POST(req: NextRequest) {
   try {
     const { base64: templateBase64, mimeType: templateMime } = readTemplateImageAsBase64(template.imagePath);
 
-    const isFaceSwap = body.mode === 'faceswap';
-    const prompt = isFaceSwap
-      ? composeFaceSwapPrompt(template.name)
-      : composeCoverPrompt(template.style, body.texts, template.name);
+    const prompt = composeCoverPrompt(template.style, body.texts, template.name);
 
     const parts: unknown[] = [
       { text: prompt },

@@ -3,7 +3,7 @@
 import { useState, useCallback } from 'react';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
-import { ArrowLeft, Sparkles, Loader2, Plus, X, Wand2, ScanFace, ChevronDown, ChevronUp } from 'lucide-react';
+import { ArrowLeft, Sparkles, Loader2, Plus, X, ChevronDown, ChevronUp } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -105,14 +105,11 @@ function PhotoSlot({
   );
 }
 
-type Mode = 'style' | 'faceswap';
-
 export function CoverEditor() {
   const { user } = useAuth();
   const [selected, setSelected] = useState<CoverTemplate | null>(null);
   const [photos, setPhotos] = useState<{ url: string; blob: Blob }[]>([]);
   const [texts, setTexts] = useState<Record<string, string>>({});
-  const [mode, setMode] = useState<Mode>('style');
   const [isGenerating, setIsGenerating] = useState(false);
   const [resultUrl, setResultUrl] = useState<string | null>(null);
   const [showTemplatePicker, setShowTemplatePicker] = useState(false);
@@ -167,7 +164,6 @@ export function CoverEditor() {
           photoBase64s,
           photoTypes,
           texts,
-          mode,
         }),
       });
 
@@ -319,52 +315,6 @@ export function CoverEditor() {
 
         <div className="flex-1 overflow-y-auto px-5 py-5 flex flex-col gap-6">
 
-          {/* 생성 모드 선택 */}
-          <div className="flex flex-col gap-2">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">생성 모드</p>
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                onClick={() => setMode('style')}
-                className={cn(
-                  'flex flex-col items-center gap-1.5 rounded-2xl border-2 px-3 py-3 text-left transition-all',
-                  mode === 'style'
-                    ? 'border-accent bg-accent/5 ring-2 ring-accent ring-offset-1'
-                    : 'border-border hover:border-foreground/20',
-                )}
-              >
-                <Wand2 className={cn('size-4', mode === 'style' ? 'text-accent' : 'text-muted-foreground')} />
-                <span className={cn('text-xs font-semibold leading-tight', mode === 'style' ? 'text-accent' : '')}>
-                  스타일 합성
-                </span>
-                <span className="text-[10px] text-muted-foreground leading-snug text-center">
-                  템플릿 스타일로<br/>새 커버 생성
-                </span>
-              </button>
-              <button
-                onClick={() => setMode('faceswap')}
-                className={cn(
-                  'flex flex-col items-center gap-1.5 rounded-2xl border-2 px-3 py-3 text-left transition-all',
-                  mode === 'faceswap'
-                    ? 'border-accent bg-accent/5 ring-2 ring-accent ring-offset-1'
-                    : 'border-border hover:border-foreground/20',
-                )}
-              >
-                <ScanFace className={cn('size-4', mode === 'faceswap' ? 'text-accent' : 'text-muted-foreground')} />
-                <span className={cn('text-xs font-semibold leading-tight', mode === 'faceswap' ? 'text-accent' : '')}>
-                  인물 배치
-                </span>
-                <span className="text-[10px] text-muted-foreground leading-snug text-center">
-                  표지 분위기 유지<br/>내 인물로 교체
-                </span>
-              </button>
-            </div>
-            {mode === 'faceswap' && (
-              <p className="text-[11px] text-muted-foreground leading-relaxed bg-muted/40 rounded-xl px-3 py-2">
-                표지의 레이아웃·텍스트·분위기는 그대로 유지하면서, 원본 인물 대신 내가 올린 인물을 잡지 무드에 맞게 자연스럽게 배치합니다.
-              </p>
-            )}
-          </div>
-
           {/* 사진 업로드 */}
           <div className="flex flex-col gap-3">
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
@@ -386,28 +336,26 @@ export function CoverEditor() {
             </p>
           </div>
 
-          {/* 편집 텍스트 — 스타일 모드에서만 */}
-          {mode === 'style' && (
-            <div className="flex flex-col gap-4">
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                핵심 텍스트 편집
-              </p>
-              <p className="text-[11px] text-muted-foreground -mt-2">
-                2-3개의 주요 텍스트만 편집할 수 있습니다. 나머지는 AI가 자동으로 채웁니다.
-              </p>
-              {selected.editableTexts.map((field) => (
-                <div key={field.key} className="flex flex-col gap-1.5">
-                  <Label className="text-sm">{field.label}</Label>
-                  <Input
-                    value={texts[field.key] ?? ''}
-                    onChange={(e) => setTexts((prev) => ({ ...prev, [field.key]: e.target.value }))}
-                    placeholder={field.placeholder}
-                    className="text-sm rounded-xl"
-                  />
-                </div>
-              ))}
-            </div>
-          )}
+          {/* 핵심 텍스트 편집 */}
+          <div className="flex flex-col gap-4">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              핵심 텍스트 편집
+            </p>
+            <p className="text-[11px] text-muted-foreground -mt-2">
+              2-3개의 주요 텍스트만 편집할 수 있습니다. 나머지는 AI가 자동으로 채웁니다.
+            </p>
+            {selected.editableTexts.map((field) => (
+              <div key={field.key} className="flex flex-col gap-1.5">
+                <Label className="text-sm">{field.label}</Label>
+                <Input
+                  value={texts[field.key] ?? ''}
+                  onChange={(e) => setTexts((prev) => ({ ...prev, [field.key]: e.target.value }))}
+                  placeholder={field.placeholder}
+                  className="text-sm rounded-xl"
+                />
+              </div>
+            ))}
+          </div>
 
           {/* 템플릿 참고 이미지 */}
           <div className="flex flex-col gap-2">
@@ -473,7 +421,7 @@ export function CoverEditor() {
         </div>
 
         <p className="text-[11px] text-muted-foreground text-center">
-          헤더 오른쪽 <strong>변경</strong> 버튼으로 템플릿을 바꿀 수 있습니다
+          왼쪽 패널 상단 <strong>변경 ▾</strong> 버튼으로 다른 템플릿으로 바꿀 수 있습니다
         </p>
       </div>
     </div>
