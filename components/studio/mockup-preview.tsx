@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { ko } from '@/lib/i18n/ko';
 
 /* ─── helpers ─────────────────────────────────────────────── */
@@ -454,6 +455,9 @@ function MockupCanvas({ id, label, w, h, img }: {
 
 export function MockupPreview({ imageUrl }: { imageUrl: string }) {
   const [img, setImg] = useState<HTMLImageElement | null>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [canLeft, setCanLeft] = useState(false);
+  const [canRight, setCanRight] = useState(true);
 
   useEffect(() => {
     if (!imageUrl) return;
@@ -463,8 +467,17 @@ export function MockupPreview({ imageUrl }: { imageUrl: string }) {
     i.src = imageUrl;
   }, [imageUrl]);
 
+  function updateArrows() {
+    const el = scrollRef.current;
+    if (!el) return;
+    setCanLeft(el.scrollLeft > 4);
+    setCanRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 4);
+  }
+
+  function scrollLeft()  { scrollRef.current?.scrollBy({ left: -210, behavior: 'smooth' }); }
+  function scrollRight() { scrollRef.current?.scrollBy({ left:  210, behavior: 'smooth' }); }
+
   return (
-    // w-full is critical — without it, overflow-x-auto has nothing to overflow against
     <div className="flex flex-col gap-3 pt-4 border-t border-border/40 w-full">
       <div className="flex items-center justify-between">
         <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
@@ -473,12 +486,52 @@ export function MockupPreview({ imageUrl }: { imageUrl: string }) {
         <p className="text-[10px] text-muted-foreground">{ko.studio.mockup.note}</p>
       </div>
 
-      <div className="overflow-x-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
-        <div className="flex gap-5 pb-2" style={{ width: 'max-content' }}>
-          {ITEMS.map((item) => (
-            <MockupCanvas key={item.id} {...item} img={img} />
-          ))}
+      {/* scroll row */}
+      <div className="relative">
+        {/* left button */}
+        {canLeft && (
+          <button
+            onClick={scrollLeft}
+            className="absolute left-0 top-1/2 -translate-y-1/2 z-10 flex items-center justify-center
+                       w-7 h-7 rounded-full bg-background/90 border border-border shadow-sm
+                       hover:bg-muted transition-colors"
+            style={{ marginTop: -10 }}
+          >
+            <ChevronLeft className="size-4 text-muted-foreground" />
+          </button>
+        )}
+
+        {/* scrollable area */}
+        <div
+          ref={scrollRef}
+          onScroll={updateArrows}
+          style={{
+            overflowX: 'scroll',
+            overflowY: 'visible',
+            WebkitOverflowScrolling: 'touch',
+            scrollbarWidth: 'thin',
+            paddingBottom: 8,
+          }}
+        >
+          <div style={{ display: 'flex', gap: 20, width: 'max-content' }}>
+            {ITEMS.map((item) => (
+              <MockupCanvas key={item.id} {...item} img={img} />
+            ))}
+          </div>
         </div>
+
+        {/* right button */}
+        {canRight && (
+          <button
+            onClick={scrollRight}
+            className="absolute right-0 top-1/2 -translate-y-1/2 z-10 flex items-center justify-center
+                       w-7 h-7 rounded-full bg-background/90 border border-border shadow-sm
+                       hover:bg-muted transition-colors"
+            style={{ marginTop: -10 }}
+          >
+            <ChevronRight className="size-4 text-muted-foreground" />
+          </button>
+        )}
       </div>
     </div>
   );
