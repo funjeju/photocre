@@ -9,10 +9,11 @@ export type StylePreset = {
 export const STYLES: StylePreset[] = [
   {
     id: 'none',
-    name: '변형 없음',
-    description: '원본 사진 그대로',
+    name: '뽀샤시',
+    description: '밝고 선명한 뷰티 보정',
     thumbnailSrc: '/style-samples/none.png',
-    promptFragment: 'Preserve the original photographic style without any artistic transformation.',
+    promptFragment:
+      'Apply a soft beauty enhancement to this photo: brighten the overall exposure, smooth and even out skin tone, add a gentle soft-glow effect, boost clarity and vibrancy slightly. Keep it natural — the result should look like a professionally retouched portrait photo, not an illustration.',
   },
   {
     id: 'ghibli',
