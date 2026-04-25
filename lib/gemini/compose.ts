@@ -13,6 +13,7 @@ interface ComposeOptions {
   styleId: string;
   customPrompt?: string;
   aspectRatio?: string;
+  backgroundPrompt?: string;
 }
 
 export function composePrompt(options: ComposeOptions): string {
@@ -29,6 +30,14 @@ export function composePrompt(options: ComposeOptions): string {
     `OUTPUT SETTING:
 - Aspect ratio: ${ratioLabel}`,
   ];
+
+  if (options.backgroundPrompt?.trim()) {
+    parts.push(
+      '',
+      `BACKGROUND:
+${options.backgroundPrompt.trim()}`,
+    );
+  }
 
   if (options.customPrompt?.trim()) {
     parts.push(

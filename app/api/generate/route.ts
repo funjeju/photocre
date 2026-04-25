@@ -57,6 +57,7 @@ export async function POST(req: NextRequest) {
     styleId: string;
     aspectRatio: string;
     customPrompt?: string;
+    backgroundPrompt?: string;
   };
 
   try {
