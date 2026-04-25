@@ -10,6 +10,7 @@ import { getFrame } from '@/lib/presets/frames';
 import { getBackground, CUSTOM_BACKGROUND } from '@/lib/presets/backgrounds';
 import { downloadRef } from '@/lib/canvas/download-ref';
 import { ko } from '@/lib/i18n/ko';
+import { MockupPreview } from './mockup-preview';
 import type Konva from 'konva';
 
 const EXPORT_LONG = 1024;
@@ -218,6 +219,8 @@ export function ResultViewer() {
           {ko.studio.result.saveTemplate}
         </Button>
       </div>
+
+      <MockupPreview imageUrl={generatedImageUrl} />
     </div>
   );
 }
