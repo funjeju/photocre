@@ -7,6 +7,7 @@ import { CanvasPreview } from '@/components/studio/canvas-preview';
 import { CropDialog } from '@/components/studio/crop-dialog';
 import { ImageUploader } from '@/components/studio/image-uploader';
 import { StylePicker } from '@/components/studio/style-picker';
+import { IntensityPicker } from '@/components/studio/intensity-picker';
 import { CustomPromptField } from '@/components/studio/custom-prompt';
 import { GenerateButton } from '@/components/studio/generate-button';
 import { FramePicker } from '@/components/studio/frame-picker';
@@ -80,6 +81,7 @@ export default function StudioPage() {
               변환 없이 꾸미기만 해도 됩니다.
             </p>
             <StylePicker />
+            <IntensityPicker />
             <BackgroundPicker />
             <CustomPromptField />
             {/* styleId가 'none'이 아닐 때만 AI 변환 버튼 표시 */}

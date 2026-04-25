@@ -25,6 +25,7 @@ export interface StudioState {
 
   // 3. AI 스타일 + 커스텀 프롬프트
   styleId: string;
+  transformIntensity: 30 | 50 | 70 | 100;
   customPrompt: string;
 
   // 4. AI 출력
@@ -47,6 +48,7 @@ export interface StudioState {
   setAspectRatio: (ratio: AspectRatio) => void;
   setCroppedImage: (img: { blob: Blob; previewUrl: string } | null) => void;
   setStyleId: (id: string) => void;
+  setTransformIntensity: (v: 30 | 50 | 70 | 100) => void;
   setCustomPrompt: (prompt: string) => void;
   setFrameId: (id: string) => void;
   setBackgroundId: (id: string) => void;
@@ -77,6 +79,7 @@ export const useStudioStore = create<StudioState>((set) => ({
   aspectRatio: '1:1',
   croppedImage: null,
   styleId: 'beauty',
+  transformIntensity: 70,
   customPrompt: '',
   frameId: 'polaroid-classic',
   backgroundId: 'studio-gray',
@@ -92,6 +95,7 @@ export const useStudioStore = create<StudioState>((set) => ({
   setAspectRatio: (ratio) => set({ aspectRatio: ratio }),
   setCroppedImage: (img) => set({ croppedImage: img }),
   setStyleId: (id) => set({ styleId: id }),
+  setTransformIntensity: (v) => set({ transformIntensity: v }),
   setCustomPrompt: (prompt) => set({ customPrompt: prompt }),
   // 프레임/배경/텍스트는 AI 결과에 Konva로 합성 → 변경해도 AI 결과 유지
   setFrameId: (id) => set({ frameId: id }),

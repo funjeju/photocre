@@ -58,6 +58,7 @@ export async function POST(req: NextRequest) {
     aspectRatio: string;
     customPrompt?: string;
     backgroundPrompt?: string;
+    transformIntensity?: number;
   };
 
   try {
@@ -80,6 +81,7 @@ export async function POST(req: NextRequest) {
       customPrompt: body.customPrompt,
       aspectRatio: body.aspectRatio,
       backgroundPrompt: body.backgroundPrompt,
+      transformIntensity: body.transformIntensity,
     });
 
     const parts: unknown[] = [

@@ -27,7 +27,7 @@ export function GenerateButton() {
     if (!canAct || !user) return;
 
     // 클릭 시점에 store 최신값 직접 읽기 — 스테일 클로저 방지
-    const { croppedImage: img, styleId: sid, customPrompt, aspectRatio, backgroundId } = useStudioStore.getState();
+    const { croppedImage: img, styleId: sid, customPrompt, aspectRatio, backgroundId, transformIntensity } = useStudioStore.getState();
     if (!img) return;
 
     const bg = getBackground(backgroundId);
@@ -50,6 +50,7 @@ export function GenerateButton() {
           aspectRatio,
           customPrompt: customPrompt.trim() || undefined,
           backgroundPrompt,
+          transformIntensity,
         }),
       });
 
