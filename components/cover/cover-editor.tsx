@@ -3,7 +3,7 @@
 import { useState, useCallback } from 'react';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
-import { ArrowLeft, Sparkles, Loader2, Plus, X, Wand2, ScanFace } from 'lucide-react';
+import { ArrowLeft, Sparkles, Loader2, Plus, X, Wand2, ScanFace, ChevronDown, ChevronUp } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -89,6 +89,7 @@ export function CoverEditor() {
   const [mode, setMode] = useState<Mode>('style');
   const [isGenerating, setIsGenerating] = useState(false);
   const [resultUrl, setResultUrl] = useState<string | null>(null);
+  const [showTemplatePicker, setShowTemplatePicker] = useState(false);
 
   function selectTemplate(t: CoverTemplate) {
     setSelected(t);
@@ -217,17 +218,69 @@ export function CoverEditor() {
     <div className="flex h-full overflow-hidden">
       {/* 좌측 컨트롤 패널 */}
       <div className="w-80 shrink-0 border-r border-border flex flex-col overflow-hidden">
-        <div className="flex items-center gap-2 px-5 py-4 border-b border-border shrink-0">
-          <button
-            onClick={() => { setSelected(null); setResultUrl(null); }}
-            className="p-1 rounded-lg hover:bg-muted transition-colors"
-          >
-            <ArrowLeft className="size-4" />
-          </button>
-          <div>
-            <p className="text-sm font-semibold leading-tight">{selected.name}</p>
-            <p className="text-[11px] text-muted-foreground">{selected.description}</p>
+        {/* 헤더 */}
+        <div className="shrink-0 border-b border-border">
+          <div className="flex items-center gap-2 px-5 py-3">
+            <button
+              onClick={() => { setSelected(null); setResultUrl(null); setShowTemplatePicker(false); }}
+              className="p-1 rounded-lg hover:bg-muted transition-colors shrink-0"
+            >
+              <ArrowLeft className="size-4" />
+            </button>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold leading-tight truncate">{selected.name}</p>
+              <p className="text-[11px] text-muted-foreground truncate">{selected.description}</p>
+            </div>
+            <button
+              onClick={() => setShowTemplatePicker((v) => !v)}
+              className={cn(
+                'flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium border transition-colors shrink-0',
+                showTemplatePicker
+                  ? 'border-accent bg-accent/10 text-accent'
+                  : 'border-border text-muted-foreground hover:border-foreground/30 hover:text-foreground',
+              )}
+            >
+              변경
+              {showTemplatePicker ? <ChevronUp className="size-3" /> : <ChevronDown className="size-3" />}
+            </button>
           </div>
+
+          {/* 인라인 템플릿 선택 드롭다운 */}
+          {showTemplatePicker && (
+            <div className="border-t border-border px-3 py-3 bg-muted/20">
+              <p className="text-[10px] text-muted-foreground mb-2 px-1">템플릿 선택 (사진 유지)</p>
+              <div className="grid grid-cols-4 gap-2 max-h-52 overflow-y-auto">
+                {COVER_TEMPLATES.map((t) => (
+                  <button
+                    key={t.id}
+                    onClick={() => { switchTemplate(t); setShowTemplatePicker(false); }}
+                    className="flex flex-col gap-1 focus:outline-none group"
+                  >
+                    <div className={cn(
+                      'aspect-[3/4] rounded-lg overflow-hidden border-2 transition-all',
+                      t.id === selected.id
+                        ? 'border-accent ring-1 ring-accent'
+                        : 'border-border group-hover:border-foreground/30',
+                    )}>
+                      <Image
+                        src={t.imagePath}
+                        alt={t.name}
+                        width={70}
+                        height={93}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <p className={cn(
+                      'text-[9px] text-center leading-tight truncate w-full',
+                      t.id === selected.id ? 'text-accent font-semibold' : 'text-muted-foreground',
+                    )}>
+                      {t.name}
+                    </p>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="flex-1 overflow-y-auto px-5 py-5 flex flex-col gap-6">
@@ -385,42 +438,9 @@ export function CoverEditor() {
           )}
         </div>
 
-        {/* 템플릿 전환 스트립 */}
-        <div className="w-full max-w-2xl">
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-            다른 템플릿으로 변경
-          </p>
-          <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
-            {COVER_TEMPLATES.map((t) => (
-              <button
-                key={t.id}
-                onClick={() => switchTemplate(t)}
-                className="flex-shrink-0 flex flex-col gap-1.5 focus:outline-none group"
-              >
-                <div className={cn(
-                  'w-20 aspect-[3/4] rounded-xl overflow-hidden border-2 transition-all',
-                  t.id === selected.id
-                    ? 'border-accent ring-2 ring-accent ring-offset-2'
-                    : 'border-border group-hover:border-foreground/30 group-hover:shadow-md',
-                )}>
-                  <Image
-                    src={t.imagePath}
-                    alt={t.name}
-                    width={80}
-                    height={107}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <p className={cn(
-                  'text-[10px] text-center leading-tight truncate w-20',
-                  t.id === selected.id ? 'text-accent font-semibold' : 'text-muted-foreground',
-                )}>
-                  {t.name}
-                </p>
-              </button>
-            ))}
-          </div>
-        </div>
+        <p className="text-[11px] text-muted-foreground text-center">
+          헤더 오른쪽 <strong>변경</strong> 버튼으로 템플릿을 바꿀 수 있습니다
+        </p>
       </div>
     </div>
   );
