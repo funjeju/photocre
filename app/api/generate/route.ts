@@ -33,7 +33,8 @@ async function saveToStorage(base64: string, uid: string, folder: string, ext = 
   const buffer = Buffer.from(base64, 'base64');
   await file.save(buffer, { contentType: `image/${ext}`, metadata: { cacheControl: 'public,max-age=31536000' } });
   await file.makePublic();
-  return `https://storage.googleapis.com/${bucket.name}/${filePath}`;
+  const encodedPath = encodeURIComponent(filePath);
+  return `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodedPath}?alt=media`;
 }
 
 export async function POST(req: NextRequest) {
