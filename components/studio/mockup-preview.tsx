@@ -135,84 +135,77 @@ function overQuad(
 
 function drawTshirtPhoto(ctx: CanvasRenderingContext2D, u: HTMLImageElement, p: HTMLImageElement, W: number, H: number) {
   ctx.drawImage(p, 0, 0, W, H);
-  // 가슴 프린트 존 — 전폭 확대, 칼라 아래 ~ 배 위
+  // 가슴 프린트 — 셔츠 폭의 약 50%, 정중앙
   multiplyQuad(ctx, u,
-    W*0.20, H*0.20,   // TL
-    W*0.80, H*0.20,   // TR
-    W*0.79, H*0.72,   // BR
-    W*0.21, H*0.72,   // BL
+    W*0.35, H*0.23,   // TL
+    W*0.65, H*0.23,   // TR
+    W*0.65, H*0.53,   // BR
+    W*0.35, H*0.53,   // BL
   );
 }
 
 function drawMugPhoto(ctx: CanvasRenderingContext2D, u: HTMLImageElement, p: HTMLImageElement, W: number, H: number) {
   ctx.drawImage(p, 0, 0, W, H);
-  // 뒤-파란 머그 (z-order: 배경 먼저)
+  // 앞 노란 머그만 — 컵 면 정중앙
   multiplyQuad(ctx, u,
-    W*0.62, H*0.14,   W*0.95, H*0.14,
-    W*0.94, H*0.80,   W*0.62, H*0.80,
-    1.0, 0.15,
-  );
-  // 중간-초록 머그
-  multiplyQuad(ctx, u,
-    W*0.22, H*0.10,   W*0.57, H*0.10,
-    W*0.57, H*0.86,   W*0.22, H*0.86,
-    1.0, 0.07,
-  );
-  // 앞-노란 머그 (맨 위에)
-  multiplyQuad(ctx, u,
-    W*0.01, H*0.22,   W*0.37, H*0.22,
-    W*0.37, H*0.86,   W*0.01, H*0.86,
+    W*0.01, H*0.22,   // TL
+    W*0.37, H*0.22,   // TR
+    W*0.37, H*0.86,   // BR
+    W*0.01, H*0.86,   // BL
   );
 }
 
 function drawCushionPhoto(ctx: CanvasRenderingContext2D, u: HTMLImageElement, p: HTMLImageElement, W: number, H: number) {
   ctx.drawImage(p, 0, 0, W, H);
-  // 왼쪽 쿠션 면
+  // 왼쪽(작은) 쿠션 — 쿠션 면의 50%, 정중앙
   multiplyQuad(ctx, u,
-    W*0.03, H*0.07,   W*0.47, H*0.08,
-    W*0.46, H*0.62,   W*0.03, H*0.62,
+    W*0.14, H*0.21,   // TL
+    W*0.36, H*0.21,   // TR
+    W*0.36, H*0.48,   // BR
+    W*0.14, H*0.48,   // BL
   );
-  // 오른쪽 쿠션 — 미세한 밝기·채도 차이로 입체감
+  // 오른쪽 쿠션 — 동일 크기, 정중앙
   ctx.save();
   ctx.filter = 'brightness(0.95) saturate(0.93)';
   multiplyQuad(ctx, u,
-    W*0.52, H*0.09,   W*0.94, H*0.10,
-    W*0.93, H*0.79,   W*0.52, H*0.78,
+    W*0.62, H*0.30,   // TL
+    W*0.84, H*0.30,   // TR
+    W*0.84, H*0.58,   // BR
+    W*0.62, H*0.58,   // BL
   );
   ctx.restore();
 }
 
 function drawTotebagPhoto(ctx: CanvasRenderingContext2D, u: HTMLImageElement, p: HTMLImageElement, W: number, H: number) {
   ctx.drawImage(p, 0, 0, W, H);
-  // 검은 에코백 — 가방 중심보다 살짝 위로 centering
+  // 검은 에코백 — 손잡이 뺀 몸통의 50%, 정중앙
   overQuad(ctx, u, 0.85,
-    W*0.09, H*0.24,   // TL
-    W*0.41, H*0.24,   // TR
-    W*0.41, H*0.76,   // BR
-    W*0.09, H*0.76,   // BL
+    W*0.17, H*0.37,   // TL
+    W*0.33, H*0.37,   // TR
+    W*0.33, H*0.63,   // BR
+    W*0.17, H*0.63,   // BL
   );
-  // 흰/아이보리 에코백
+  // 흰 에코백 — 손잡이 뺀 몸통의 50%, 정중앙
   multiplyQuad(ctx, u,
-    W*0.60, H*0.22,   // TL
-    W*0.92, H*0.22,   // TR
-    W*0.92, H*0.76,   // BR
-    W*0.60, H*0.76,   // BL
+    W*0.68, H*0.36,   // TL
+    W*0.84, H*0.36,   // TR
+    W*0.84, H*0.63,   // BR
+    W*0.68, H*0.63,   // BL
   );
 }
 
 function drawGriptokPhoto(ctx: CanvasRenderingContext2D, u: HTMLImageElement, p: HTMLImageElement, W: number, H: number) {
   ctx.drawImage(p, 0, 0, W, H);
-  // 흰 원반 face — zoom 1.18로 여백 없이 꽉 채움
+  // 흰 원반 — 틸트 없이 정중앙
   const cx = W*0.34, cy = H*0.38, rx = W*0.31, ry = H*0.36;
   ctx.save();
   ctx.globalCompositeOperation = 'multiply';
   ctx.beginPath(); ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2); ctx.clip();
   quadWarp(ctx, u,
     W*0.03, H*0.02,   // TL
-    W*0.65, H*0.04,   // TR
-    W*0.64, H*0.73,   // BR
-    W*0.03, H*0.71,   // BL
-    1.18,
+    W*0.65, H*0.02,   // TR
+    W*0.65, H*0.74,   // BR
+    W*0.03, H*0.74,   // BL
   );
   ctx.restore();
 }
