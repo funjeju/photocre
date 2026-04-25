@@ -64,8 +64,7 @@ function drawAffine3(
 
 /**
  * Perspective-correct quad warp using 2-triangle affine decomposition.
- * Destination: TL(x0,y0) TR(x1,y1) BR(x2,y2) BL(x3,y3)
- * Image is cover-fitted to the destination bounds before warping.
+ * zoom > 1 crops tighter (zooms into subject). offsetX shifts source crop horizontally.
  */
 function quadWarp(
   ctx: CanvasRenderingContext2D,
@@ -74,6 +73,8 @@ function quadWarp(
   x1: number, y1: number,   // TR
   x2: number, y2: number,   // BR
   x3: number, y3: number,   // BL
+  zoom = 1.0,
+  offsetX = 0,
 ) {
   const iw = img.naturalWidth, ih = img.naturalHeight;
   const dw = Math.max(x1 - x0, x2 - x3);
@@ -82,10 +83,16 @@ function quadWarp(
   let sx = 0, sy = 0, sw = iw, sh = ih;
   if (ia > da) { sw = ih * da; sx = (iw - sw) / 2; }
   else         { sh = iw / da; sy = (ih - sh) / 2; }
+  if (zoom !== 1) {
+    const zw = sw / zoom, zh = sh / zoom;
+    sx += (sw - zw) / 2; sy += (sh - zh) / 2;
+    sw = zw; sh = zh;
+  }
+  if (offsetX !== 0) {
+    sx = Math.max(0, Math.min(iw - sw, sx + offsetX * sw));
+  }
   const ex = sx + sw, ey = sy + sh;
-  // Triangle 1: TL TR BL
   drawAffine3(ctx, img, sx, sy, ex, sy, sx, ey,  x0, y0, x1, y1, x3, y3);
-  // Triangle 2: TR BR BL
   drawAffine3(ctx, img, ex, sy, ex, ey, sx, ey,  x1, y1, x2, y2, x3, y3);
 }
 
@@ -95,10 +102,11 @@ function multiplyQuad(
   img: HTMLImageElement,
   x0: number, y0: number, x1: number, y1: number,
   x2: number, y2: number, x3: number, y3: number,
+  zoom = 1.0, offsetX = 0,
 ) {
   ctx.save();
   ctx.globalCompositeOperation = 'multiply';
-  quadWarp(ctx, img, x0, y0, x1, y1, x2, y2, x3, y3);
+  quadWarp(ctx, img, x0, y0, x1, y1, x2, y2, x3, y3, zoom, offsetX);
   ctx.restore();
 }
 
@@ -109,10 +117,11 @@ function overQuad(
   opacity: number,
   x0: number, y0: number, x1: number, y1: number,
   x2: number, y2: number, x3: number, y3: number,
+  zoom = 1.0, offsetX = 0,
 ) {
   ctx.save();
   ctx.globalAlpha = opacity;
-  quadWarp(ctx, img, x0, y0, x1, y1, x2, y2, x3, y3);
+  quadWarp(ctx, img, x0, y0, x1, y1, x2, y2, x3, y3, zoom, offsetX);
   ctx.restore();
 }
 
@@ -123,23 +132,33 @@ function overQuad(
 
 function drawTshirtPhoto(ctx: CanvasRenderingContext2D, u: HTMLImageElement, p: HTMLImageElement, W: number, H: number) {
   ctx.drawImage(p, 0, 0, W, H);
-  // 가슴 프린트 존 — 칼라 아래 ~ 배꼽 위, 양 소매 안쪽 경계
+  // 가슴 프린트 존 — 전폭 확대, 칼라 아래 ~ 배 위
   multiplyQuad(ctx, u,
-    W*0.27, H*0.22,   // TL
-    W*0.73, H*0.22,   // TR
-    W*0.73, H*0.67,   // BR
-    W*0.27, H*0.67,   // BL
+    W*0.20, H*0.20,   // TL
+    W*0.80, H*0.20,   // TR
+    W*0.79, H*0.72,   // BR
+    W*0.21, H*0.72,   // BL
   );
 }
 
 function drawMugPhoto(ctx: CanvasRenderingContext2D, u: HTMLImageElement, p: HTMLImageElement, W: number, H: number) {
   ctx.drawImage(p, 0, 0, W, H);
-  // 앞쪽(노란 핸들) 머그 흰 몸체만 — 핸들 왼쪽 원통 면
+  // 뒤-파란 머그 (z-order: 배경 먼저)
   multiplyQuad(ctx, u,
-    W*0.01, H*0.22,   // TL
-    W*0.37, H*0.22,   // TR
-    W*0.37, H*0.86,   // BR
-    W*0.01, H*0.86,   // BL
+    W*0.62, H*0.14,   W*0.95, H*0.14,
+    W*0.94, H*0.80,   W*0.62, H*0.80,
+    1.0, 0.15,
+  );
+  // 중간-초록 머그
+  multiplyQuad(ctx, u,
+    W*0.22, H*0.10,   W*0.57, H*0.10,
+    W*0.57, H*0.86,   W*0.22, H*0.86,
+    1.0, 0.07,
+  );
+  // 앞-노란 머그 (맨 위에)
+  multiplyQuad(ctx, u,
+    W*0.01, H*0.22,   W*0.37, H*0.22,
+    W*0.37, H*0.86,   W*0.01, H*0.86,
   );
 }
 
@@ -147,42 +166,40 @@ function drawCushionPhoto(ctx: CanvasRenderingContext2D, u: HTMLImageElement, p:
   ctx.drawImage(p, 0, 0, W, H);
   // 왼쪽 쿠션 면
   multiplyQuad(ctx, u,
-    W*0.03, H*0.07,   // TL
-    W*0.47, H*0.08,   // TR
-    W*0.46, H*0.62,   // BR
-    W*0.03, H*0.62,   // BL
+    W*0.03, H*0.07,   W*0.47, H*0.08,
+    W*0.46, H*0.62,   W*0.03, H*0.62,
   );
-  // 오른쪽 쿠션 면
+  // 오른쪽 쿠션 — 미세한 밝기·채도 차이로 입체감
+  ctx.save();
+  ctx.filter = 'brightness(0.95) saturate(0.93)';
   multiplyQuad(ctx, u,
-    W*0.52, H*0.09,   // TL
-    W*0.94, H*0.10,   // TR
-    W*0.93, H*0.79,   // BR
-    W*0.52, H*0.78,   // BL
+    W*0.52, H*0.09,   W*0.94, H*0.10,
+    W*0.93, H*0.79,   W*0.52, H*0.78,
   );
+  ctx.restore();
 }
 
 function drawTotebagPhoto(ctx: CanvasRenderingContext2D, u: HTMLImageElement, p: HTMLImageElement, W: number, H: number) {
   ctx.drawImage(p, 0, 0, W, H);
-  // 검은 에코백 몸통 — source-over (multiply on black = invisible)
+  // 검은 에코백 — 가방 중심보다 살짝 위로 centering
   overQuad(ctx, u, 0.85,
-    W*0.04, H*0.22,   // TL
-    W*0.46, H*0.22,   // TR
-    W*0.46, H*0.93,   // BR
-    W*0.04, H*0.93,   // BL
+    W*0.09, H*0.24,   // TL
+    W*0.41, H*0.24,   // TR
+    W*0.41, H*0.76,   // BR
+    W*0.09, H*0.76,   // BL
   );
-  // 흰/아이보리 에코백 몸통 — multiply
+  // 흰/아이보리 에코백
   multiplyQuad(ctx, u,
-    W*0.55, H*0.21,   // TL
-    W*0.96, H*0.21,   // TR
-    W*0.96, H*0.93,   // BR
-    W*0.55, H*0.93,   // BL
+    W*0.60, H*0.22,   // TL
+    W*0.92, H*0.22,   // TR
+    W*0.92, H*0.76,   // BR
+    W*0.60, H*0.76,   // BL
   );
 }
 
 function drawGriptokPhoto(ctx: CanvasRenderingContext2D, u: HTMLImageElement, p: HTMLImageElement, W: number, H: number) {
   ctx.drawImage(p, 0, 0, W, H);
-  // 흰 원반 face — 카메라를 향해 약간 기울어진 원형 디스크
-  // quadWarp로 원반 bounding quad를 잡고 ellipse로 원형 clip
+  // 흰 원반 face — zoom 1.18로 여백 없이 꽉 채움
   const cx = W*0.34, cy = H*0.38, rx = W*0.31, ry = H*0.36;
   ctx.save();
   ctx.globalCompositeOperation = 'multiply';
@@ -192,26 +209,26 @@ function drawGriptokPhoto(ctx: CanvasRenderingContext2D, u: HTMLImageElement, p:
     W*0.65, H*0.04,   // TR
     W*0.64, H*0.73,   // BR
     W*0.03, H*0.71,   // BL
+    1.18,
   );
   ctx.restore();
 }
 
 function drawMinicanvasPhoto(ctx: CanvasRenderingContext2D, u: HTMLImageElement, p: HTMLImageElement, W: number, H: number) {
   ctx.drawImage(p, 0, 0, W, H);
-  // 왼쪽 캔버스 흰 면 (이젤 위 정사각형)
+  // 왼쪽 캔버스 흰 면
   multiplyQuad(ctx, u,
-    W*0.08, H*0.08,   // TL
-    W*0.46, H*0.08,   // TR
-    W*0.46, H*0.52,   // BR
-    W*0.08, H*0.52,   // BL
+    W*0.08, H*0.08,   W*0.46, H*0.08,
+    W*0.46, H*0.52,   W*0.08, H*0.52,
   );
-  // 오른쪽 캔버스 흰 면
+  // 오른쪽 캔버스 — 미세하게 다른 색온도
+  ctx.save();
+  ctx.filter = 'brightness(0.97) sepia(0.06)';
   multiplyQuad(ctx, u,
-    W*0.54, H*0.10,   // TL
-    W*0.92, H*0.10,   // TR
-    W*0.92, H*0.53,   // BR
-    W*0.54, H*0.53,   // BL
+    W*0.54, H*0.10,   W*0.92, H*0.10,
+    W*0.92, H*0.53,   W*0.54, H*0.53,
   );
+  ctx.restore();
 }
 
 /* ─── config ─────────────────────────────────────────────── */
