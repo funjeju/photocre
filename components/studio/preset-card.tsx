@@ -1,5 +1,6 @@
 'use client';
 
+import { forwardRef } from 'react';
 import { cn } from '@/lib/utils';
 
 interface ThumbnailCss {
@@ -13,19 +14,19 @@ interface PresetCardProps {
   name: string;
   selected: boolean;
   onClick: () => void;
-  thumbnailStyle?: string;     // CSS background shorthand (fallback)
-  thumbnailSrc?: string;       // actual image URL
-  thumbnailCss?: ThumbnailCss; // CSS background-position clipping (highest priority)
+  thumbnailStyle?: string;
+  thumbnailSrc?: string;
+  thumbnailCss?: ThumbnailCss;
   className?: string;
 }
 
-export function PresetCard({
-  name, selected, onClick,
-  thumbnailStyle, thumbnailSrc, thumbnailCss,
-  className,
-}: PresetCardProps) {
+export const PresetCard = forwardRef<HTMLButtonElement, PresetCardProps>(function PresetCard(
+  { name, selected, onClick, thumbnailStyle, thumbnailSrc, thumbnailCss, className },
+  ref,
+) {
   return (
     <button
+      ref={ref}
       onClick={onClick}
       className={cn(
         'relative rounded-xl overflow-hidden aspect-[4/5] border transition-all shrink-0 w-20',
@@ -35,7 +36,6 @@ export function PresetCard({
         className,
       )}
     >
-      {/* 썸네일 */}
       <div className="absolute inset-0">
         {thumbnailCss ? (
           <div className="w-full h-full" style={thumbnailCss} />
@@ -47,10 +47,9 @@ export function PresetCard({
         )}
       </div>
 
-      {/* 이름 라벨 */}
       <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/60 to-transparent p-2">
         <span className="text-[9px] font-medium text-white leading-tight line-clamp-2">{name}</span>
       </div>
     </button>
   );
-}
+});
