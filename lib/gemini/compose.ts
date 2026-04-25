@@ -53,7 +53,7 @@ ${options.backgroundPrompt.trim()}`,
   if (options.customPrompt?.trim()) {
     parts.push(
       '',
-      `USER REQUIREMENTS (must not break identity preservation):
+      `USER REQUIREMENTS:
 ${options.customPrompt.trim()}`,
     );
   }
