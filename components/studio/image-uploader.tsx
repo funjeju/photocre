@@ -5,8 +5,17 @@ import imageCompression from 'browser-image-compression';
 import { ImageUp } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
-import { useStudioStore } from '@/lib/store/studio';
+import { useStudioStore, type AspectRatio } from '@/lib/store/studio';
 import { ko } from '@/lib/i18n/ko';
+
+function detectAspectRatio(w: number, h: number): AspectRatio {
+  const r = w / h;
+  if (r > 1.6) return '16:9';
+  if (r > 1.1) return '4:5'; // 가로형은 4:5로 근사
+  if (r < 0.65) return '9:16';
+  if (r < 0.85) return '3:4';
+  return '1:1';
+}
 
 const ACCEPTED = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif'];
 const MAX_MB = 10;
@@ -14,6 +23,7 @@ const MAX_MB = 10;
 export function ImageUploader({ className }: { className?: string }) {
   const setSourceImage = useStudioStore((s) => s.setSourceImage);
   const setIsCropDialogOpen = useStudioStore((s) => s.setIsCropDialogOpen);
+  const setAspectRatio = useStudioStore((s) => s.setAspectRatio);
   const sourceImage = useStudioStore((s) => s.sourceImage);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -49,13 +59,19 @@ export function ImageUploader({ className }: { className?: string }) {
         });
 
         const previewUrl = URL.createObjectURL(compressed);
+
+        const img = new window.Image();
+        img.src = previewUrl;
+        await new Promise<void>((resolve) => { img.onload = () => resolve(); });
+        setAspectRatio(detectAspectRatio(img.naturalWidth, img.naturalHeight));
+
         setSourceImage({ blob: compressed, previewUrl });
         setIsCropDialogOpen(true);
       } catch {
         toast.error(ko.errors.unknown);
       }
     },
-    [setSourceImage, setIsCropDialogOpen],
+    [setSourceImage, setIsCropDialogOpen, setAspectRatio],
   );
 
   const onInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
