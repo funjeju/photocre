@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useCallback } from 'react';
+import dynamic from 'next/dynamic';
 import Image from 'next/image';
-import { ArrowLeft, Sparkles, Download, Loader2, Plus, X } from 'lucide-react';
+import { ArrowLeft, Sparkles, Loader2, Plus, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,6 +11,11 @@ import { Label } from '@/components/ui/label';
 import { COVER_TEMPLATES, type CoverTemplate } from '@/lib/presets/cover-templates';
 import { useAuth } from '@/lib/firebase/auth-context';
 import { cn } from '@/lib/utils';
+
+const CoverTextEditor = dynamic(
+  () => import('./cover-text-editor').then((m) => m.CoverTextEditor),
+  { ssr: false },
+);
 
 function blobToBase64(blob: Blob): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -139,12 +145,14 @@ export function CoverEditor() {
     }
   }
 
-  function handleDownload() {
-    if (!resultUrl || !selected) return;
-    const a = document.createElement('a');
-    a.href = resultUrl;
-    a.download = `cover-${selected.id}.png`;
-    a.click();
+  if (resultUrl && selected) {
+    return (
+      <CoverTextEditor
+        resultUrl={resultUrl}
+        templateName={selected.name}
+        onBack={() => setResultUrl(null)}
+      />
+    );
   }
 
   if (!selected) {
@@ -289,16 +297,6 @@ export function CoverEditor() {
               </>
             )}
           </Button>
-          {resultUrl && (
-            <Button
-              onClick={handleDownload}
-              variant="outline"
-              className="w-full rounded-2xl gap-2 h-10"
-            >
-              <Download className="size-4" />
-              PNG 다운로드
-            </Button>
-          )}
         </div>
       </div>
 
