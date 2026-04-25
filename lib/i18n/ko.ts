@@ -84,10 +84,12 @@ export const ko = {
     mockup: {
       title: '굿즈 미리보기',
       note: '이미지로 만들 수 있는 굿즈 시뮬레이션 (AI 비용 없음)',
-      pin: '핀버튼',
-      mug: '머그컵',
-      cushion: '쿠션',
-      phonecase: '폰케이스',
+      tshirt:     '티셔츠',
+      mug:        '머그컵',
+      cushion:    '쿠션',
+      totebag:    '에코백',
+      griptok:    '그립톡',
+      minicanvas: '미니캔버스',
     },
   },
   apply: {
