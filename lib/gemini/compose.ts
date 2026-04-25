@@ -1,4 +1,4 @@
-import { FINAL_PROMPT, STYLE_MAP } from './prompts';
+import { FINAL_PROMPT, STYLE_MAP, CAT_STYLE_MAP, DOG_STYLE_MAP, ANIMAL_STYLE_MAP } from './prompts';
 
 const ASPECT_RATIO_LABELS: Record<string, string> = {
   '1:1': 'square (1:1)',
@@ -25,7 +25,10 @@ interface ComposeOptions {
 }
 
 export function composePrompt(options: ComposeOptions): string {
-  const styleDesc = STYLE_MAP[options.styleId] ?? STYLE_MAP['beauty'];
+  const styleDesc       = STYLE_MAP[options.styleId]       ?? STYLE_MAP['beauty'];
+  const catStyleDesc    = CAT_STYLE_MAP[options.styleId]    ?? CAT_STYLE_MAP['beauty'];
+  const dogStyleDesc    = DOG_STYLE_MAP[options.styleId]    ?? DOG_STYLE_MAP['beauty'];
+  const animalStyleDesc = ANIMAL_STYLE_MAP[options.styleId] ?? ANIMAL_STYLE_MAP['beauty'];
   const ratioLabel =
     ASPECT_RATIO_LABELS[options.aspectRatio ?? ''] ??
     'same aspect ratio as the input image';
@@ -33,7 +36,7 @@ export function composePrompt(options: ComposeOptions): string {
   const intensity = options.transformIntensity ?? 70;
 
   const parts = [
-    FINAL_PROMPT(styleDesc, intensity),
+    FINAL_PROMPT(styleDesc, catStyleDesc, dogStyleDesc, animalStyleDesc, intensity),
 
     '',
 
