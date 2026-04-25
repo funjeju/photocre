@@ -8,8 +8,8 @@ export async function GET(req: NextRequest) {
     const token = req.headers.get('Authorization')?.replace('Bearer ', '');
     if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const decoded = await adminAuth.verifyIdToken(token);
-    const snap = await adminDb.collection('users').doc(decoded.uid).get();
+    const decoded = await adminAuth().verifyIdToken(token);
+    const snap = await adminDb().collection('users').doc(decoded.uid).get();
 
     if (!snap.exists) return NextResponse.json({ credits: 0 });
 

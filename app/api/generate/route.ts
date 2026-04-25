@@ -9,13 +9,13 @@ export const maxDuration = 60;
 async function verifyToken(req: NextRequest): Promise<string> {
   const auth = req.headers.get('Authorization')?.replace('Bearer ', '');
   if (!auth) throw new Error('UNAUTHORIZED');
-  const decoded = await adminAuth.verifyIdToken(auth);
+  const decoded = await adminAuth().verifyIdToken(auth);
   return decoded.uid;
 }
 
 async function checkAndDecrementCredits(uid: string): Promise<void> {
-  const userRef = adminDb.collection('users').doc(uid);
-  await adminDb.runTransaction(async (tx) => {
+  const userRef = adminDb().collection('users').doc(uid);
+  await adminDb().runTransaction(async (tx) => {
     const snap = await tx.get(userRef);
     if (!snap.exists) throw new Error('USER_NOT_FOUND');
     const data = snap.data()!;
@@ -26,7 +26,7 @@ async function checkAndDecrementCredits(uid: string): Promise<void> {
 }
 
 async function saveToStorage(base64: string, uid: string, folder: string, ext = 'webp'): Promise<string> {
-  const bucket = adminStorage.bucket();
+  const bucket = adminStorage().bucket();
   const ts = Date.now();
   const filePath = `${folder}/${uid}/${ts}.${ext}`;
   const file = bucket.file(filePath);
@@ -98,7 +98,7 @@ export async function POST(req: NextRequest) {
 
     const outputUrl = await saveToStorage(imagePart.inlineData.data, uid, 'output');
 
-    const genRef = adminDb.collection('users').doc(uid).collection('generations').doc();
+    const genRef = adminDb().collection('users').doc(uid).collection('generations').doc();
     await genRef.set({
       inputImagePath: inputPath,
       outputImagePath: outputUrl,
@@ -110,7 +110,7 @@ export async function POST(req: NextRequest) {
       status: 'success',
     });
 
-    await adminDb.collection('credits_ledger').add({
+    await adminDb().collection('credits_ledger').add({
       uid,
       delta: -1,
       reason: 'generate',
