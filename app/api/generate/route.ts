@@ -6,20 +6,24 @@ import { composePrompt, getAspectRatioParam } from '@/lib/gemini/compose';
 export const runtime = 'nodejs';
 export const maxDuration = 60;
 
-async function verifyToken(req: NextRequest): Promise<string> {
+async function verifyToken(req: NextRequest): Promise<{ uid: string; email: string }> {
   const auth = req.headers.get('Authorization')?.replace('Bearer ', '');
   if (!auth) throw new Error('UNAUTHORIZED');
   const decoded = await adminAuth().verifyIdToken(auth);
-  return decoded.uid;
+  return { uid: decoded.uid, email: decoded.email ?? '' };
 }
 
-async function checkAndDecrementCredits(uid: string): Promise<void> {
+const OWNER_EMAILS = (process.env.OWNER_EMAILS ?? '').split(',').map((e) => e.trim()).filter(Boolean);
+
+async function checkAndDecrementCredits(uid: string, email: string): Promise<void> {
+  if (OWNER_EMAILS.includes(email)) return; // 오너 무제한
+
   const userRef = adminDb().collection('users').doc(uid);
   await adminDb().runTransaction(async (tx) => {
     const snap = await tx.get(userRef);
     if (!snap.exists) throw new Error('USER_NOT_FOUND');
     const data = snap.data()!;
-    if (data.isOwner) return; // 무제한
+    if (data.isOwner) return;
     if ((data.credits ?? 0) < 1) throw new Error('INSUFFICIENT_CREDITS');
     tx.update(userRef, { credits: data.credits - 1 });
   });
@@ -39,8 +43,9 @@ async function saveToStorage(base64: string, uid: string, folder: string, ext = 
 
 export async function POST(req: NextRequest) {
   let uid: string;
+  let email: string;
   try {
-    uid = await verifyToken(req);
+    ({ uid, email } = await verifyToken(req));
   } catch (e) {
     console.error('[generate] verifyToken failed:', e);
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -55,7 +60,7 @@ export async function POST(req: NextRequest) {
   };
 
   try {
-    await checkAndDecrementCredits(uid);
+    await checkAndDecrementCredits(uid, email);
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : '';
     if (msg === 'INSUFFICIENT_CREDITS') {
