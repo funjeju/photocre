@@ -401,26 +401,80 @@ function drawPhoneCase(ctx: CanvasRenderingContext2D, img: HTMLImageElement, W: 
   rr(ctx, px, py, pw, ph, pr); ctx.stroke();
 }
 
+/* ═══════════════════════════════════════════════════════════
+   PHOTO-BASED compositing — real product photo + multiply overlay
+   Works when a product image is provided; falls back to canvas draw
+═══════════════════════════════════════════════════════════ */
+
+/** Mug: handle on LEFT, print zone on right ~38–95% x, 8–90% y */
+function drawMugPhoto(
+  ctx: CanvasRenderingContext2D,
+  userImg: HTMLImageElement,
+  prodImg: HTMLImageElement,
+  W: number, H: number,
+) {
+  // 1. product photo as full background (handle, shadow, background already baked in)
+  ctx.drawImage(prodImg, 0, 0, W, H);
+
+  // 2. user image on print zone with multiply (white mug face → user image shows through)
+  const px = Math.round(W * 0.36), py = Math.round(H * 0.07);
+  const pw = Math.round(W * 0.59), ph = Math.round(H * 0.84);
+  ctx.save();
+  ctx.globalCompositeOperation = 'multiply';
+  ctx.beginPath(); ctx.rect(px, py, pw, ph); ctx.clip();
+  cover(ctx, userImg, px, py, pw, ph);
+  ctx.restore();
+}
+
+/** Cushion: large white square on lifestyle background, face ~8–90% x, 13–92% y */
+function drawCushionPhoto(
+  ctx: CanvasRenderingContext2D,
+  userImg: HTMLImageElement,
+  prodImg: HTMLImageElement,
+  W: number, H: number,
+) {
+  // 1. full lifestyle scene photo
+  ctx.drawImage(prodImg, 0, 0, W, H);
+
+  // 2. user image on cushion face with multiply
+  const px = Math.round(W * 0.07), py = Math.round(H * 0.12);
+  const pw = Math.round(W * 0.84), ph = Math.round(H * 0.80);
+  ctx.save();
+  ctx.globalCompositeOperation = 'multiply';
+  rr(ctx, px, py, pw, ph, 10); ctx.clip();
+  cover(ctx, userImg, px, py, pw, ph);
+  ctx.restore();
+}
+
 /* ─── config ─────────────────────────────────────────────── */
 
-const DRAW_FN: Record<string, (ctx: CanvasRenderingContext2D, img: HTMLImageElement, w: number, h: number) => void> = {
-  pin:       drawPin,
-  mug:       drawMug,
-  cushion:   drawCushion,
-  phonecase: drawPhoneCase,
+type DrawFn = (
+  ctx: CanvasRenderingContext2D,
+  img: HTMLImageElement,
+  prodImg: HTMLImageElement | null,
+  w: number,
+  h: number,
+) => void;
+
+const DRAW_FN: Record<string, DrawFn> = {
+  pin:       (ctx, img, _p, w, h) => drawPin(ctx, img, w, h),
+  mug:       (ctx, img, p,  w, h) => p ? drawMugPhoto(ctx, img, p, w, h) : drawMug(ctx, img, w, h),
+  cushion:   (ctx, img, p,  w, h) => p ? drawCushionPhoto(ctx, img, p, w, h) : drawCushion(ctx, img, w, h),
+  phonecase: (ctx, img, _p, w, h) => drawPhoneCase(ctx, img, w, h),
 };
 
 const ITEMS = [
-  { id: 'pin',       label: ko.studio.mockup.pin,       w: 165, h: 195 },
-  { id: 'mug',       label: ko.studio.mockup.mug,       w: 220, h: 200 },
-  { id: 'cushion',   label: ko.studio.mockup.cushion,   w: 170, h: 190 },
-  { id: 'phonecase', label: ko.studio.mockup.phonecase, w: 140, h: 215 },
+  { id: 'pin',       label: ko.studio.mockup.pin,       w: 165, h: 195, productSrc: null             },
+  { id: 'mug',       label: ko.studio.mockup.mug,       w: 220, h: 200, productSrc: '/mockups/mug.jpg'     },
+  { id: 'cushion',   label: ko.studio.mockup.cushion,   w: 170, h: 190, productSrc: '/mockups/cushion.jpg' },
+  { id: 'phonecase', label: ko.studio.mockup.phonecase, w: 140, h: 215, productSrc: null             },
 ] as const;
 
 /* ─── single canvas ──────────────────────────────────────── */
 
-function MockupCanvas({ id, label, w, h, img }: {
-  id: string; label: string; w: number; h: number; img: HTMLImageElement | null;
+function MockupCanvas({ id, label, w, h, img, productImg }: {
+  id: string; label: string; w: number; h: number;
+  img: HTMLImageElement | null; productImg: HTMLImageElement | null;
 }) {
   const ref = useRef<HTMLCanvasElement>(null);
   const dpr = typeof window !== 'undefined' ? Math.min(window.devicePixelRatio ?? 1, 2) : 1;
@@ -433,9 +487,9 @@ function MockupCanvas({ id, label, w, h, img }: {
     ctx.clearRect(0, 0, w * dpr, h * dpr);
     ctx.save();
     ctx.scale(dpr, dpr);
-    DRAW_FN[id]?.(ctx, img, w, h);
+    DRAW_FN[id]?.(ctx, img, productImg, w, h);
     ctx.restore();
-  }, [id, img, w, h, dpr]);
+  }, [id, img, productImg, w, h, dpr]);
 
   return (
     <div className="flex flex-col items-center gap-2 shrink-0">
@@ -453,8 +507,22 @@ function MockupCanvas({ id, label, w, h, img }: {
 
 /* ─── public ─────────────────────────────────────────────── */
 
+function useProductImgs(): Record<string, HTMLImageElement | null> {
+  const [imgs, setImgs] = useState<Record<string, HTMLImageElement | null>>({});
+  useEffect(() => {
+    ITEMS.forEach(({ id, productSrc }) => {
+      if (!productSrc) return;
+      const i = new window.Image();
+      i.onload = () => setImgs((prev) => ({ ...prev, [id]: i }));
+      i.src = productSrc;
+    });
+  }, []);
+  return imgs;
+}
+
 export function MockupPreview({ imageUrl }: { imageUrl: string }) {
   const [img, setImg] = useState<HTMLImageElement | null>(null);
+  const productImgs = useProductImgs();
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canLeft, setCanLeft] = useState(false);
   const [canRight, setCanRight] = useState(true);
@@ -515,7 +583,7 @@ export function MockupPreview({ imageUrl }: { imageUrl: string }) {
         >
           <div style={{ display: 'flex', gap: 20, width: 'max-content' }}>
             {ITEMS.map((item) => (
-              <MockupCanvas key={item.id} {...item} img={img} />
+              <MockupCanvas key={item.id} {...item} img={img} productImg={productImgs[item.id] ?? null} />
             ))}
           </div>
         </div>
