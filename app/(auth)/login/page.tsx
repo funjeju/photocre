@@ -31,12 +31,11 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="flex min-h-screen items-center justify-center bg-background px-6">
+      <div className="flex w-full max-w-4xl items-center gap-16">
 
-      {/* ── 좌측 콘텐츠 ── */}
-      <div className="flex flex-1 flex-col justify-center px-12 py-16 lg:px-24">
-        <div className="w-full max-w-lg">
-
+        {/* ── 좌측 콘텐츠 ── */}
+        <div className="flex-1 min-w-0">
           {/* 로고 */}
           <p className="mb-10 text-sm font-semibold tracking-tight text-accent">
             {ko.app.name}
@@ -63,56 +62,35 @@ export default function LoginPage() {
           </p>
 
           {/* CTA */}
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-            <Button
-              onClick={handleLogin}
-              disabled={signingIn}
-              className="h-11 gap-2.5 rounded-2xl bg-accent px-6 text-accent-foreground hover:bg-accent/90"
-            >
-              {signingIn ? (
-                <Loader2 className="size-4 animate-spin" />
-              ) : (
-                <GoogleIcon />
-              )}
-              {signingIn ? ko.auth.loggingIn : ko.auth.loginButton}
-            </Button>
-          </div>
+          <Button
+            onClick={handleLogin}
+            disabled={signingIn}
+            className="h-11 gap-2.5 rounded-2xl bg-accent px-6 text-accent-foreground hover:bg-accent/90"
+          >
+            {signingIn ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <GoogleIcon />
+            )}
+            {signingIn ? ko.auth.loggingIn : ko.auth.loginButton}
+          </Button>
         </div>
-      </div>
 
-      {/* ── 우측 프리뷰 (데스크탑) ── */}
-      <div className="relative hidden lg:flex w-[45%] items-center justify-center overflow-hidden bg-muted/30">
-        {/* SVG 도트 텍스처 */}
-        <svg
-          className="pointer-events-none absolute inset-0 h-full w-full opacity-[0.06]"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <defs>
-            <pattern id="login-dots" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
-              <circle cx="2" cy="2" r="1" fill="currentColor" />
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#login-dots)" />
-        </svg>
-
-        {/* 목업 카드 — 폴라로이드 스타일 */}
-        <div className="relative z-10 w-72 rotate-1 rounded-2xl border border-border bg-card p-4 shadow-lg">
-          {/* 이미지 영역 */}
-          <div className="aspect-[4/5] w-full overflow-hidden rounded-xl bg-gradient-to-br from-stone-200 to-stone-300">
-            {/* 해 지는 해변 느낌의 그라데이션 */}
-            <div className="h-full w-full bg-gradient-to-b from-orange-200 via-amber-100 to-stone-200 opacity-80" />
-          </div>
-          {/* 폴라로이드 하단 캡션 영역 */}
-          <div className="mt-3 flex flex-col items-center gap-1 pb-1">
-            <p className="text-sm font-medium text-foreground/70">Good day :)</p>
+        {/* ── 우측 카드 ── */}
+        <div className="hidden lg:block shrink-0">
+          <div className="w-64 rotate-1 rounded-2xl border border-border bg-card p-4 shadow-lg">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/style-samples/none.png"
+              alt="샘플"
+              className="aspect-[4/5] w-full rounded-xl object-cover"
+            />
+            <div className="mt-3 flex flex-col items-center pb-1">
+              <p className="text-sm font-medium text-foreground/70">Good day :)</p>
+            </div>
           </div>
         </div>
 
-        {/* 우측 하단 배지 */}
-        <div className="absolute bottom-8 right-8 flex items-center gap-2 rounded-full border border-border bg-card/80 px-3 py-1.5 backdrop-blur-sm shadow-sm">
-          <div className="size-2 rounded-full bg-accent animate-pulse" />
-          <span className="text-xs font-medium text-foreground/70">AI 이미지 생성 중</span>
-        </div>
       </div>
     </div>
   );
