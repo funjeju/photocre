@@ -16,7 +16,7 @@ const RATIOS: { label: string; value: AspectRatio; num: number }[] = [
   { label: '3:4', value: '3:4', num: 3 / 4 },
   { label: '9:16', value: '9:16', num: 9 / 16 },
   { label: '16:9', value: '16:9', num: 16 / 9 },
-  { label: '자유', value: 'free', num: 0 },
+  { label: '원본', value: 'free', num: 0 },
 ];
 
 export function CropDialog() {
@@ -91,6 +91,8 @@ export function CropDialog() {
               image={sourceImage.previewUrl}
               crop={crop}
               zoom={zoom}
+              minZoom={0.5}
+              maxZoom={4}
               aspect={cropAspect}
               onCropChange={setCrop}
               onZoomChange={setZoom}
@@ -98,6 +100,21 @@ export function CropDialog() {
               style={{ containerStyle: { borderRadius: 0 } }}
             />
           )}
+        </div>
+
+        {/* 줌 슬라이더 */}
+        <div className="flex items-center gap-3 px-6 py-3 border-t border-border">
+          <span className="text-xs text-muted-foreground shrink-0">축소</span>
+          <input
+            type="range"
+            min={0.5}
+            max={4}
+            step={0.05}
+            value={zoom}
+            onChange={(e) => setZoom(Number(e.target.value))}
+            className="flex-1 accent-accent"
+          />
+          <span className="text-xs text-muted-foreground shrink-0">확대</span>
         </div>
 
         {/* 버튼 */}
