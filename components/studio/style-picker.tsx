@@ -19,9 +19,7 @@ export function StylePicker() {
             name={style.name}
             selected={styleId === style.id}
             onClick={() => setStyleId(style.id)}
-            thumbnailCss={style.thumbnailCss}
             thumbnailSrc={style.thumbnailSrc}
-            thumbnailStyle={style.thumbnailBg}
             className="snap-start"
           />
         ))}

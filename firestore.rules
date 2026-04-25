@@ -1,0 +1,27 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // 사용자 본인 문서 — 읽기/생성/업데이트 허용 (삭제 금지)
+    match /users/{uid} {
+      allow read, update: if request.auth != null && request.auth.uid == uid;
+      allow create: if request.auth != null && request.auth.uid == uid;
+
+      // 생성 내역은 서버(Admin)에서만 쓰고, 본인만 읽기
+      match /generations/{genId} {
+        allow read: if request.auth != null && request.auth.uid == uid;
+        allow write: if false; // Admin SDK only
+      }
+    }
+
+    // credits_ledger — Admin SDK only
+    match /credits_ledger/{docId} {
+      allow read, write: if false;
+    }
+
+    // 나머지 전체 차단
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
