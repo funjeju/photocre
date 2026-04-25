@@ -123,94 +123,94 @@ function overQuad(
 
 function drawTshirtPhoto(ctx: CanvasRenderingContext2D, u: HTMLImageElement, p: HTMLImageElement, W: number, H: number) {
   ctx.drawImage(p, 0, 0, W, H);
-  // 앞면 프린트 존 — 칼라 아래 ~ 밑단 위, 좌우 여백 제외
+  // 가슴 프린트 존 — 칼라 아래 ~ 배꼽 위, 양 소매 안쪽 경계
   multiplyQuad(ctx, u,
-    W*0.21, H*0.26,   // TL
-    W*0.79, H*0.26,   // TR
-    W*0.78, H*0.68,   // BR
-    W*0.22, H*0.68,   // BL
+    W*0.27, H*0.22,   // TL
+    W*0.73, H*0.22,   // TR
+    W*0.73, H*0.67,   // BR
+    W*0.27, H*0.67,   // BL
   );
 }
 
 function drawMugPhoto(ctx: CanvasRenderingContext2D, u: HTMLImageElement, p: HTMLImageElement, W: number, H: number) {
   ctx.drawImage(p, 0, 0, W, H);
-  // 가운데(녹색 핸들) 머그 흰 몸체 — 핸들 왼쪽 영역만
+  // 앞쪽(노란 핸들) 머그 흰 몸체만 — 핸들 왼쪽 원통 면
   multiplyQuad(ctx, u,
-    W*0.22, H*0.10,
-    W*0.60, H*0.10,
-    W*0.60, H*0.87,
-    W*0.22, H*0.87,
+    W*0.01, H*0.22,   // TL
+    W*0.37, H*0.22,   // TR
+    W*0.37, H*0.86,   // BR
+    W*0.01, H*0.86,   // BL
   );
 }
 
 function drawCushionPhoto(ctx: CanvasRenderingContext2D, u: HTMLImageElement, p: HTMLImageElement, W: number, H: number) {
   ctx.drawImage(p, 0, 0, W, H);
-  // 왼쪽 쿠션 — 위에서 약간 내려다보는 앵글, 약간 사다리꼴
+  // 왼쪽 쿠션 면
   multiplyQuad(ctx, u,
-    W*0.04, H*0.09,   // TL
-    W*0.47, H*0.09,   // TR
-    W*0.47, H*0.87,   // BR
-    W*0.03, H*0.87,   // BL
+    W*0.03, H*0.07,   // TL
+    W*0.47, H*0.08,   // TR
+    W*0.46, H*0.62,   // BR
+    W*0.03, H*0.62,   // BL
   );
-  // 오른쪽 쿠션
+  // 오른쪽 쿠션 면
   multiplyQuad(ctx, u,
-    W*0.50, H*0.12,
-    W*0.93, H*0.12,
-    W*0.93, H*0.90,
-    W*0.50, H*0.90,
+    W*0.52, H*0.09,   // TL
+    W*0.94, H*0.10,   // TR
+    W*0.93, H*0.79,   // BR
+    W*0.52, H*0.78,   // BL
   );
 }
 
 function drawTotebagPhoto(ctx: CanvasRenderingContext2D, u: HTMLImageElement, p: HTMLImageElement, W: number, H: number) {
   ctx.drawImage(p, 0, 0, W, H);
-  // 검은 백 — source-over (multiply on black = invisible)
-  overQuad(ctx, u, 0.88,
-    W*0.03, H*0.21,
-    W*0.46, H*0.21,
-    W*0.46, H*0.94,
-    W*0.03, H*0.94,
+  // 검은 에코백 몸통 — source-over (multiply on black = invisible)
+  overQuad(ctx, u, 0.85,
+    W*0.04, H*0.22,   // TL
+    W*0.46, H*0.22,   // TR
+    W*0.46, H*0.93,   // BR
+    W*0.04, H*0.93,   // BL
   );
-  // 흰/아이보리 백 — multiply
+  // 흰/아이보리 에코백 몸통 — multiply
   multiplyQuad(ctx, u,
-    W*0.54, H*0.21,
-    W*0.97, H*0.21,
-    W*0.97, H*0.94,
-    W*0.54, H*0.94,
+    W*0.55, H*0.21,   // TL
+    W*0.96, H*0.21,   // TR
+    W*0.96, H*0.93,   // BR
+    W*0.55, H*0.93,   // BL
   );
 }
 
 function drawGriptokPhoto(ctx: CanvasRenderingContext2D, u: HTMLImageElement, p: HTMLImageElement, W: number, H: number) {
   ctx.drawImage(p, 0, 0, W, H);
-  // 흰 원반: ~25° 앞으로 기울어짐 → 원반 face를 quadWarp로 perspective 맞춤
-  // 이후 ellipse clip으로 원형 마스킹
-  const cx = W*0.33, cy = H*0.41, rx = W*0.27, ry = H*0.27;
+  // 흰 원반 face — 카메라를 향해 약간 기울어진 원형 디스크
+  // quadWarp로 원반 bounding quad를 잡고 ellipse로 원형 clip
+  const cx = W*0.34, cy = H*0.38, rx = W*0.31, ry = H*0.36;
   ctx.save();
   ctx.globalCompositeOperation = 'multiply';
   ctx.beginPath(); ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2); ctx.clip();
   quadWarp(ctx, u,
-    W*0.07, H*0.14,   // TL
-    W*0.60, H*0.16,   // TR
-    W*0.59, H*0.67,   // BR
-    W*0.08, H*0.65,   // BL
+    W*0.03, H*0.02,   // TL
+    W*0.65, H*0.04,   // TR
+    W*0.64, H*0.73,   // BR
+    W*0.03, H*0.71,   // BL
   );
   ctx.restore();
 }
 
 function drawMinicanvasPhoto(ctx: CanvasRenderingContext2D, u: HTMLImageElement, p: HTMLImageElement, W: number, H: number) {
   ctx.drawImage(p, 0, 0, W, H);
-  // 왼쪽 캔버스 — 약간 뒤로 기울어진 이젤
+  // 왼쪽 캔버스 흰 면 (이젤 위 정사각형)
   multiplyQuad(ctx, u,
     W*0.08, H*0.08,   // TL
-    W*0.48, H*0.09,   // TR
-    W*0.47, H*0.71,   // BR
-    W*0.09, H*0.70,   // BL
+    W*0.46, H*0.08,   // TR
+    W*0.46, H*0.52,   // BR
+    W*0.08, H*0.52,   // BL
   );
-  // 오른쪽 캔버스
+  // 오른쪽 캔버스 흰 면
   multiplyQuad(ctx, u,
-    W*0.53, H*0.10,
-    W*0.92, H*0.10,
-    W*0.91, H*0.74,
-    W*0.53, H*0.73,
+    W*0.54, H*0.10,   // TL
+    W*0.92, H*0.10,   // TR
+    W*0.92, H*0.53,   // BR
+    W*0.54, H*0.53,   // BL
   );
 }
 
