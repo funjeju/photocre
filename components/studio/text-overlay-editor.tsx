@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 import { ko } from '@/lib/i18n/ko';
 
 const COLORS = ['#FFFFFF', '#000000', '#F5E6C8', '#C8D8F5', '#F5C8C8', '#C8F5D8'];
+const BG_COLORS = ['#000000', '#FFFFFF', '#FF000099', '#00000099', '#FFFFFF99'];
 const ALIGNMENTS = [
   { value: 'left', label: '←' },
   { value: 'center', label: '↔' },
@@ -91,7 +92,7 @@ export function TextOverlayEditor() {
             </select>
           </div>
 
-          {/* 크기 + 정렬 */}
+          {/* 크기 + 정렬 + 볼드 */}
           <div className="flex gap-2 items-center">
             <label className="text-xs text-muted-foreground w-8 shrink-0">{ko.studio.text.fontSize}</label>
             <input
@@ -105,6 +106,18 @@ export function TextOverlayEditor() {
             <span className="text-xs text-muted-foreground w-6 text-right">{overlay.fontSize}</span>
 
             <div className="flex gap-1 ml-2">
+              {/* 볼드 */}
+              <button
+                onClick={() => update({ bold: !overlay.bold })}
+                className={cn(
+                  'size-7 rounded-lg text-xs font-bold border transition-colors',
+                  overlay.bold
+                    ? 'border-accent bg-accent text-accent-foreground'
+                    : 'border-border text-muted-foreground hover:border-foreground/30',
+                )}
+              >
+                B
+              </button>
               {ALIGNMENTS.map((a) => (
                 <button
                   key={a.value}
@@ -118,6 +131,34 @@ export function TextOverlayEditor() {
                 >
                   {a.label}
                 </button>
+              ))}
+            </div>
+          </div>
+
+          {/* 텍스트 배경색 */}
+          <div className="flex gap-2 items-center">
+            <label className="text-xs text-muted-foreground w-8 shrink-0">배경</label>
+            <div className="flex gap-1.5">
+              {/* 없음 */}
+              <button
+                onClick={() => update({ textBgColor: null })}
+                className={cn(
+                  'size-6 rounded-full border-2 flex items-center justify-center transition-all',
+                  overlay.textBgColor === null ? 'border-accent scale-110' : 'border-border',
+                )}
+              >
+                <span className="text-[9px] text-muted-foreground">∅</span>
+              </button>
+              {BG_COLORS.map((c) => (
+                <button
+                  key={c}
+                  onClick={() => update({ textBgColor: c })}
+                  className={cn(
+                    'size-6 rounded-full border-2 transition-all',
+                    overlay.textBgColor === c ? 'border-accent scale-110' : 'border-border',
+                  )}
+                  style={{ backgroundColor: c }}
+                />
               ))}
             </div>
           </div>

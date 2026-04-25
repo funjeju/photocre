@@ -113,7 +113,20 @@ export function ResultViewer() {
       >
         <div style={{ transform: `scale(${displayScale})`, transformOrigin: 'top left', width: canvasW, height: canvasH }}>
           <Stage ref={stageRef} width={canvasW} height={canvasH}>
-            <Layer>
+            <Layer clipFunc={(ctx) => {
+              const r = 24;
+              ctx.beginPath();
+              ctx.moveTo(r, 0);
+              ctx.lineTo(canvasW - r, 0);
+              ctx.quadraticCurveTo(canvasW, 0, canvasW, r);
+              ctx.lineTo(canvasW, canvasH - r);
+              ctx.quadraticCurveTo(canvasW, canvasH, canvasW - r, canvasH);
+              ctx.lineTo(r, canvasH);
+              ctx.quadraticCurveTo(0, canvasH, 0, canvasH - r);
+              ctx.lineTo(0, r);
+              ctx.quadraticCurveTo(0, 0, r, 0);
+              ctx.closePath();
+            }}>
               {/* 1. 배경 (캔버스 전체) */}
               {showBgImage ? (
                 <KonvaImage image={customBgImage!} x={0} y={0} width={canvasW} height={canvasH} />
@@ -135,27 +148,48 @@ export function ResultViewer() {
                 />
               )}
 
-              {/* 4. 텍스트 오버레이 */}
-              {textOverlay?.content && (
-                <KonvaText
-                  text={textOverlay.content}
-                  x={textPos.x * canvasW - canvasW / 2}
-                  y={textPos.y * canvasH - fontSize / 2}
-                  width={canvasW}
-                  fontSize={fontSize}
-                  fontFamily={textOverlay.fontFamily}
-                  fill={textOverlay.color}
-                  align={textOverlay.alignment}
-                  draggable
-                  onDragEnd={(e) => {
-                    const newPos = {
-                      x: Math.min(1, Math.max(0, (e.target.x() + canvasW / 2) / canvasW)),
-                      y: Math.min(1, Math.max(0, (e.target.y() + fontSize / 2) / canvasH)),
-                    };
-                    if (textOverlay) setTextOverlay({ ...textOverlay, position: newPos });
-                  }}
-                />
-              )}
+              {/* 4. 텍스트 배경 + 텍스트 오버레이 */}
+              {textOverlay?.content && (() => {
+                const tx = textPos.x * canvasW - canvasW / 2;
+                const ty = textPos.y * canvasH - fontSize / 2;
+                const lineCount = textOverlay.content.split('\n').length;
+                const bgH = fontSize * lineCount * 1.35 + 16;
+                const bgPad = 12;
+                return (
+                  <>
+                    {textOverlay.textBgColor && (
+                      <Rect
+                        x={tx - bgPad}
+                        y={ty - 8}
+                        width={canvasW + bgPad * 2}
+                        height={bgH}
+                        fill={textOverlay.textBgColor}
+                        cornerRadius={8}
+                        listening={false}
+                      />
+                    )}
+                    <KonvaText
+                      text={textOverlay.content}
+                      x={tx}
+                      y={ty}
+                      width={canvasW}
+                      fontSize={fontSize}
+                      fontFamily={textOverlay.fontFamily}
+                      fontStyle={textOverlay.bold ? 'bold' : 'normal'}
+                      fill={textOverlay.color}
+                      align={textOverlay.alignment}
+                      draggable
+                      onDragEnd={(e) => {
+                        const newPos = {
+                          x: Math.min(1, Math.max(0, (e.target.x() + canvasW / 2) / canvasW)),
+                          y: Math.min(1, Math.max(0, (e.target.y() + fontSize / 2) / canvasH)),
+                        };
+                        if (textOverlay) setTextOverlay({ ...textOverlay, position: newPos });
+                      }}
+                    />
+                  </>
+                );
+              })()}
             </Layer>
           </Stage>
         </div>

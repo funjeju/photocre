@@ -10,6 +10,8 @@ export interface TextOverlay {
   position: { x: number; y: number };
   alignment: 'left' | 'center' | 'right';
   weight: number;
+  bold: boolean;
+  textBgColor: string | null; // null = 배경 없음
 }
 
 export interface StudioState {
@@ -65,6 +67,8 @@ const DEFAULT_TEXT_OVERLAY: TextOverlay = {
   position: { x: 0.5, y: 0.88 },
   alignment: 'center',
   weight: 400,
+  bold: false,
+  textBgColor: null,
 };
 
 export const useStudioStore = create<StudioState>((set) => ({
