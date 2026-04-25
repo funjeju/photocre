@@ -87,8 +87,7 @@ export const useStudioStore = create<StudioState>((set) => ({
   setCropData: (crop) => set({ cropData: crop }),
   setAspectRatio: (ratio) => set({ aspectRatio: ratio }),
   setCroppedImage: (img) => set({ croppedImage: img }),
-  // 스타일 변경 시 AI 결과 초기화 (재생성 필요)
-  setStyleId: (id) => set({ styleId: id, generatedImageUrl: null }),
+  setStyleId: (id) => set({ styleId: id }),
   setCustomPrompt: (prompt) => set({ customPrompt: prompt }),
   // 프레임/배경/텍스트는 AI 결과에 Konva로 합성 → 변경해도 AI 결과 유지
   setFrameId: (id) => set({ frameId: id }),
