@@ -1,0 +1,83 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    /* Neutral palette (Light) */
+    --background: 220 20% 98%;
+    --foreground: 224 10% 10%;
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 10% 40%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 238 75% 60%;
+    --card: 0 0% 100%;
+    --card-foreground: 224 10% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 224 10% 10%;
+
+    /* Accent (single — Indigo-500) */
+    --accent: 238 75% 60%;
+    --accent-foreground: 0 0% 100%;
+
+    /* Primary (= accent) */
+    --primary: 238 75% 60%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary */
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 224 10% 10%;
+
+    /* Feedback */
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 142 71% 45%;
+    --warning: 38 92% 50%;
+
+    /* Radius */
+    --radius: 1rem;
+    --radius-sm: 0.5rem;
+    --radius-md: 0.75rem;
+    --radius-lg: 1rem;
+    --radius-xl: 1.5rem;
+
+    /* Shadow */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.04);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.06);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.08);
+
+    /* Typography */
+    --font-sans: 'Inter', 'Noto Sans KR', system-ui, sans-serif;
+  }
+
+  .dark {
+    --background: 224 10% 6%;
+    --foreground: 220 14% 94%;
+    --muted: 224 10% 12%;
+    --muted-foreground: 220 10% 60%;
+    --border: 224 10% 16%;
+    --input: 224 10% 16%;
+    --ring: 238 75% 65%;
+    --card: 224 10% 8%;
+    --card-foreground: 220 14% 94%;
+    --popover: 224 10% 8%;
+    --popover-foreground: 220 14% 94%;
+    --accent: 238 75% 65%;
+    --accent-foreground: 224 10% 6%;
+    --primary: 238 75% 65%;
+    --primary-foreground: 224 10% 6%;
+    --secondary: 224 10% 12%;
+    --secondary-foreground: 220 14% 94%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+  }
+
+  * {
+    border-color: hsl(var(--border));
+  }
+
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-family: var(--font-sans);
+  }
+}
