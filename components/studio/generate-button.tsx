@@ -37,7 +37,8 @@ export function GenerateButton() {
     setIsGenerating(true);
     try {
       const idToken = await user.getIdToken();
-      const resizedBlob = await imageCompression(img.blob, {
+      const asFile = new File([img.blob], 'input.webp', { type: img.blob.type || 'image/webp' });
+      const resizedBlob = await imageCompression(asFile, {
         maxWidthOrHeight: 1024,
         useWebWorker: true,
         fileType: 'image/webp',
