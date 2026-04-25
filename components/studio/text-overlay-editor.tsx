@@ -31,10 +31,11 @@ export function TextOverlayEditor() {
     if (!enabled) setEnabled(true);
   }
 
-  function handleFontChange(family: string) {
+  async function handleFontChange(family: string) {
     const font = getFont(family);
-    loadGoogleFont(font);
-    update({ fontFamily: family });
+    update({ fontFamily: family });           // HTML 미리보기 즉시 반영
+    await loadGoogleFont(font);               // 폰트 로드 완료 대기
+    update({ fontFamily: family });           // Konva 재렌더 트리거
   }
 
   return (

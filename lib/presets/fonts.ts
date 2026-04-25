@@ -41,13 +41,15 @@ export function getFont(family: string): FontPreset {
 // 동적 Google Fonts 로드 (선택 시에만)
 const loadedFonts = new Set<string>();
 
-export function loadGoogleFont(font: FontPreset) {
+export async function loadGoogleFont(font: FontPreset): Promise<void> {
   if (typeof document === 'undefined') return;
-  if (loadedFonts.has(font.family)) return;
-  loadedFonts.add(font.family);
-
-  const link = document.createElement('link');
-  link.rel = 'stylesheet';
-  link.href = `https://fonts.googleapis.com/css2?family=${font.googleFontsName}&display=swap`;
-  document.head.appendChild(link);
+  if (!loadedFonts.has(font.family)) {
+    loadedFonts.add(font.family);
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = `https://fonts.googleapis.com/css2?family=${font.googleFontsName}&display=swap`;
+    document.head.appendChild(link);
+  }
+  // 폰트 실제 로드 완료까지 대기
+  await document.fonts.load(`16px "${font.family}"`);
 }
