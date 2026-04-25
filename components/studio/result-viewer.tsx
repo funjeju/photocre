@@ -12,10 +12,10 @@ import { downloadRef } from '@/lib/canvas/download-ref';
 import { ko } from '@/lib/i18n/ko';
 import type Konva from 'konva';
 
-const EXPORT_LONG = 1024; // 긴 변 기준 해상도
-const DISPLAY_MAX = 520;  // 화면 최대 표시 크기
+const EXPORT_LONG = 1024;
+const DISPLAY_MAX = 520;
 
-function getCanvasDimensions(aspectRatio: string): { w: number; h: number } {
+function getImageDimensions(aspectRatio: string): { w: number; h: number } {
   const ratios: Record<string, [number, number]> = {
     '1:1':  [1, 1],
     '4:5':  [4, 5],
@@ -58,12 +58,26 @@ export function ResultViewer() {
     backgroundId === 'custom' && customBackground ? customBackground.previewUrl : null,
   );
 
-  const { w: canvasW, h: canvasH } = getCanvasDimensions(aspectRatio);
+  // 이미지 영역 크기 (비율 기반)
+  const { w: imgW, h: imgH } = getImageDimensions(aspectRatio);
+
+  // 프레임 패딩 (imgW 기준 스케일)
+  const fScale = imgW / 512;
+  const pad = {
+    top:    frame.konva.top    * fScale,
+    right:  frame.konva.right  * fScale,
+    bottom: frame.konva.bottom * fScale,
+    left:   frame.konva.left   * fScale,
+  };
+
+  // 캔버스 전체 크기 = 이미지 + 프레임 패딩
+  const canvasW = imgW + pad.left + pad.right;
+  const canvasH = imgH + pad.top  + pad.bottom;
+
+  // 화면 표시 스케일
   const displayScale = DISPLAY_MAX / Math.max(canvasW, canvasH);
   const displayW = Math.round(canvasW * displayScale);
   const displayH = Math.round(canvasH * displayScale);
-
-  const scale = canvasW / 512;
 
   const [textPos, setTextPos] = useState({ x: 0.5, y: 0.9 });
   useEffect(() => {
@@ -71,6 +85,7 @@ export function ResultViewer() {
   }, [textOverlay]);
 
   const showBgImage = backgroundId === 'custom' && customBgImage;
+  const fontSize = textOverlay ? Math.max(16, textOverlay.fontSize * fScale) : 24;
 
   function handleDownload() {
     if (!stageRef.current) return;
@@ -93,31 +108,37 @@ export function ResultViewer() {
 
   if (!generatedImageUrl) return null;
 
-  const fontSize = textOverlay ? Math.max(16, textOverlay.fontSize * scale) : 24;
-
   return (
     <div className="flex flex-col items-center gap-4 w-full" style={{ maxWidth: DISPLAY_MAX }}>
       <div
-        className="rounded-2xl overflow-hidden shadow-lg origin-top-left"
+        className="rounded-2xl overflow-hidden shadow-lg"
         style={{ width: displayW, height: displayH }}
       >
         <div style={{ transform: `scale(${displayScale})`, transformOrigin: 'top left', width: canvasW, height: canvasH }}>
           <Stage ref={stageRef} width={canvasW} height={canvasH}>
             <Layer>
+              {/* 1. 배경 (캔버스 전체) */}
               {showBgImage ? (
                 <KonvaImage image={customBgImage!} x={0} y={0} width={canvasW} height={canvasH} />
-              ) : background.id === 'keep-original' || background.id === 'custom' ? null : (
+              ) : background.id !== 'keep-original' && background.id !== 'custom' ? (
                 <Rect x={0} y={0} width={canvasW} height={canvasH} fill={extractSolidColor(background.thumbnailStyle)} />
-              )}
+              ) : null}
 
+              {/* 2. 프레임 배경 (폴라로이드 흰 영역 등) */}
               {frame.konva.frameBg !== 'transparent' && (
                 <Rect x={0} y={0} width={canvasW} height={canvasH} fill={frame.konva.frameBg} />
               )}
 
+              {/* 3. AI 이미지 — 패딩 안쪽에 정확히 배치 */}
               {mainImage && (
-                <KonvaImage image={mainImage} x={0} y={0} width={canvasW} height={canvasH} />
+                <KonvaImage
+                  image={mainImage}
+                  x={pad.left} y={pad.top}
+                  width={imgW} height={imgH}
+                />
               )}
 
+              {/* 4. 텍스트 오버레이 */}
               {textOverlay?.content && (
                 <KonvaText
                   text={textOverlay.content}
@@ -153,7 +174,7 @@ export function ResultViewer() {
           {ko.studio.result.download}
         </Button>
         <Button onClick={handleRegenerate} variant="outline" className="flex-1 rounded-2xl gap-2 min-w-0">
-          <RefreshCw className="size-4 shrink-w" />
+          <RefreshCw className="size-4 shrink-0" />
           {ko.studio.result.regenerate}
         </Button>
         <Button
