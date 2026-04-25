@@ -2,8 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { adminAuth, adminDb, adminStorage } from '@/lib/firebase/admin';
 import { getGenAI, MODEL } from '@/lib/gemini/client';
 import { getCoverTemplate } from '@/lib/presets/cover-templates';
-import fs from 'fs';
-import path from 'path';
 
 export const runtime = 'nodejs';
 export const maxDuration = 90;
@@ -42,17 +40,9 @@ async function saveToStorage(base64: string, uid: string, folder: string, ext = 
   return `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodedPath}?alt=media`;
 }
 
-function readTemplateImageAsBase64(imagePath: string): { base64: string; mimeType: string } {
-  const publicDir = path.join(process.cwd(), 'public');
-  const fullPath = path.join(publicDir, imagePath);
-  const buffer = fs.readFileSync(fullPath);
-  const ext = path.extname(imagePath).toLowerCase().replace('.', '');
-  const mimeType = ext === 'jpg' ? 'image/jpeg' : `image/${ext}`;
-  return { base64: buffer.toString('base64'), mimeType };
-}
-
 function composeCoverPrompt(
   templateStyle: string,
+  layoutDescription: string,
   texts: Record<string, string>,
   templateName: string,
 ): string {
@@ -61,38 +51,30 @@ function composeCoverPrompt(
     .map(([k, v]) => `  - ${k}: "${v}"`)
     .join('\n');
 
-  return `You are an expert magazine cover art director.
+  return `You are an expert magazine cover art director and compositor.
 
-IMAGE 1: The ${templateName} magazine cover reference. Use ONLY for layout and visual style — DO NOT use its person.
-IMAGE 2 (and beyond): The person(s) to feature on the cover. These are your ONLY models.
+MAGAZINE: ${templateName}
 
-TASK: Create a brand-new ${templateName}-style magazine cover featuring the person(s) from IMAGE 2+.
+VISUAL STYLE:
+${templateStyle}
 
-CRITICAL — ABOUT THE PEOPLE:
-- The person appearing in IMAGE 1 must NOT appear in the output in any form.
-- Do NOT copy, reference, or be influenced by IMAGE 1's model: not their face, hair, clothing, body shape, pose, or any physical attribute.
-- IMAGE 2's person is the sole subject. Use their actual face, hair, skin tone, and clothing exactly as they appear in their photo.
-- Their outfit and appearance from IMAGE 2 should be preserved — do not replace or alter their clothes to match IMAGE 1's model.
+COMPOSITION BLUEPRINT — follow this exactly to place the uploaded person:
+${layoutDescription}
 
-WHAT TO TAKE FROM IMAGE 1 (design only):
-- Magazine title / logo — placement, font style, and color treatment
-- Overall layout: how the model is framed within the cover
-- Color palette, mood, and lighting atmosphere
-- Background style and graphic design elements
-- Typography hierarchy for headline and body text
+YOUR TASK:
+1. Take the uploaded person photo as your ONLY model.
+2. Preserve their actual face, hair color, skin tone, and clothing exactly as they appear — do not alter or replace any aspect of their appearance.
+3. Place them in the exact composition described in the COMPOSITION BLUEPRINT above (position, framing, scale, pose direction, relationship to text).
+4. Recreate the magazine's visual environment (background color/style, lighting mood, color grading) as described in VISUAL STYLE.
+5. Add the magazine title, logo, and all typographic elements in the correct positions as described in the COMPOSITION BLUEPRINT.
 
-WHAT TO DO WITH IMAGE 2's PERSON:
-- Place them as the cover model in a natural, editorial pose suited to ${templateName}'s aesthetic
-- Apply the magazine's color grading and lighting mood to the scene — not to alter their look, but to match the atmosphere
-- They should look like they were professionally photographed for this exact cover
-
-TEXT TO INCLUDE (place prominently per the template layout):
+TEXT TO INCLUDE:
 ${textLines || '  - Use placeholder text matching the magazine style'}
 
 OUTPUT RULES:
-- Portrait orientation, 3:4 aspect ratio
-- Print-ready quality, sharp and clean
-- Result must look like a real ${templateName} cover with IMAGE 2's person as the model`;
+- Portrait orientation, 3:4 aspect ratio, print-ready quality
+- The result must look exactly like a real ${templateName} magazine cover, featuring the uploaded person as the cover model
+- The uploaded person's actual appearance (face, outfit, hair) must be faithfully preserved`;
 }
 
 export async function POST(req: NextRequest) {
@@ -136,13 +118,10 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const { base64: templateBase64, mimeType: templateMime } = readTemplateImageAsBase64(template.imagePath);
-
-    const prompt = composeCoverPrompt(template.style, body.texts, template.name);
+    const prompt = composeCoverPrompt(template.style, template.layoutDescription, body.texts, template.name);
 
     const parts: unknown[] = [
       { text: prompt },
-      { inlineData: { mimeType: templateMime, data: templateBase64 } },
       ...body.photoBase64s.map((b64, i) => ({
         inlineData: { mimeType: body.photoTypes[i] || 'image/webp', data: b64 },
       })),
