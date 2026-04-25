@@ -19,7 +19,6 @@ function rr(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: n
   ctx.closePath();
 }
 
-/** Center-crop cover fill */
 function cover(
   ctx: CanvasRenderingContext2D,
   img: HTMLImageElement,
@@ -34,352 +33,374 @@ function cover(
 }
 
 /* ═══════════════════════════════════════════════════════════
-   MUG  — ceramic gloss, cylindrical print area
+   MUG  — draw order: body → image on surface → shading → rim/handle on top
 ═══════════════════════════════════════════════════════════ */
-function drawMug(ctx: CanvasRenderingContext2D, img: HTMLImageElement, cw: number, ch: number) {
-  const BW = 126, BH = 104;            // mug body
-  const bx = (cw - BW) / 2 - 14;      // shift left for handle
-  const by = (ch - BH) / 2 + 4;
-  const RX = BW / 2, RY = 10;          // top/bottom ellipse
-  const brx = BW * 0.44, bry = 7;
+function drawMug(ctx: CanvasRenderingContext2D, img: HTMLImageElement, W: number, H: number) {
+  const tx = 16, tw = W - 32;   // top edge left, width
+  const bx = 28, bw = W - 56;   // bottom edge left, width
+  const ty = 42;                  // top of body (under rim)
+  const by = H - 22;             // bottom of body
+  const tcx = tx + tw / 2;       // top center x
 
-  // ── outer shadow ──
+  // print zone on the cylinder surface
+  const pL = tx + 26, pR = tx + tw - 26;
+  const pT = ty + 10, pB = by - 6;
+  const pw = pR - pL, ph = pB - pT;
+
+  // 0. drop shadow
   ctx.save();
   ctx.shadowColor = 'rgba(0,0,0,0.22)';
-  ctx.shadowBlur = 18; ctx.shadowOffsetY = 8;
-  ctx.fillStyle = '#f8f8f8';
+  ctx.shadowBlur = 24; ctx.shadowOffsetY = 14;
+  ctx.fillStyle = '#f4f4f4';
   ctx.beginPath();
-  ctx.moveTo(bx - RX, by + RY);
-  ctx.lineTo(bx + RX, by + RY);
-  ctx.lineTo(bx + brx, by + BH - bry);
-  ctx.lineTo(bx - brx, by + BH - bry);
+  ctx.moveTo(tx, ty); ctx.lineTo(tx + tw, ty);
+  ctx.lineTo(bx + bw, by); ctx.lineTo(bx, by);
   ctx.closePath();
   ctx.fill();
   ctx.restore();
 
-  // ── image mapped to print area ──
-  const px = bx - RX + 14, pw = BW - 28;
-  const py = by + RY + 6, ph = BH - RY - bry - 12;
+  // 1. body fill (ceramic, light left side)
+  const bodyG = ctx.createLinearGradient(tx, ty, tx + tw, ty);
+  bodyG.addColorStop(0,    '#eaeaea');
+  bodyG.addColorStop(0.06, '#f5f5f5');
+  bodyG.addColorStop(0.5,  '#fafafa');
+  bodyG.addColorStop(0.94, '#f2f2f2');
+  bodyG.addColorStop(1,    '#e5e5e5');
+  ctx.fillStyle = bodyG;
+  ctx.beginPath();
+  ctx.moveTo(tx, ty); ctx.lineTo(tx + tw, ty);
+  ctx.lineTo(bx + bw, by); ctx.lineTo(bx, by);
+  ctx.closePath();
+  ctx.fill();
 
+  // 2. user image mapped to print zone
   ctx.save();
   ctx.beginPath();
-  ctx.moveTo(bx - RX, by + RY);
-  ctx.lineTo(bx + RX, by + RY);
-  ctx.lineTo(bx + brx, by + BH - bry);
-  ctx.lineTo(bx - brx, by + BH - bry);
-  ctx.closePath();
+  ctx.rect(pL, pT, pw, ph);
   ctx.clip();
-  cover(ctx, img, bx - RX, by + RY, BW, BH - RY - bry);
+  cover(ctx, img, pL, pT, pw, ph);
   ctx.restore();
 
-  // ── multiply: cylinder curvature shading ──
+  // 3. cylinder shading on print zone (multiply)
   ctx.save();
   ctx.globalCompositeOperation = 'multiply';
-
-  // left shadow
-  const lG = ctx.createLinearGradient(px, 0, px + pw * 0.28, 0);
-  lG.addColorStop(0, 'rgb(100,100,100)');
-  lG.addColorStop(1, 'rgb(255,255,255)');
-  ctx.save();
-  ctx.beginPath();
-  ctx.moveTo(bx - RX, by + RY); ctx.lineTo(bx + RX, by + RY);
-  ctx.lineTo(bx + brx, by + BH - bry); ctx.lineTo(bx - brx, by + BH - bry);
-  ctx.closePath(); ctx.clip();
-  ctx.fillStyle = lG; ctx.fillRect(bx - RX, by, BW, BH);
-
-  // right shadow
-  const rG = ctx.createLinearGradient(px + pw * 0.72, 0, px + pw, 0);
-  rG.addColorStop(0, 'rgb(255,255,255)');
-  rG.addColorStop(1, 'rgb(95,95,95)');
-  ctx.fillStyle = rG; ctx.fillRect(bx - RX, by, BW, BH);
+  ctx.beginPath(); ctx.rect(pL, pT, pw, ph); ctx.clip();
+  // left-right curvature
+  const cg = ctx.createLinearGradient(pL, 0, pL + pw, 0);
+  cg.addColorStop(0,    'rgb(45,45,45)');
+  cg.addColorStop(0.09, 'rgb(168,168,168)');
+  cg.addColorStop(0.24, 'rgb(250,250,250)');
+  cg.addColorStop(0.76, 'rgb(250,250,250)');
+  cg.addColorStop(0.91, 'rgb(152,152,152)');
+  cg.addColorStop(1,    'rgb(50,50,50)');
+  ctx.fillStyle = cg; ctx.fillRect(pL, pT, pw, ph);
+  // vertical highlight (top lighter)
+  const vg = ctx.createLinearGradient(0, pT, 0, pT + ph);
+  vg.addColorStop(0,    'rgb(238,238,238)');
+  vg.addColorStop(0.18, 'rgb(255,255,255)');
+  vg.addColorStop(0.6,  'rgb(255,255,255)');
+  vg.addColorStop(1,    'rgb(218,218,218)');
+  ctx.fillStyle = vg; ctx.fillRect(pL, pT, pw, ph);
   ctx.restore();
 
-  // top-left gloss highlight
-  const shine = ctx.createRadialGradient(bx - RX * 0.3, by + RY * 1.5, 0, bx, by + BH * 0.5, BW * 0.6);
-  shine.addColorStop(0,    'rgb(255,255,255)');
-  shine.addColorStop(0.35, 'rgb(235,235,235)');
-  shine.addColorStop(1,    'rgb(255,255,255)');
-  ctx.save();
+  // 4. top rim (drawn ON TOP of image area)
+  const rimRX = tw / 2, rimRY = 12;
+  ctx.fillStyle = '#e2e2e2';
   ctx.beginPath();
-  ctx.moveTo(bx - RX, by + RY); ctx.lineTo(bx + RX, by + RY);
-  ctx.lineTo(bx + brx, by + BH - bry); ctx.lineTo(bx - brx, by + BH - bry);
-  ctx.closePath(); ctx.clip();
-  ctx.fillStyle = shine; ctx.fillRect(bx - RX, by, BW, BH);
-  ctx.restore();
-
-  ctx.restore(); // end multiply
-
-  // ── structural elements (normal mode, drawn on top) ──
-  ctx.save();
-  // top rim fill
-  ctx.fillStyle = '#e0e0e0';
-  ctx.beginPath();
-  ctx.ellipse(bx, by + RY, RX, RY, 0, 0, Math.PI * 2);
+  ctx.ellipse(tcx, ty, rimRX, rimRY, 0, 0, Math.PI * 2);
   ctx.fill();
-  // rim highlight
-  ctx.strokeStyle = '#c8c8c8'; ctx.lineWidth = 1;
+  // rim top surface
+  const rimSurf = ctx.createRadialGradient(tcx - rimRX * 0.2, ty - 3, 2, tcx, ty, rimRX - 6);
+  rimSurf.addColorStop(0, '#d5d5d5');
+  rimSurf.addColorStop(1, '#c2c2c2');
+  ctx.fillStyle = rimSurf;
   ctx.beginPath();
-  ctx.ellipse(bx, by + RY, RX, RY, 0, 0, Math.PI * 2);
-  ctx.stroke();
-
-  // mug outline
-  ctx.strokeStyle = '#c8c8c8'; ctx.lineWidth = 1.5;
-  ctx.beginPath();
-  ctx.moveTo(bx - RX, by + RY); ctx.lineTo(bx - brx, by + BH - bry);
-  ctx.moveTo(bx + RX, by + RY); ctx.lineTo(bx + brx, by + BH - bry);
-  ctx.stroke();
-
-  // bottom ellipse
-  ctx.fillStyle = '#d4d4d4';
-  ctx.beginPath();
-  ctx.ellipse(bx, by + BH - bry, brx, bry, 0, 0, Math.PI * 2);
+  ctx.ellipse(tcx, ty, rimRX - 7, rimRY - 3, 0, 0, Math.PI * 2);
   ctx.fill();
-  ctx.strokeStyle = '#c0c0c0'; ctx.lineWidth = 1;
+  // coffee inside
+  ctx.fillStyle = '#28110a';
   ctx.beginPath();
-  ctx.ellipse(bx, by + BH - bry, brx, bry, 0, 0, Math.PI * 2);
+  ctx.ellipse(tcx, ty, rimRX - 14, rimRY - 5, 0, 0, Math.PI * 2);
+  ctx.fill();
+  // rim highlight arc
+  ctx.strokeStyle = 'rgba(255,255,255,0.55)'; ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.ellipse(tcx, ty - 1, rimRX - 3, rimRY - 1, 0, Math.PI * 0.95, Math.PI * 1.92);
   ctx.stroke();
 
-  // handle — 3D arc
-  const hcx = bx + RX + 20, hcy = by + BH * 0.5;
-  const hry = BH * 0.3;
-
-  // handle shadow
-  ctx.save();
-  ctx.shadowColor = 'rgba(0,0,0,0.15)'; ctx.shadowBlur = 4; ctx.shadowOffsetX = 2;
-  ctx.strokeStyle = '#e2e2e2'; ctx.lineWidth = 11; ctx.lineCap = 'round';
+  // 5. bottom base
+  ctx.fillStyle = '#d2d2d2';
   ctx.beginPath();
-  ctx.arc(hcx, hcy, hry, -Math.PI * 0.65, Math.PI * 0.65);
-  ctx.stroke();
-  ctx.restore();
-  ctx.strokeStyle = '#d0d0d0'; ctx.lineWidth = 9; ctx.lineCap = 'round';
+  ctx.ellipse(bx + bw / 2, by, bw / 2 + 2, 9, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = '#c0c0c0'; ctx.lineWidth = 0.8;
   ctx.beginPath();
-  ctx.arc(hcx, hcy, hry, -Math.PI * 0.65, Math.PI * 0.65);
-  ctx.stroke();
-  // inner edge
-  ctx.strokeStyle = '#bbb'; ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.arc(hcx, hcy, hry + 3, -Math.PI * 0.55, Math.PI * 0.55);
+  ctx.ellipse(bx + bw / 2, by, bw / 2 + 2, 9, 0, 0, Math.PI * 2);
   ctx.stroke();
 
-  ctx.restore();
+  // 6. handle
+  const hrx = tx + tw + 2;
+  const hcy = (ty + by) / 2;
+  const hRad = (by - ty) * 0.30;
+  const hT = 10;
+  // outer handle
+  ctx.strokeStyle = '#dcdcdc'; ctx.lineWidth = hT + 2; ctx.lineCap = 'butt';
+  ctx.beginPath();
+  ctx.arc(hrx - hRad * 0.35, hcy, hRad, -Math.PI * 0.58, Math.PI * 0.58);
+  ctx.stroke();
+  // handle fill
+  const hg = ctx.createLinearGradient(hrx, hcy - hRad, hrx + hRad, hcy);
+  hg.addColorStop(0, '#f0f0f0'); hg.addColorStop(0.45, '#f9f9f9'); hg.addColorStop(1, '#d5d5d5');
+  ctx.strokeStyle = hg; ctx.lineWidth = hT;
+  ctx.beginPath();
+  ctx.arc(hrx - hRad * 0.35, hcy, hRad, -Math.PI * 0.58, Math.PI * 0.58);
+  ctx.stroke();
+  // handle inner shadow
+  ctx.strokeStyle = 'rgba(0,0,0,0.07)'; ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.arc(hrx - hRad * 0.35, hcy, hRad - hT / 2 - 1, -Math.PI * 0.52, Math.PI * 0.52);
+  ctx.stroke();
+
+  // 7. body edge highlights
+  ctx.strokeStyle = 'rgba(255,255,255,0.5)'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(tx + 2, ty + 6); ctx.lineTo(bx + 2, by - 6); ctx.stroke();
+  ctx.strokeStyle = 'rgba(0,0,0,0.07)'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(tx + tw - 2, ty + 6); ctx.lineTo(bx + bw - 2, by - 6); ctx.stroke();
 }
 
 /* ═══════════════════════════════════════════════════════════
-   PIN BUTTON  — chrome ring, dome surface
+   PIN  — draw order: ring → image in dome → dome shading → gloss
 ═══════════════════════════════════════════════════════════ */
-function drawPin(ctx: CanvasRenderingContext2D, img: HTMLImageElement, cw: number, ch: number) {
-  const cx = cw / 2, cy = ch / 2 - 6;
-  const OR = Math.min(cw, ch) / 2 - 5;  // outer (ring) radius
-  const IR = OR - 9;                      // inner (image) radius
+function drawPin(ctx: CanvasRenderingContext2D, img: HTMLImageElement, W: number, H: number) {
+  const cx = W / 2, cy = H / 2 - 10;
+  const OR = Math.min(W, H) / 2 - 7;
+  const IR = OR - 11;
 
-  // shadow
+  // 0. shadow
   ctx.save();
-  ctx.shadowColor = 'rgba(0,0,0,0.30)'; ctx.shadowBlur = 14; ctx.shadowOffsetY = 6;
-  ctx.fillStyle = '#fff';
+  ctx.shadowColor = 'rgba(0,0,0,0.28)'; ctx.shadowBlur = 15; ctx.shadowOffsetY = 7;
+  ctx.fillStyle = '#e0e0e0';
   ctx.beginPath(); ctx.arc(cx, cy, OR, 0, Math.PI * 2); ctx.fill();
   ctx.restore();
 
-  // chrome ring — 8-stop metallic gradient
-  const ringG = ctx.createLinearGradient(cx - OR, cy - OR, cx + OR, cy + OR);
-  ringG.addColorStop(0,    '#ffffff');
-  ringG.addColorStop(0.12, '#d8d8d8');
-  ringG.addColorStop(0.25, '#f4f4f4');
-  ringG.addColorStop(0.38, '#adadad');
-  ringG.addColorStop(0.50, '#e8e8e8');
-  ringG.addColorStop(0.65, '#c0c0c0');
-  ringG.addColorStop(0.80, '#f0f0f0');
-  ringG.addColorStop(1,    '#b0b0b0');
-  ctx.fillStyle = ringG;
+  // 1. chrome ring
+  const rg = ctx.createLinearGradient(cx - OR, cy - OR, cx + OR, cy + OR);
+  rg.addColorStop(0,    '#ffffff');
+  rg.addColorStop(0.10, '#c8c8c8');
+  rg.addColorStop(0.24, '#f5f5f5');
+  rg.addColorStop(0.38, '#a5a5a5');
+  rg.addColorStop(0.52, '#ebebeb');
+  rg.addColorStop(0.66, '#b5b5b5');
+  rg.addColorStop(0.82, '#f2f2f2');
+  rg.addColorStop(1,    '#9e9e9e');
+  ctx.fillStyle = rg;
   ctx.beginPath(); ctx.arc(cx, cy, OR, 0, Math.PI * 2); ctx.fill();
 
-  // image in inner circle
+  // 2. user image in inner circle
   ctx.save();
   ctx.beginPath(); ctx.arc(cx, cy, IR, 0, Math.PI * 2); ctx.clip();
   cover(ctx, img, cx - IR, cy - IR, IR * 2, IR * 2);
   ctx.restore();
 
-  // multiply: dome shading
+  // 3. dome shading (multiply)
   ctx.save();
   ctx.globalCompositeOperation = 'multiply';
   ctx.beginPath(); ctx.arc(cx, cy, IR, 0, Math.PI * 2); ctx.clip();
-  const dome = ctx.createRadialGradient(cx - IR * 0.15, cy - IR * 0.15, IR * 0.05, cx, cy, IR);
+  const dome = ctx.createRadialGradient(cx - IR * 0.12, cy - IR * 0.12, IR * 0.04, cx, cy, IR);
   dome.addColorStop(0,    'rgb(255,255,255)');
-  dome.addColorStop(0.55, 'rgb(238,238,238)');
-  dome.addColorStop(0.80, 'rgb(195,195,195)');
-  dome.addColorStop(1,    'rgb(140,140,140)');
+  dome.addColorStop(0.48, 'rgb(245,245,245)');
+  dome.addColorStop(0.76, 'rgb(192,192,192)');
+  dome.addColorStop(1,    'rgb(125,125,125)');
   ctx.fillStyle = dome;
   ctx.beginPath(); ctx.arc(cx, cy, IR, 0, Math.PI * 2); ctx.fill();
   ctx.restore();
 
-  // top-left gloss arc
+  // 4. ring inner edge
+  ctx.strokeStyle = 'rgba(0,0,0,0.12)'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.arc(cx, cy, IR, 0, Math.PI * 2); ctx.stroke();
+
+  // 5. gloss arc
   ctx.save();
-  ctx.beginPath(); ctx.arc(cx, cy, IR * 0.82, Math.PI * 1.25, Math.PI * 1.82);
-  ctx.strokeStyle = 'rgba(255,255,255,0.5)'; ctx.lineWidth = IR * 0.22;
+  ctx.beginPath(); ctx.arc(cx, cy, IR * 0.76, Math.PI * 1.22, Math.PI * 1.82);
+  ctx.strokeStyle = 'rgba(255,255,255,0.58)'; ctx.lineWidth = IR * 0.19;
   ctx.lineCap = 'round'; ctx.stroke();
   ctx.restore();
 
-  // ring inner edge
+  // 6. clasp
+  const clY = cy + OR + 7;
+  const clg = ctx.createLinearGradient(cx - 13, clY, cx + 13, clY);
+  clg.addColorStop(0, '#b5b5b5'); clg.addColorStop(0.5, '#efefef'); clg.addColorStop(1, '#adadad');
   ctx.save();
-  ctx.strokeStyle = 'rgba(0,0,0,0.12)'; ctx.lineWidth = 1.5;
-  ctx.beginPath(); ctx.arc(cx, cy, IR, 0, Math.PI * 2); ctx.stroke();
-  ctx.restore();
-
-  // clasp
-  ctx.save();
-  ctx.shadowColor = 'rgba(0,0,0,0.2)'; ctx.shadowBlur = 3; ctx.shadowOffsetY = 1;
-  const cG = ctx.createLinearGradient(cx - 10, cy + OR + 2, cx + 10, cy + OR + 10);
-  cG.addColorStop(0, '#e0e0e0'); cG.addColorStop(0.5, '#f8f8f8'); cG.addColorStop(1, '#b8b8b8');
-  ctx.fillStyle = cG;
-  ctx.beginPath(); ctx.ellipse(cx, cy + OR + 5, 10, 4.5, 0, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.strokeStyle = '#a0a0a0'; ctx.lineWidth = 0.8;
-  ctx.beginPath(); ctx.ellipse(cx, cy + OR + 5, 10, 4.5, 0, 0, Math.PI * 2);
-  ctx.stroke();
+  ctx.shadowColor = 'rgba(0,0,0,0.18)'; ctx.shadowBlur = 3; ctx.shadowOffsetY = 1;
+  ctx.fillStyle = clg;
+  ctx.beginPath(); ctx.ellipse(cx, clY, 13, 5.5, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = '#909090'; ctx.lineWidth = 0.7;
+  ctx.beginPath(); ctx.ellipse(cx, clY, 13, 5.5, 0, 0, Math.PI * 2); ctx.stroke();
   ctx.restore();
 }
 
 /* ═══════════════════════════════════════════════════════════
-   CUSHION  — puffy square, fabric edge, stitching
+   CUSHION  — draw order: body → image → puffy shading → stitching
 ═══════════════════════════════════════════════════════════ */
-function drawCushion(ctx: CanvasRenderingContext2D, img: HTMLImageElement, cw: number, ch: number) {
-  const p = 9, r = 26;
-  const x = p, y = p + 4, w = cw - p * 2, h = ch - p * 2 - 6;
+function drawCushion(ctx: CanvasRenderingContext2D, img: HTMLImageElement, W: number, H: number) {
+  const p = 10, r = 22;
+  const x = p, y = p + 4, w = W - p * 2, h = H - p * 2 - 6;
 
-  // drop shadow (puffy depth)
+  // 0. shadow
   ctx.save();
-  ctx.shadowColor = 'rgba(0,0,0,0.25)'; ctx.shadowBlur = 20; ctx.shadowOffsetY = 8; ctx.shadowOffsetX = 1;
-  ctx.fillStyle = '#fff';
+  ctx.shadowColor = 'rgba(0,0,0,0.24)'; ctx.shadowBlur = 24; ctx.shadowOffsetY = 10; ctx.shadowOffsetX = 1;
+  ctx.fillStyle = '#f8f8f8';
   rr(ctx, x, y, w, h, r); ctx.fill();
   ctx.restore();
 
-  // image fill
+  // 1. body fill
+  const bg = ctx.createLinearGradient(x, y, x + w, y + h);
+  bg.addColorStop(0, '#f5f5f5'); bg.addColorStop(1, '#e8e8e8');
+  ctx.fillStyle = bg;
+  rr(ctx, x, y, w, h, r); ctx.fill();
+
+  // 2. user image (fill body area)
+  const inset = 5;
   ctx.save();
-  rr(ctx, x, y, w, h, r); ctx.clip();
-  cover(ctx, img, x, y, w, h);
+  rr(ctx, x + inset, y + inset, w - inset * 2, h - inset * 2, r - 3); ctx.clip();
+  cover(ctx, img, x + inset, y + inset, w - inset * 2, h - inset * 2);
   ctx.restore();
 
-  // multiply: puffy center bright, edges recede
+  // 3. puffy shading (multiply)
   ctx.save();
   ctx.globalCompositeOperation = 'multiply';
-  rr(ctx, x, y, w, h, r); ctx.clip();
+  rr(ctx, x + inset, y + inset, w - inset * 2, h - inset * 2, r - 3); ctx.clip();
   const puff = ctx.createRadialGradient(
-    x + w * 0.5, y + h * 0.45, Math.min(w, h) * 0.12,
-    x + w * 0.5, y + h * 0.5,  Math.max(w, h) * 0.68,
+    x + w * 0.5, y + h * 0.43, Math.min(w, h) * 0.1,
+    x + w * 0.5, y + h * 0.5,  Math.max(w, h) * 0.66,
   );
-  puff.addColorStop(0,    'rgb(250,250,250)');
-  puff.addColorStop(0.5,  'rgb(230,230,230)');
-  puff.addColorStop(0.82, 'rgb(175,175,175)');
-  puff.addColorStop(1,    'rgb(120,120,120)');
-  ctx.fillStyle = puff; ctx.fillRect(x, y, w, h);
+  puff.addColorStop(0,    'rgb(252,252,252)');
+  puff.addColorStop(0.44, 'rgb(238,238,238)');
+  puff.addColorStop(0.70, 'rgb(185,185,185)');
+  puff.addColorStop(1,    'rgb(112,112,112)');
+  ctx.fillStyle = puff; ctx.fillRect(x + inset, y + inset, w - inset * 2, h - inset * 2);
   ctx.restore();
 
-  // stitching (white dashes)
-  ctx.save();
-  ctx.strokeStyle = 'rgba(255,255,255,0.65)'; ctx.lineWidth = 1.5; ctx.setLineDash([5, 5]);
-  rr(ctx, x + 9, y + 9, w - 18, h - 18, r - 7); ctx.stroke();
-  ctx.restore();
+  // 4. stitching
+  const si = 11;
+  ctx.strokeStyle = 'rgba(255,255,255,0.68)'; ctx.lineWidth = 1.4; ctx.setLineDash([5, 5]);
+  rr(ctx, x + si, y + si, w - si * 2, h - si * 2, r - si + 5); ctx.stroke();
+  ctx.setLineDash([]);
 
-  // outer border
-  ctx.save();
-  ctx.strokeStyle = 'rgba(0,0,0,0.1)'; ctx.lineWidth = 1;
+  // 5. outer border + edge highlight
+  ctx.strokeStyle = 'rgba(0,0,0,0.09)'; ctx.lineWidth = 1;
   rr(ctx, x, y, w, h, r); ctx.stroke();
-  ctx.restore();
+  ctx.strokeStyle = 'rgba(255,255,255,0.52)'; ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(x + r, y); ctx.lineTo(x + w - r, y);
+  ctx.arcTo(x + w, y, x + w, y + r, r); ctx.lineTo(x + w, y + h * 0.38);
+  ctx.stroke();
 }
 
 /* ═══════════════════════════════════════════════════════════
-   PHONE CASE  — matte back, camera island, side details
+   PHONE CASE  — draw order: body → image → material shading → camera/buttons
 ═══════════════════════════════════════════════════════════ */
-function drawPhoneCase(ctx: CanvasRenderingContext2D, img: HTMLImageElement, cw: number, ch: number) {
-  const pw = 72, ph = 132, pr = 16;
-  const px = (cw - pw) / 2, py = (ch - ph) / 2;
+function drawPhoneCase(ctx: CanvasRenderingContext2D, img: HTMLImageElement, W: number, H: number) {
+  const pr = 18;
+  const px = 5, py = 5, pw = W - 10, ph = H - 10;
 
-  // shadow
+  // camera island geometry
+  const camW = 44, camH = 36;
+  const camX = px + pw - camW - 7;
+  const camY = py + 12;
+
+  const iPad = 5;
+  const ipx = px + iPad, ipy = py + iPad;
+  const ipw = pw - iPad * 2, iph = ph - iPad * 2;
+
+  // 0. shadow
   ctx.save();
-  ctx.shadowColor = 'rgba(0,0,0,0.30)'; ctx.shadowBlur = 16; ctx.shadowOffsetX = 3; ctx.shadowOffsetY = 7;
-  ctx.fillStyle = '#1c1c1e';
+  ctx.shadowColor = 'rgba(0,0,0,0.38)'; ctx.shadowBlur = 20; ctx.shadowOffsetX = 3; ctx.shadowOffsetY = 9;
+  const sg = ctx.createLinearGradient(px, py, px + pw, py + ph);
+  sg.addColorStop(0, '#2e2e30'); sg.addColorStop(1, '#181818');
+  ctx.fillStyle = sg;
   rr(ctx, px, py, pw, ph, pr); ctx.fill();
   ctx.restore();
 
-  // case face gradient (matte plastic)
-  const faceG = ctx.createLinearGradient(px, py, px + pw, py + ph);
-  faceG.addColorStop(0,   '#2c2c2e');
-  faceG.addColorStop(0.5, '#1c1c1e');
-  faceG.addColorStop(1,   '#111113');
-  ctx.fillStyle = faceG;
+  // 1. case body
+  const cg = ctx.createLinearGradient(px, py, px + pw, py + ph);
+  cg.addColorStop(0,   '#2c2c2e');
+  cg.addColorStop(0.5, '#1e1e20');
+  cg.addColorStop(1,   '#131315');
+  ctx.fillStyle = cg;
   rr(ctx, px, py, pw, ph, pr); ctx.fill();
 
-  // image on back (inset)
-  const inset = 5, ir = pr - 2;
+  // 2. user image on case back
   ctx.save();
-  rr(ctx, px + inset, py + inset, pw - inset * 2, ph - inset * 2, ir); ctx.clip();
-  cover(ctx, img, px + inset, py + inset, pw - inset * 2, ph - inset * 2);
+  rr(ctx, ipx, ipy, ipw, iph, pr - 3); ctx.clip();
+  cover(ctx, img, ipx, ipy, ipw, iph);
   ctx.restore();
 
-  // multiply: case material overlay on image
+  // 3. material shading (multiply)
   ctx.save();
   ctx.globalCompositeOperation = 'multiply';
-  rr(ctx, px + inset, py + inset, pw - inset * 2, ph - inset * 2, ir); ctx.clip();
-  const matG = ctx.createRadialGradient(px + pw * 0.35, py + ph * 0.3, 0, px + pw * 0.5, py + ph * 0.5, Math.max(pw, ph) * 0.65);
-  matG.addColorStop(0,    'rgb(248,248,248)');
-  matG.addColorStop(0.6,  'rgb(218,218,218)');
-  matG.addColorStop(1,    'rgb(140,140,140)');
-  ctx.fillStyle = matG; ctx.fillRect(px + inset, py + inset, pw - inset * 2, ph - inset * 2);
+  rr(ctx, ipx, ipy, ipw, iph, pr - 3); ctx.clip();
+  const mg = ctx.createRadialGradient(px + pw * 0.30, py + ph * 0.24, 0, px + pw * 0.5, py + ph * 0.5, Math.max(pw, ph) * 0.72);
+  mg.addColorStop(0,    'rgb(252,252,252)');
+  mg.addColorStop(0.52, 'rgb(215,215,215)');
+  mg.addColorStop(1,    'rgb(115,115,115)');
+  ctx.fillStyle = mg; ctx.fillRect(ipx, ipy, ipw, iph);
   ctx.restore();
 
-  // camera island
-  const cix = px + pw - 30, ciy = py + 13;
+  // 4. camera bump
   ctx.save();
-  ctx.fillStyle = '#111';
-  ctx.strokeStyle = '#3a3a3c'; ctx.lineWidth = 1;
-  rr(ctx, cix, ciy, 22, 20, 6); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#0c0c0e';
+  rr(ctx, camX, camY, camW, camH, 10); ctx.fill();
+  ctx.strokeStyle = '#3a3a3c'; ctx.lineWidth = 0.8;
+  rr(ctx, camX, camY, camW, camH, 10); ctx.stroke();
 
-  // lenses
-  const lenses: [number, number, number][] = [[cix + 6, ciy + 6, 4.5], [cix + 15, ciy + 12, 3.5]];
+  const lenses: [number, number, number][] = [
+    [camX + 13, camY + 12, 8.5],
+    [camX + camW - 12, camY + camH - 12, 7],
+  ];
   lenses.forEach(([lx, ly, lr]) => {
-    // lens ring
-    ctx.strokeStyle = '#505050'; ctx.lineWidth = 1.2;
-    ctx.beginPath(); ctx.arc(lx, ly, lr + 1.5, 0, Math.PI * 2); ctx.stroke();
-    // lens body
-    const lG = ctx.createRadialGradient(lx - lr * 0.3, ly - lr * 0.3, 0, lx, ly, lr);
-    lG.addColorStop(0, '#1a1a3a'); lG.addColorStop(0.7, '#08080f'); lG.addColorStop(1, '#000');
-    ctx.fillStyle = lG;
+    ctx.strokeStyle = '#454545'; ctx.lineWidth = 1.2;
+    ctx.beginPath(); ctx.arc(lx, ly, lr + 1.8, 0, Math.PI * 2); ctx.stroke();
+    const lg = ctx.createRadialGradient(lx - lr * 0.3, ly - lr * 0.3, 0, lx, ly, lr);
+    lg.addColorStop(0, '#1c1c40'); lg.addColorStop(0.7, '#06060e'); lg.addColorStop(1, '#000008');
+    ctx.fillStyle = lg;
     ctx.beginPath(); ctx.arc(lx, ly, lr, 0, Math.PI * 2); ctx.fill();
-    // lens glint
-    ctx.fillStyle = 'rgba(255,255,255,0.32)';
-    ctx.beginPath(); ctx.arc(lx - lr * 0.35, ly - lr * 0.35, lr * 0.35, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.30)';
+    ctx.beginPath(); ctx.arc(lx - lr * 0.32, ly - lr * 0.32, lr * 0.3, 0, Math.PI * 2); ctx.fill();
   });
+  // flash
+  const flX = camX + 9, flY = camY + camH - 10;
+  ctx.fillStyle = '#ffcc44';
+  ctx.beginPath(); ctx.arc(flX, flY, 3.5, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = '#ddaa22'; ctx.lineWidth = 0.5;
+  ctx.beginPath(); ctx.arc(flX, flY, 3.5, 0, Math.PI * 2); ctx.stroke();
   ctx.restore();
 
-  // side power button
+  // 5. power button (right)
   ctx.save();
-  ctx.fillStyle = '#2a2a2c';
-  rr(ctx, px + pw - 1, py + 48, 4, 26, 2); ctx.fill();
-  ctx.fillStyle = '#3a3a3c';
-  rr(ctx, px + pw - 1, py + 50, 4, 22, 2); ctx.fill();
+  ctx.fillStyle = '#252528'; rr(ctx, px + pw - 2, py + 55, 5, 38, 2.5); ctx.fill();
+  ctx.fillStyle = '#383838'; rr(ctx, px + pw - 2, py + 57, 5, 34, 2);   ctx.fill();
   ctx.restore();
 
-  // volume buttons (left side)
-  ctx.save();
-  ctx.fillStyle = '#2a2a2c';
-  [[py + 42, 18], [py + 64, 18]].forEach(([by2, bh]) => {
-    rr(ctx, px - 3, by2, 4, bh, 2); ctx.fill();
+  // 6. volume buttons (left)
+  [[py + 38, 24], [py + 68, 24]].forEach(([by2, bh]) => {
+    ctx.save();
+    ctx.fillStyle = '#252528'; rr(ctx, px - 3, by2,     5, bh,     2.5); ctx.fill();
+    ctx.fillStyle = '#383838'; rr(ctx, px - 3, by2 + 2, 5, bh - 4, 2);   ctx.fill();
+    ctx.restore();
   });
+
+  // 7. USB-C
+  ctx.save();
+  ctx.fillStyle = '#0a0a0c'; rr(ctx, px + pw / 2 - 11, py + ph - 5, 22, 5, 2.5); ctx.fill();
   ctx.restore();
 
-  // USB-C port at bottom
-  ctx.save();
-  ctx.fillStyle = '#111';
-  rr(ctx, px + pw / 2 - 9, py + ph - 5, 18, 4, 2); ctx.fill();
-  ctx.restore();
-
-  // edge highlight (rim)
-  ctx.save();
-  ctx.strokeStyle = 'rgba(255,255,255,0.1)'; ctx.lineWidth = 1;
+  // 8. rim highlight
+  ctx.strokeStyle = 'rgba(255,255,255,0.08)'; ctx.lineWidth = 1;
   rr(ctx, px, py, pw, ph, pr); ctx.stroke();
-  ctx.restore();
 }
 
-/* ─── items ──────────────────────────────────────────────── */
+/* ─── config ─────────────────────────────────────────────── */
 
 const DRAW_FN: Record<string, (ctx: CanvasRenderingContext2D, img: HTMLImageElement, w: number, h: number) => void> = {
   pin:       drawPin,
@@ -389,10 +410,10 @@ const DRAW_FN: Record<string, (ctx: CanvasRenderingContext2D, img: HTMLImageElem
 };
 
 const ITEMS = [
-  { id: 'pin',       label: ko.studio.mockup.pin,       w: 152, h: 170 },
-  { id: 'mug',       label: ko.studio.mockup.mug,       w: 190, h: 170 },
-  { id: 'cushion',   label: ko.studio.mockup.cushion,   w: 152, h: 170 },
-  { id: 'phonecase', label: ko.studio.mockup.phonecase, w: 120, h: 170 },
+  { id: 'pin',       label: ko.studio.mockup.pin,       w: 165, h: 195 },
+  { id: 'mug',       label: ko.studio.mockup.mug,       w: 220, h: 200 },
+  { id: 'cushion',   label: ko.studio.mockup.cushion,   w: 170, h: 190 },
+  { id: 'phonecase', label: ko.studio.mockup.phonecase, w: 140, h: 215 },
 ] as const;
 
 /* ─── single canvas ──────────────────────────────────────── */
@@ -437,14 +458,14 @@ export function MockupPreview({ imageUrl }: { imageUrl: string }) {
   useEffect(() => {
     if (!imageUrl) return;
     const i = new window.Image();
-    // data URLs don't need crossOrigin
     if (!imageUrl.startsWith('data:')) i.crossOrigin = 'anonymous';
     i.onload = () => setImg(i);
     i.src = imageUrl;
   }, [imageUrl]);
 
   return (
-    <div className="flex flex-col gap-3 pt-4 border-t border-border/40">
+    // w-full is critical — without it, overflow-x-auto has nothing to overflow against
+    <div className="flex flex-col gap-3 pt-4 border-t border-border/40 w-full">
       <div className="flex items-center justify-between">
         <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
           {ko.studio.mockup.title}
@@ -452,11 +473,7 @@ export function MockupPreview({ imageUrl }: { imageUrl: string }) {
         <p className="text-[10px] text-muted-foreground">{ko.studio.mockup.note}</p>
       </div>
 
-      {/* 가로 스크롤 — min-w-0 + overflow-x-auto */}
-      <div
-        className="overflow-x-auto"
-        style={{ WebkitOverflowScrolling: 'touch' }}
-      >
+      <div className="overflow-x-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
         <div className="flex gap-5 pb-2" style={{ width: 'max-content' }}>
           {ITEMS.map((item) => (
             <MockupCanvas key={item.id} {...item} img={img} />
