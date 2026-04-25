@@ -1,0 +1,81 @@
+'use client';
+
+import { Sparkles, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
+import { useStudioStore } from '@/lib/store/studio';
+import { useAuth } from '@/lib/firebase/auth-context';
+import { blobToBase64 } from '@/lib/canvas/export';
+import { ko } from '@/lib/i18n/ko';
+
+export function GenerateButton() {
+  const { user } = useAuth();
+  const {
+    croppedImage, styleId, customPrompt, aspectRatio,
+    isGenerating, setIsGenerating, setGeneratedImageUrl, setGenerationId,
+  } = useStudioStore();
+
+  const canAct = !!croppedImage && !isGenerating && styleId !== 'none';
+
+  async function handleGenerate() {
+    if (!canAct || !user) return;
+
+    setIsGenerating(true);
+    try {
+      const idToken = await user.getIdToken();
+      const imageBase64 = await blobToBase64(croppedImage!.blob);
+
+      const res = await fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${idToken}` },
+        body: JSON.stringify({
+          imageBase64,
+          imageType: croppedImage!.blob.type || 'image/webp',
+          styleId,
+          aspectRatio,
+          customPrompt: customPrompt.trim() || undefined,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        if (data.code === 'INSUFFICIENT_CREDITS') {
+          toast.error(ko.credits.insufficient);
+        } else {
+          toast.error(data.error ?? ko.errors.unknown);
+        }
+        return;
+      }
+
+      setGeneratedImageUrl(data.outputUrl);
+      setGenerationId(data.generationId);
+    } catch {
+      toast.error(ko.errors.network);
+    } finally {
+      setIsGenerating(false);
+    }
+  }
+
+  return (
+    <Button
+      onClick={handleGenerate}
+      disabled={!canAct}
+      variant="outline"
+      className="w-full gap-2 rounded-2xl h-10 disabled:opacity-40"
+    >
+      {isGenerating ? (
+        <>
+          <Loader2 className="size-4 animate-spin" />
+          {ko.studio.generate.generating}
+        </>
+      ) : (
+        <>
+          <Sparkles className="size-4" />
+          {ko.studio.generate.button}
+          <span className="ml-1 text-xs opacity-60">• {ko.studio.ai.credit}</span>
+        </>
+      )}
+    </Button>
+  );
+}
