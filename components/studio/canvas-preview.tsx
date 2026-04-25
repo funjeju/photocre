@@ -25,7 +25,7 @@ export function CanvasPreview() {
       </svg>
 
       {/* 콘텐츠 — 항상 중앙 정렬, 모바일 패딩 축소 */}
-      <div className="relative z-10 flex flex-1 items-start justify-center p-4 md:p-8 pt-6 md:pt-8">
+      <div className="relative z-10 flex flex-1 items-start justify-center p-4 md:p-8 pt-6 md:pt-8 overflow-y-auto">
         {isGenerating ? (
           <div className="flex flex-col items-center gap-4">
             <Skeleton className="w-[520px] max-w-full aspect-square rounded-2xl" />
