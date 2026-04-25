@@ -317,16 +317,16 @@ export function CoverEditor() {
               >
                 <ScanFace className={cn('size-4', mode === 'faceswap' ? 'text-accent' : 'text-muted-foreground')} />
                 <span className={cn('text-xs font-semibold leading-tight', mode === 'faceswap' ? 'text-accent' : '')}>
-                  얼굴 합성
+                  인물 배치
                 </span>
                 <span className="text-[10px] text-muted-foreground leading-snug text-center">
-                  원본 표지에<br/>내 얼굴만 교체
+                  표지 분위기 유지<br/>내 인물로 교체
                 </span>
               </button>
             </div>
             {mode === 'faceswap' && (
               <p className="text-[11px] text-muted-foreground leading-relaxed bg-muted/40 rounded-xl px-3 py-2">
-                표지 원본의 포즈·의상·배경은 그대로 유지되고, 얼굴 부분만 업로드한 사진의 얼굴로 자연스럽게 교체됩니다.
+                표지의 레이아웃·텍스트·분위기는 그대로 유지하면서, 원본 인물 대신 내가 올린 인물을 잡지 무드에 맞게 자연스럽게 배치합니다.
               </p>
             )}
           </div>

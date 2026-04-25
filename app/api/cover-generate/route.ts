@@ -88,33 +88,33 @@ OUTPUT: A single magazine cover image in portrait orientation (4:5 or 3:4 ratio)
 }
 
 function composeFaceSwapPrompt(templateName: string): string {
-  return `You are a professional photo retouching artist specializing in face compositing.
+  return `You are an expert magazine cover photo compositor.
 
-TASK: Face swap — replace the face in the magazine cover with the face from the provided person photo.
+IMAGE 1: The original ${templateName} magazine cover — use this as your layout and style reference.
+IMAGE 2: A photo of the person who will appear on the magazine cover.
 
-IMAGE 1 (magazine cover): The original ${templateName} magazine cover. This is your base image.
-IMAGE 2 (person photo): Contains the face you will transplant onto the magazine cover.
+TASK: Replace the person in IMAGE 1 with the person from IMAGE 2, keeping the magazine cover's overall look and feel intact.
 
-CRITICAL RULES — READ CAREFULLY:
-1. Keep IMAGE 1 (the magazine cover) COMPLETELY INTACT:
-   - The body, shoulders, hair, clothing, pose, hands must remain EXACTLY as in the original
-   - All text, logos, titles, graphic elements stay in their exact positions
-   - The background, colors, lighting, and overall composition must NOT change
-   - The head position, angle, and size must stay exactly where it is in the original
+WHAT TO KEEP FROM IMAGE 1:
+- The magazine title, logo, and all text elements in their exact positions
+- The overall color palette, lighting mood, and atmosphere
+- The composition layout (where the person is positioned, how much of the frame they occupy)
+- The background setting and graphic design elements
 
-2. Replace ONLY the face region:
-   - Extract the facial features (eyes, nose, mouth, jaw shape, skin tone) from IMAGE 2
-   - Place them onto the face area in IMAGE 1
-   - Match the lighting direction and intensity from IMAGE 1 so the skin looks natural
-   - Blend the edges smoothly — no visible seams or color mismatches
-   - Adjust skin tone to match the original cover's color grading
+WHAT TO DO WITH IMAGE 2:
+- Take the person from IMAGE 2 and place them naturally into the cover composition
+- Match their pose and framing to the original person's position in IMAGE 1
+- Apply the magazine's color grading and lighting style to the new person
+- Style them to fit the magazine's tone (editorial quality, mood, fashion level)
+- The person should look like they naturally belong on this magazine cover
 
-3. Quality requirements:
-   - The result must look like a real, professionally edited magazine cover
-   - The face replacement must be completely seamless and believable
-   - Maintain the original magazine cover's print quality and sharpness
+QUALITY REQUIREMENTS:
+- The result must look like a professionally shot and edited magazine cover
+- Lighting on the new person must match the magazine cover's light source and mood
+- Skin tone and color treatment should be consistent with the magazine's style
+- The overall image should feel cohesive — not like a collage or cutout
 
-OUTPUT: The complete magazine cover image with ONLY the face replaced. Everything else must be pixel-perfect to the original.`;
+OUTPUT: A complete, print-quality magazine cover featuring the new person from IMAGE 2, styled to match ${templateName}'s visual identity.`;
 }
 
 export async function POST(req: NextRequest) {
