@@ -88,33 +88,31 @@ OUTPUT: A single magazine cover image in portrait orientation (4:5 or 3:4 ratio)
 }
 
 function composeFaceSwapPrompt(templateName: string): string {
-  return `You are an expert magazine cover photo compositor.
+  return `You are an expert magazine cover art director and photo compositor.
 
-IMAGE 1: The original ${templateName} magazine cover — use this as your layout and style reference.
-IMAGE 2: A photo of the person who will appear on the magazine cover.
+IMAGE 1: The original ${templateName} magazine cover. Use ONLY as a style/layout reference.
+IMAGE 2: The person who will be the cover model. This is the ONLY person who should appear in the result.
 
-TASK: Replace the person in IMAGE 1 with the person from IMAGE 2, keeping the magazine cover's overall look and feel intact.
+TASK: Create a new magazine cover where IMAGE 2's person is the sole cover model, styled to match ${templateName}'s visual identity.
 
-WHAT TO KEEP FROM IMAGE 1:
-- The magazine title, logo, and all text elements in their exact positions
-- The overall color palette, lighting mood, and atmosphere
-- The composition layout (where the person is positioned, how much of the frame they occupy)
-- The background setting and graphic design elements
+CRITICAL — ABOUT THE PEOPLE:
+- The person from IMAGE 1 must NOT appear in the result at all. Do not mix, blend, or reference their face, skin, hair, or features.
+- IMAGE 2's person is the ONLY subject. Render them as they are — preserve their actual facial features, face shape, skin tone, and hair.
+- Do not average or merge the two people's faces together.
 
-WHAT TO DO WITH IMAGE 2:
-- Take the person from IMAGE 2 and place them naturally into the cover composition
-- Match their pose and framing to the original person's position in IMAGE 1
-- Apply the magazine's color grading and lighting style to the new person
-- Style them to fit the magazine's tone (editorial quality, mood, fashion level)
-- The person should look like they naturally belong on this magazine cover
+WHAT TO TAKE FROM IMAGE 1 (layout & style only):
+- Magazine title, logo, and all typographic elements — keep them in exact positions
+- Background composition, color palette, and graphic design elements
+- Lighting direction, mood, and color grading style
+- The overall framing and how much of the frame the model occupies
 
-QUALITY REQUIREMENTS:
-- The result must look like a professionally shot and edited magazine cover
-- Lighting on the new person must match the magazine cover's light source and mood
-- Skin tone and color treatment should be consistent with the magazine's style
-- The overall image should feel cohesive — not like a collage or cutout
+WHAT TO DO WITH IMAGE 2's PERSON:
+- Place them in the same position and framing as the original cover model
+- Apply ${templateName}'s lighting and color treatment to them naturally
+- Style their appearance to match the magazine's aesthetic level
+- They should look like they were actually photographed for this cover
 
-OUTPUT: A complete, print-quality magazine cover featuring the new person from IMAGE 2, styled to match ${templateName}'s visual identity.`;
+OUTPUT: A complete ${templateName} magazine cover. IMAGE 2's person as the cover model. All original text/graphics intact. No trace of IMAGE 1's original person.`;
 }
 
 export async function POST(req: NextRequest) {
