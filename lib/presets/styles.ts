@@ -13,7 +13,7 @@ export const STYLES: StylePreset[] = [
     description: '밝고 선명한 뷰티 보정',
     thumbnailSrc: '/style-samples/none.png',
     promptFragment:
-      'Transform this photo with professional beauty retouching: brighten overall exposure by +1.5 stops, apply heavy skin smoothing and pore removal, add strong soft-focus glow effect, boost saturation and vibrancy significantly, enhance eye brightness. Keep photorealistic — no illustration or painting conversion.',
+      'Apply professional beauty photo retouching to this image. Keep it fully photorealistic. Smooth and brighten the skin, add a soft luminous glow, boost overall brightness and color vibrancy. Do NOT change facial proportions, eye size, or facial structure in any way.',
   },
   {
     id: 'ghibli',
@@ -21,7 +21,7 @@ export const STYLES: StylePreset[] = [
     description: '수채화, 따뜻한 팔레트',
     thumbnailSrc: '/style-samples/ghibli.png',
     promptFragment:
-      'COMPLETELY transform this photo into Studio Ghibli hand-drawn animation style. The entire image must look like a frame from a Miyazaki film — soft watercolor textures, warm amber-and-green palette, gentle hand-painted brushwork visible throughout, simplified but expressive facial features drawn in Ghibli style. This is a full art style conversion, NOT a filter.',
+      'Repaint this entire image in Studio Ghibli hand-drawn animation style. Every part of the image — skin, hair, clothing, background — must be rendered as soft hand-painted watercolor illustration with warm amber tones, as seen in Miyazaki films. Do NOT enlarge or distort facial features; preserve the subject\'s facial proportions exactly, only change the rendering style.',
   },
   {
     id: 'pixar-3d',
@@ -29,7 +29,7 @@ export const STYLES: StylePreset[] = [
     description: '귀여운 3D 렌더링',
     thumbnailSrc: '/style-samples/pixar-3d.png',
     promptFragment:
-      'COMPLETELY transform this photo into Pixar 3D CGI animation style. The entire image must look like a frame from a Pixar movie — smooth subsurface scattering skin, large expressive CGI eyes, soft studio three-point lighting, vibrant saturated colors, premium Pixar render quality with visible 3D depth and texture. This is a full 3D CGI conversion, NOT a filter.',
+      'Render this entire image in Pixar 3D CGI style. Every surface — skin, hair, fabric, background — must look like premium Pixar CGI with subsurface scattering on skin, soft studio lighting, and vibrant color grading. Do NOT enlarge or reshape any facial features; preserve the subject\'s facial proportions exactly, only convert the surface rendering to 3D CGI.',
   },
   {
     id: 'anime',
@@ -37,7 +37,7 @@ export const STYLES: StylePreset[] = [
     description: '클린 라인아트, 셀 셰이딩',
     thumbnailSrc: '/style-samples/anime.png',
     promptFragment:
-      'COMPLETELY transform this photo into Japanese anime illustration style. The entire image must look like a frame from a high-quality anime series — clean crisp black outlines, flat cel-shaded colors, large stylized anime eyes, simplified smooth skin with anime-style shading, vivid saturated palette. This is a full anime art conversion, NOT a filter.',
+      'Redraw this entire image in Japanese anime illustration style. Every part — skin, hair, clothing, background — must use clean crisp line art with cel-shaded flat colors and anime-style lighting. Do NOT enlarge or distort facial features; preserve the subject\'s facial proportions exactly, only change the rendering style to anime illustration.',
   },
   {
     id: 'disney-3d',
@@ -45,7 +45,7 @@ export const STYLES: StylePreset[] = [
     description: '디즈니 3D 렌더링',
     thumbnailSrc: '/style-samples/disney-3d.png',
     promptFragment:
-      'COMPLETELY transform this photo into Disney 3D CGI animation style. The entire image must look like a frame from a Disney animated film — warm glowing skin with Disney-characteristic smooth shading, bright cheerful studio lighting, slightly enlarged expressive eyes in Disney style, rich color saturation, premium Disney render quality. This is a full 3D CGI conversion, NOT a filter.',
+      'Render this entire image in Disney 3D CGI animation style. Every surface — skin, hair, fabric, background — must look like premium Disney CGI with warm smooth shading, bright cheerful studio lighting, and rich color saturation. Do NOT enlarge or reshape any facial features; preserve the subject\'s facial proportions exactly, only convert the surface rendering to Disney 3D CGI.',
   },
   {
     id: 'oil-painting',
@@ -53,7 +53,7 @@ export const STYLES: StylePreset[] = [
     description: '붓 터치, 임파스토',
     thumbnailSrc: '/style-samples/oil-painting.png',
     promptFragment:
-      'COMPLETELY transform this photo into a classical oil painting. The entire image must look like a hand-painted portrait on canvas — thick impasto brushstrokes visible throughout, rich deeply saturated colors, traditional portrait painting composition, visible canvas texture beneath, painterly rendering of all surfaces including skin hair and clothing. This is a full painting conversion, NOT a filter.',
+      'Repaint this entire image as a classical oil painting on canvas. Every surface must show thick visible impasto brushstrokes, rich saturated oil paint colors, and canvas texture. Do NOT change facial proportions or structure; preserve the subject\'s features exactly, only convert the rendering to oil painting style.',
   },
   {
     id: 'pencil-sketch',
@@ -61,7 +61,7 @@ export const STYLES: StylePreset[] = [
     description: '모노크롬 선화',
     thumbnailSrc: '/style-samples/pencil-sketch.png',
     promptFragment:
-      'COMPLETELY transform this photo into a detailed pencil sketch drawing. The entire image must look like an artist\'s hand-drawn graphite sketch — monochrome with only pencil lines and shading, visible hatching and cross-hatching throughout, paper texture showing through, no photographic elements remaining. This is a full drawing conversion, NOT a filter.',
+      'Redraw this entire image as a detailed graphite pencil sketch. Every part must be rendered in monochrome pencil linework with hatching and cross-hatching for shading, on paper texture. No photographic elements should remain. Do NOT change facial proportions; preserve the subject\'s features exactly, only convert to pencil sketch rendering.',
   },
 ];
 
