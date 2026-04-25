@@ -40,7 +40,8 @@ export async function POST(req: NextRequest) {
   let uid: string;
   try {
     uid = await verifyToken(req);
-  } catch {
+  } catch (e) {
+    console.error('[generate] verifyToken failed:', e);
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
