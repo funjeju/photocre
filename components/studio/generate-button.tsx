@@ -7,6 +7,7 @@ import { useStudioStore } from '@/lib/store/studio';
 import { useAuth } from '@/lib/firebase/auth-context';
 import { blobToBase64 } from '@/lib/canvas/export';
 import { STYLES } from '@/lib/presets/styles';
+import { getBackground } from '@/lib/presets/backgrounds';
 import { ko } from '@/lib/i18n/ko';
 
 const STYLES_MAP = Object.fromEntries(STYLES.map((s) => [s.id, s.name]));
@@ -26,8 +27,11 @@ export function GenerateButton() {
     if (!canAct || !user) return;
 
     // 클릭 시점에 store 최신값 직접 읽기 — 스테일 클로저 방지
-    const { croppedImage: img, styleId: sid, customPrompt, aspectRatio } = useStudioStore.getState();
+    const { croppedImage: img, styleId: sid, customPrompt, aspectRatio, backgroundId } = useStudioStore.getState();
     if (!img) return;
+
+    const bg = getBackground(backgroundId);
+    const backgroundPrompt = bg.type !== 'keep' && bg.type !== 'custom' ? bg.promptFragment : undefined;
 
     setIsGenerating(true);
     try {
@@ -45,6 +49,7 @@ export function GenerateButton() {
           styleId: sid,
           aspectRatio,
           customPrompt: customPrompt.trim() || undefined,
+          backgroundPrompt,
         }),
       });
 

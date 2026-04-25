@@ -79,6 +79,7 @@ export async function POST(req: NextRequest) {
       styleId: body.styleId,
       customPrompt: body.customPrompt,
       aspectRatio: body.aspectRatio,
+      backgroundPrompt: body.backgroundPrompt,
     });
 
     const parts: unknown[] = [

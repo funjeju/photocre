@@ -80,6 +80,7 @@ export default function StudioPage() {
               변환 없이 꾸미기만 해도 됩니다.
             </p>
             <StylePicker />
+            <BackgroundPicker />
             <CustomPromptField />
             {/* styleId가 'none'이 아닐 때만 AI 변환 버튼 표시 */}
             {styleId !== 'none' && <GenerateButton />}
@@ -91,8 +92,6 @@ export default function StudioPage() {
           <div className="space-y-6">
             <p className="text-sm font-semibold">{ko.studio.decorate.title}</p>
             <FramePicker />
-            <Separator />
-            <BackgroundPicker />
             <Separator />
             <TextOverlayEditor />
           </div>
