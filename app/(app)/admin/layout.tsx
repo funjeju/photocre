@@ -70,7 +70,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </nav>
         </div>
       </div>
-      <div className="flex-1 overflow-hidden">{children}</div>
+      <div className="flex-1 overflow-y-auto min-h-0">{children}</div>
     </div>
   );
 }
