@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { adminAuth, adminDb, adminStorage } from '@/lib/firebase/admin';
+import { adminAuth, adminDb } from '@/lib/firebase/admin';
 import { getGenAI, MODEL } from '@/lib/gemini/client';
 import { composePrompt, getAspectRatioParam } from '@/lib/gemini/compose';
 
@@ -29,17 +29,6 @@ async function checkAndDecrementCredits(uid: string, email: string): Promise<voi
   });
 }
 
-async function saveToStorage(base64: string, uid: string, folder: string, ext = 'webp'): Promise<string> {
-  const bucket = adminStorage().bucket();
-  const ts = Date.now();
-  const filePath = `${folder}/${uid}/${ts}.${ext}`;
-  const file = bucket.file(filePath);
-  const buffer = Buffer.from(base64, 'base64');
-  await file.save(buffer, { contentType: `image/${ext}`, metadata: { cacheControl: 'public,max-age=31536000' } });
-  await file.makePublic();
-  const encodedPath = encodeURIComponent(filePath);
-  return `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodedPath}?alt=media`;
-}
 
 export async function POST(req: NextRequest) {
   let uid: string;
@@ -72,8 +61,6 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const inputPath = await saveToStorage(body.imageBase64, uid, 'input');
-
     console.log('[generate] styleId received:', body.styleId, '| aspectRatio:', body.aspectRatio);
 
     const prompt = composePrompt({
@@ -113,29 +100,7 @@ export async function POST(req: NextRequest) {
     const { data: imageData, mimeType } = imagePart.inlineData;
     const dataUrl = `data:${mimeType};base64,${imageData}`;
 
-    // Storage 저장 + Firestore 기록은 백그라운드로 (CORS 우회 — 표시는 dataUrl 직접 사용)
-    const genRef = adminDb().collection('users').doc(uid).collection('generations').doc();
-    saveToStorage(imageData, uid, 'output').then((outputUrl) => {
-      genRef.set({
-        inputImagePath: inputPath,
-        outputImagePath: outputUrl,
-        prompt,
-        model: MODEL,
-        cost: 1,
-        presets: { styleId: body.styleId, customPrompt: body.customPrompt ?? '' },
-        createdAt: new Date(),
-        status: 'success',
-      });
-      adminDb().collection('credits_ledger').add({
-        uid,
-        delta: -1,
-        reason: 'generate',
-        relatedId: genRef.id,
-        createdAt: new Date(),
-      });
-    }).catch((e) => console.error('[generate] storage save failed:', e));
-
-    return NextResponse.json({ outputUrl: dataUrl, generationId: genRef.id });
+    return NextResponse.json({ outputUrl: dataUrl });
   } catch (e: unknown) {
     console.error('[generate]', e);
     return NextResponse.json({ error: 'Generation failed' }, { status: 500 });

@@ -62,7 +62,7 @@ export const en = {
     result: {
       download: 'Download',
       regenerate: 'Regenerate',
-      saveTemplate: 'Save as Template',
+      saveToProfile: 'Save to My Page',
       share: 'Share',
       synthIdNotice: 'AI-generated image.',
     },

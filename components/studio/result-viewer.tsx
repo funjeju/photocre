@@ -2,10 +2,11 @@
 
 import { useRef, useEffect, useState } from 'react';
 import { Stage, Layer, Rect, Image as KonvaImage, Text as KonvaText } from 'react-konva';
-import { Download, RefreshCw, BookmarkPlus, Info, ImagePlus } from 'lucide-react';
+import { Download, RefreshCw, CheckCircle2, Loader2, Info, ImagePlus } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { useStudioStore } from '@/lib/store/studio';
+import { useAuth } from '@/lib/firebase/auth-context';
 import { getFrame } from '@/lib/presets/frames';
 import { getBackground, CUSTOM_BACKGROUND } from '@/lib/presets/backgrounds';
 import { downloadRef } from '@/lib/canvas/download-ref';
@@ -47,9 +48,13 @@ function useImage(src: string | null): HTMLImageElement | null {
 export function ResultViewer() {
   const {
     generatedImageUrl, textOverlay, frameId, backgroundId, customBackground,
-    aspectRatio, setGeneratedImageUrl, setGenerationId, setTextOverlay, reset,
+    aspectRatio, styleId, customPrompt,
+    setGeneratedImageUrl, setGenerationId, setTextOverlay, reset,
   } = useStudioStore();
+  const { user } = useAuth();
   const stageRef = useRef<Konva.Stage>(null);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
 
   // ── Responsive container sizing ──────────────────────────────────
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -114,6 +119,31 @@ export function ResultViewer() {
   function handleRegenerate() {
     setGeneratedImageUrl(null);
     setGenerationId(null);
+    setSaved(false);
+  }
+
+  async function handleSaveToProfile() {
+    if (!stageRef.current || !user || saving || saved) return;
+    setSaving(true);
+    try {
+      const dataUrl = stageRef.current.toDataURL({ mimeType: 'image/png', quality: 1 });
+      const base64 = dataUrl.replace(/^data:[^;]+;base64,/, '');
+      const token = await user.getIdToken();
+      const res = await fetch('/api/save-generation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ imageBase64: base64, styleId, customPrompt }),
+      });
+      if (!res.ok) throw new Error('save failed');
+      const data = await res.json() as { id: string };
+      setGenerationId(data.id);
+      setSaved(true);
+      toast.success('마이페이지에 저장됐습니다.');
+    } catch {
+      toast.error('저장에 실패했습니다. 다시 시도해주세요.');
+    } finally {
+      setSaving(false);
+    }
   }
 
   if (!generatedImageUrl) return null;
@@ -230,12 +260,19 @@ export function ResultViewer() {
           {ko.studio.result.regenerate}
         </Button>
         <Button
-          variant="outline"
+          variant={saved ? 'default' : 'outline'}
           className="h-11 rounded-2xl gap-1.5 text-sm"
-          onClick={() => toast.info('템플릿 저장은 Phase 2에서 지원됩니다.')}
+          onClick={handleSaveToProfile}
+          disabled={saving || saved}
         >
-          <BookmarkPlus className="size-4 shrink-0" />
-          {ko.studio.result.saveTemplate}
+          {saving ? (
+            <Loader2 className="size-4 shrink-0 animate-spin" />
+          ) : saved ? (
+            <CheckCircle2 className="size-4 shrink-0" />
+          ) : (
+            <Download className="size-4 shrink-0" />
+          )}
+          {saved ? '저장됨' : ko.studio.result.saveToProfile}
         </Button>
         <Button
           variant="outline"

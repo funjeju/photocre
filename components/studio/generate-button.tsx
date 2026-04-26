@@ -20,7 +20,6 @@ export function GenerateButton() {
   const styleId = useStudioStore((s) => s.styleId);
   const setIsGenerating = useStudioStore((s) => s.setIsGenerating);
   const setGeneratedImageUrl = useStudioStore((s) => s.setGeneratedImageUrl);
-  const setGenerationId = useStudioStore((s) => s.setGenerationId);
 
   const canAct = !!croppedImage && !isGenerating;
 
@@ -74,7 +73,6 @@ export function GenerateButton() {
       }
 
       setGeneratedImageUrl(data.outputUrl);
-      setGenerationId(data.generationId);
     } catch {
       toast.error(ko.errors.network);
     } finally {
