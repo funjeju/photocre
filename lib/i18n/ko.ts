@@ -223,6 +223,19 @@ export const ko = {
     active: '판매 중',
     inactive: '판매 중지',
   },
+  profile: {
+    title: '마이페이지',
+    myImages: '내 생성 이미지',
+    empty: '생성한 이미지가 없습니다.',
+    emptyHint: 'Studio에서 이미지를 생성하면 여기에 저장됩니다.',
+    orderWith: '이 이미지로 주문',
+    generatedAt: '생성일',
+    plan: {
+      free:     'Free',
+      personal: 'Personal',
+      pro:      'Pro',
+    },
+  },
   errors: {
     unknown: '오류가 발생했습니다. 다시 시도해주세요.',
     network: '네트워크 오류가 발생했습니다.',

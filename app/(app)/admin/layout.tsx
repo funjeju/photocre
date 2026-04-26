@@ -7,8 +7,6 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/lib/firebase/auth-context';
-import { getFirebaseDb } from '@/lib/firebase/client';
-import { doc, getDoc } from 'firebase/firestore';
 import { ko } from '@/lib/i18n/ko';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -20,11 +18,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   useEffect(() => {
     if (authLoading) return;
     if (!user) { router.replace('/login'); return; }
-    getDoc(doc(getFirebaseDb(), 'users', user.uid)).then((snap) => {
-      const data = snap.data();
-      const owner = !!(data?.isOwner);
-      setIsOwner(owner);
-      if (!owner) router.replace('/studio');
+    user.getIdToken().then((token) =>
+      fetch('/api/admin/verify', { headers: { Authorization: `Bearer ${token}` } })
+    ).then((r) => r.json()).then(({ isOwner }: { isOwner: boolean }) => {
+      setIsOwner(!!isOwner);
+      if (!isOwner) router.replace('/studio');
+    }).catch(() => {
+      setIsOwner(false);
+      router.replace('/studio');
     });
   }, [user, authLoading, router]);
 

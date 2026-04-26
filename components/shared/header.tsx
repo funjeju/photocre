@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutGrid, Layers, History, Wand2, LogOut, BookImage, Newspaper, ShoppingBag, Package, ShieldCheck } from 'lucide-react';
+import { History, Wand2, LogOut, BookImage, Newspaper, ShoppingBag, Package, ShieldCheck, UserCircle } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,8 +21,6 @@ const NAV_ITEMS = [
   { href: '/studio', label: ko.nav.studio, icon: Wand2 },
   { href: '/cover', label: ko.nav.cover, icon: Newspaper },
   { href: '/magazine', label: ko.nav.magazine, icon: BookImage },
-  { href: '/apply', label: ko.nav.apply, icon: Layers },
-  { href: '/templates', label: ko.nav.templates, icon: LayoutGrid },
   { href: '/history', label: ko.nav.history, icon: History },
 ];
 
@@ -104,6 +102,10 @@ export function Header() {
                 <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
               </div>
               <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => router.push('/profile')} className="gap-2">
+                <UserCircle className="size-4" />
+                마이페이지
+              </DropdownMenuItem>
               <DropdownMenuItem onClick={() => router.push('/orders')} className="gap-2">
                 <Package className="size-4" />
                 주문 내역

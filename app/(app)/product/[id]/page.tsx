@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft, ShoppingBag, Minus, Plus, Package } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -20,11 +20,17 @@ function formatPrice(n: number) {
 export default function ProductPage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const productId = params.id as string;
   const product = PRODUCT_MAP[productId];
 
-  const generatedImageUrl = useStudioStore((s) => s.generatedImageUrl);
-  const generationId      = useStudioStore((s) => s.generationId);
+  const studioImageUrl = useStudioStore((s) => s.generatedImageUrl);
+  const studioGenId    = useStudioStore((s) => s.generationId);
+  // ?img= 로 외부 이미지(마이페이지 재주문) 수락, 없으면 스튜디오 스토어 사용
+  const imgParam = searchParams.get('img');
+  const gidParam = searchParams.get('gid');
+  const generatedImageUrl = imgParam ?? studioImageUrl;
+  const generationId      = gidParam ?? studioGenId;
   const addItem           = useCartStore((s) => s.addItem);
 
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>(() => {
