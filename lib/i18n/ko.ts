@@ -76,7 +76,8 @@ export const ko = {
     result: {
       download: '다운로드',
       regenerate: '다시 생성',
-      saveTemplate: '템플릿으로 저장',
+      saveTemplate: '템플릿 저장',
+      newImage: '새 이미지',
       share: '공유',
       synthIdNotice: 'AI로 생성된 이미지입니다.',
     },

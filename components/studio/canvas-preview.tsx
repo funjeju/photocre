@@ -10,7 +10,7 @@ export function CanvasPreview() {
 
   return (
     /* 작업 캔버스 배경 존 — dot 텍스처 + muted 배경 */
-    <div className="relative flex flex-1 rounded-2xl overflow-hidden bg-muted/30" style={{ minHeight: 560 }}>
+    <div className="relative flex flex-1 rounded-2xl bg-muted/30 lg:overflow-hidden lg:min-h-[560px]">
       {/* SVG 도트 텍스처 */}
       <svg
         className="absolute inset-0 w-full h-full opacity-[0.06] pointer-events-none"
@@ -24,8 +24,8 @@ export function CanvasPreview() {
         <rect width="100%" height="100%" fill="url(#canvas-dots)" />
       </svg>
 
-      {/* 콘텐츠 — 항상 중앙 정렬, 모바일 패딩 축소 */}
-      <div className="relative z-10 flex flex-1 items-start justify-center p-4 md:p-8 pt-6 md:pt-8 overflow-y-auto">
+      {/* 콘텐츠 — desktop: overflow-y-auto (패널 내 스크롤), mobile: auto height (aside가 스크롤 담당) */}
+      <div className="relative z-10 flex flex-1 items-start justify-center p-4 md:p-8 pt-6 md:pt-8 lg:overflow-y-auto">
         {isGenerating ? (
           <div className="flex flex-col items-center gap-4">
             <Skeleton className="w-[520px] max-w-full aspect-square rounded-2xl" />

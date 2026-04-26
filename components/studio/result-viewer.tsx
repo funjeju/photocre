@@ -2,7 +2,7 @@
 
 import { useRef, useEffect, useState } from 'react';
 import { Stage, Layer, Rect, Image as KonvaImage, Text as KonvaText } from 'react-konva';
-import { Download, RefreshCw, BookmarkPlus, Info } from 'lucide-react';
+import { Download, RefreshCw, BookmarkPlus, Info, ImagePlus } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { useStudioStore } from '@/lib/store/studio';
@@ -47,9 +47,23 @@ function useImage(src: string | null): HTMLImageElement | null {
 export function ResultViewer() {
   const {
     generatedImageUrl, textOverlay, frameId, backgroundId, customBackground,
-    aspectRatio, setGeneratedImageUrl, setGenerationId, setTextOverlay,
+    aspectRatio, setGeneratedImageUrl, setGenerationId, setTextOverlay, reset,
   } = useStudioStore();
   const stageRef = useRef<Konva.Stage>(null);
+
+  // ── Responsive container sizing ──────────────────────────────────
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const [containerW, setContainerW] = useState(DISPLAY_MAX);
+  useEffect(() => {
+    const el = wrapperRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => {
+      const w = el.offsetWidth;
+      if (w > 0) setContainerW(w);
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
 
   const frame = getFrame(frameId);
   const background = backgroundId === 'custom' ? CUSTOM_BACKGROUND : getBackground(backgroundId);
@@ -59,10 +73,8 @@ export function ResultViewer() {
     backgroundId === 'custom' && customBackground ? customBackground.previewUrl : null,
   );
 
-  // 이미지 영역 크기 (비율 기반)
   const { w: imgW, h: imgH } = getImageDimensions(aspectRatio);
 
-  // 프레임 패딩 (imgW 기준 스케일)
   const fScale = imgW / 512;
   const pad = {
     top:    frame.konva.top    * fScale,
@@ -71,12 +83,12 @@ export function ResultViewer() {
     left:   frame.konva.left   * fScale,
   };
 
-  // 캔버스 전체 크기 = 이미지 + 프레임 패딩
   const canvasW = imgW + pad.left + pad.right;
   const canvasH = imgH + pad.top  + pad.bottom;
 
-  // 화면 표시 스케일
-  const displayScale = DISPLAY_MAX / Math.max(canvasW, canvasH);
+  // Cap at DISPLAY_MAX and actual container width — prevents horizontal overflow
+  const effectiveMax = Math.min(DISPLAY_MAX, containerW);
+  const displayScale = effectiveMax / Math.max(canvasW, canvasH);
   const displayW = Math.round(canvasW * displayScale);
   const displayH = Math.round(canvasH * displayScale);
 
@@ -107,7 +119,8 @@ export function ResultViewer() {
   if (!generatedImageUrl) return null;
 
   return (
-    <div className="flex flex-col items-center gap-4 w-full" style={{ maxWidth: DISPLAY_MAX }}>
+    <div ref={wrapperRef} className="flex flex-col items-center gap-4 w-full">
+      {/* ── Konva Stage (responsive scaled) ── */}
       <div
         className="rounded-2xl overflow-hidden shadow-lg"
         style={{ width: displayW, height: displayH }}
@@ -128,19 +141,16 @@ export function ResultViewer() {
               ctx.quadraticCurveTo(0, 0, r, 0);
               ctx.closePath();
             }}>
-              {/* 1. 배경 (캔버스 전체) */}
               {showBgImage ? (
                 <KonvaImage image={customBgImage!} x={0} y={0} width={canvasW} height={canvasH} />
               ) : background.id !== 'keep-original' && background.id !== 'custom' ? (
                 <Rect x={0} y={0} width={canvasW} height={canvasH} fill={extractSolidColor(background.thumbnailStyle)} />
               ) : null}
 
-              {/* 2. 프레임 배경 (폴라로이드 흰 영역 등) */}
               {frame.konva.frameBg !== 'transparent' && (
                 <Rect x={0} y={0} width={canvasW} height={canvasH} fill={frame.konva.frameBg} />
               )}
 
-              {/* 3. AI 이미지 — 패딩 안쪽에 정확히 배치 */}
               {mainImage && (
                 <KonvaImage
                   image={mainImage}
@@ -149,7 +159,6 @@ export function ResultViewer() {
                 />
               )}
 
-              {/* 4. 텍스트 배경 + 텍스트 오버레이 */}
               {textOverlay?.content && (() => {
                 const tx = textPos.x * canvasW - canvasW / 2;
                 const ty = textPos.y * canvasH - fontSize / 2;
@@ -196,27 +205,45 @@ export function ResultViewer() {
         </div>
       </div>
 
+      {/* SynthID notice */}
       <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
         <Info className="size-3 shrink-0" />
         {ko.studio.result.synthIdNotice}
       </div>
 
-      <div className="flex gap-2 w-full flex-wrap">
-        <Button onClick={handleDownload} variant="outline" className="flex-1 rounded-2xl gap-2 min-w-0">
+      {/* ── 2×2 action buttons ── */}
+      <div className="grid grid-cols-2 gap-2 w-full">
+        <Button
+          onClick={handleDownload}
+          variant="outline"
+          className="h-11 rounded-2xl gap-1.5 text-sm"
+        >
           <Download className="size-4 shrink-0" />
           {ko.studio.result.download}
         </Button>
-        <Button onClick={handleRegenerate} variant="outline" className="flex-1 rounded-2xl gap-2 min-w-0">
+        <Button
+          onClick={handleRegenerate}
+          variant="outline"
+          className="h-11 rounded-2xl gap-1.5 text-sm"
+        >
           <RefreshCw className="size-4 shrink-0" />
           {ko.studio.result.regenerate}
         </Button>
         <Button
           variant="outline"
-          className="flex-1 rounded-2xl gap-2 min-w-0"
+          className="h-11 rounded-2xl gap-1.5 text-sm"
           onClick={() => toast.info('템플릿 저장은 Phase 2에서 지원됩니다.')}
         >
           <BookmarkPlus className="size-4 shrink-0" />
           {ko.studio.result.saveTemplate}
+        </Button>
+        <Button
+          variant="outline"
+          className="h-11 rounded-2xl gap-1.5 text-sm"
+          onClick={reset}
+        >
+          <ImagePlus className="size-4 shrink-0" />
+          {ko.studio.result.newImage}
         </Button>
       </div>
 
