@@ -42,8 +42,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }
 
   const tabs = [
-    { href: '/admin/orders',   label: ko.admin.orders },
-    { href: '/admin/products', label: ko.admin.products },
+    { href: '/admin/orders',         label: ko.admin.orders },
+    { href: '/admin/products',       label: ko.admin.products },
+    { href: '/admin/mockup-editor',  label: ko.admin.mockupEditor },
   ];
 
   return (

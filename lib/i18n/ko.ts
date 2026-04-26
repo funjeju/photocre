@@ -216,6 +216,7 @@ export const ko = {
     carrier: '택배사',
     trackingNumber: '송장번호',
     save: '저장',
+    mockupEditor: '굿즈 배치 설정',
     adminMemo: '관리자 메모',
     productName: '상품명',
     basePrice: '기본 가격',
