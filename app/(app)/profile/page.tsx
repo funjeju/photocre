@@ -3,10 +3,12 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { collection, getDocs, orderBy, query, limit, doc, getDoc } from 'firebase/firestore';
-import { Loader2, ShoppingBag, ImageOff, Zap } from 'lucide-react';
+import { Loader2, ShoppingBag, ImageOff, Zap, Calendar, Cpu, Coins, FileText, X } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Separator } from '@/components/ui/separator';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,6 +23,11 @@ import { ko } from '@/lib/i18n/ko';
 interface Generation {
   id: string;
   outputImagePath: string;
+  inputImagePath?: string;
+  prompt?: string;
+  model?: string;
+  cost?: number;
+  presets?: { styleId?: string; customPrompt?: string };
   createdAt: { toDate?: () => Date } | Date | null;
   status: string;
 }
@@ -30,11 +37,155 @@ interface UserDoc {
   plan: 'free' | 'personal' | 'pro';
 }
 
-function formatDate(ts: Generation['createdAt']) {
-  if (!ts) return '';
-  const d = ts instanceof Date ? ts : (ts as { toDate?: () => Date }).toDate?.() ?? new Date();
-  return d.toLocaleDateString('ko-KR', { month: 'short', day: 'numeric', year: 'numeric' });
+function toDate(ts: Generation['createdAt']): Date | null {
+  if (!ts) return null;
+  if (ts instanceof Date) return ts;
+  return (ts as { toDate?: () => Date }).toDate?.() ?? null;
 }
+
+function formatDate(ts: Generation['createdAt']) {
+  const d = toDate(ts);
+  if (!d) return '-';
+  return d.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
+}
+
+function formatDateTime(ts: Generation['createdAt']) {
+  const d = toDate(ts);
+  if (!d) return '-';
+  return d.toLocaleString('ko-KR', {
+    year: 'numeric', month: 'long', day: 'numeric',
+    hour: '2-digit', minute: '2-digit',
+  });
+}
+
+/* ── 모달 ──────────────────────────────────────────────────── */
+
+function GenerationModal({
+  gen,
+  open,
+  onClose,
+  onOrder,
+}: {
+  gen: Generation | null;
+  open: boolean;
+  onClose: () => void;
+  onOrder: (productId: string, gen: Generation) => void;
+}) {
+  if (!gen) return null;
+  return (
+    <Dialog open={open} onOpenChange={(v) => { if (!v) onClose(); }}>
+      <DialogContent className="max-w-3xl w-full p-0 overflow-hidden rounded-2xl gap-0">
+        <div className="flex flex-col md:flex-row">
+          {/* 이미지 */}
+          <div className="relative flex-1 bg-muted/30 flex items-center justify-center min-h-64 md:min-h-0">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={gen.outputImagePath}
+              alt="생성 이미지"
+              className="w-full h-full object-contain max-h-[60vh] md:max-h-[80vh]"
+            />
+          </div>
+
+          {/* 사이드 정보 */}
+          <div className="flex flex-col w-full md:w-72 shrink-0 p-6 gap-5 overflow-y-auto">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-semibold">생성 정보</h3>
+              <button onClick={onClose} className="text-muted-foreground hover:text-foreground transition-colors">
+                <X className="size-4" />
+              </button>
+            </div>
+
+            <Separator />
+
+            {/* 생성일시 */}
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <Calendar className="size-3.5" />
+                생성일시
+              </div>
+              <p className="text-sm font-medium">{formatDateTime(gen.createdAt)}</p>
+            </div>
+
+            {/* 상태 */}
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <Cpu className="size-3.5" />
+                상태 / 모델
+              </div>
+              <div className="flex items-center gap-2">
+                <Badge
+                  variant="outline"
+                  className={gen.status === 'success' ? 'text-green-600 border-green-300' : 'text-destructive'}
+                >
+                  {gen.status === 'success' ? '생성 완료' : '실패'}
+                </Badge>
+                {gen.model && (
+                  <span className="text-xs text-muted-foreground truncate">{gen.model}</span>
+                )}
+              </div>
+            </div>
+
+            {/* 크레딧 */}
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <Coins className="size-3.5" />
+                소모 크레딧
+              </div>
+              <p className="text-sm font-medium">{gen.cost ?? 1}크레딧</p>
+            </div>
+
+            {/* 프롬프트 */}
+            {gen.prompt && (
+              <div className="flex flex-col gap-1.5">
+                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <FileText className="size-3.5" />
+                  사용된 프롬프트
+                </div>
+                <p className="text-xs text-muted-foreground leading-relaxed bg-muted/40 rounded-xl p-3 max-h-36 overflow-y-auto">
+                  {gen.prompt}
+                </p>
+              </div>
+            )}
+
+            {/* 추가 요구사항 */}
+            {gen.presets?.customPrompt && (
+              <div className="flex flex-col gap-1.5">
+                <p className="text-xs text-muted-foreground">추가 요구사항</p>
+                <p className="text-xs bg-muted/40 rounded-xl p-3 leading-relaxed">
+                  {gen.presets.customPrompt}
+                </p>
+              </div>
+            )}
+
+            <Separator />
+
+            {/* 주문 버튼 */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button className="w-full rounded-xl gap-2">
+                  <ShoppingBag className="size-4" />
+                  이 이미지로 주문
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-44">
+                {PRODUCT_PRESETS.map((p) => (
+                  <DropdownMenuItem
+                    key={p.id}
+                    onClick={() => { onClose(); onOrder(p.id, gen); }}
+                  >
+                    {p.name}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/* ── 메인 페이지 ─────────────────────────────────────────── */
 
 export default function ProfilePage() {
   const { user, loading: authLoading } = useAuth();
@@ -43,6 +194,7 @@ export default function ProfilePage() {
   const [userDoc, setUserDoc] = useState<UserDoc | null>(null);
   const [generations, setGenerations] = useState<Generation[]>([]);
   const [loadingData, setLoadingData] = useState(true);
+  const [selected, setSelected] = useState<Generation | null>(null);
 
   useEffect(() => {
     if (authLoading) return;
@@ -54,7 +206,7 @@ export default function ProfilePage() {
       getDocs(query(
         collection(db, 'users', user.uid, 'generations'),
         orderBy('createdAt', 'desc'),
-        limit(40),
+        limit(60),
       )),
     ]).then(([userSnap, genSnap]) => {
       if (userSnap.exists()) setUserDoc(userSnap.data() as UserDoc);
@@ -69,7 +221,6 @@ export default function ProfilePage() {
       </div>
     );
   }
-
   if (!user) return null;
 
   const initials = user.displayName?.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase() ?? '?';
@@ -103,7 +254,7 @@ export default function ProfilePage() {
               )}
             </div>
           </div>
-          <div className="ml-auto flex gap-2 shrink-0">
+          <div className="ml-auto shrink-0">
             <Button variant="outline" size="sm" className="rounded-xl" onClick={() => router.push('/orders')}>
               주문 내역
             </Button>
@@ -112,9 +263,14 @@ export default function ProfilePage() {
 
         {/* 생성 이미지 갤러리 */}
         <div className="flex flex-col gap-4">
-          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-            {ko.profile.myImages}
-          </h2>
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+              {ko.profile.myImages}
+            </h2>
+            {generations.length > 0 && (
+              <span className="text-xs text-muted-foreground">{generations.length}개</span>
+            )}
+          </div>
 
           {generations.length === 0 ? (
             <div className="flex flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-border/60 py-16 text-center">
@@ -126,36 +282,39 @@ export default function ProfilePage() {
               </Button>
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
               {generations.map((gen) => (
-                <div key={gen.id} className="group relative flex flex-col gap-2">
-                  <div className="aspect-square overflow-hidden rounded-2xl border border-border/40 bg-muted/30">
+                <div key={gen.id} className="group relative flex flex-col gap-1.5">
+                  {/* 썸네일 — 클릭 시 모달 */}
+                  <button
+                    onClick={() => setSelected(gen)}
+                    className="aspect-square overflow-hidden rounded-2xl border border-border/40 bg-muted/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+                  >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={gen.outputImagePath}
                       alt="생성 이미지"
                       className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                     />
-                  </div>
+                  </button>
                   <p className="text-[10px] text-muted-foreground px-0.5">{formatDate(gen.createdAt)}</p>
+
+                  {/* hover 주문 버튼 */}
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button
                         size="sm"
                         variant="outline"
-                        className="w-full rounded-xl gap-1.5 text-xs h-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="w-full rounded-xl gap-1.5 text-xs h-7 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={(e) => e.stopPropagation()}
                       >
-                        <ShoppingBag className="size-3.5" />
-                        {ko.profile.orderWith}
+                        <ShoppingBag className="size-3" />
+                        주문
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="start" className="w-44">
                       {PRODUCT_PRESETS.map((p) => (
-                        <DropdownMenuItem
-                          key={p.id}
-                          onClick={() => handleOrder(p.id, gen)}
-                          className="text-sm"
-                        >
+                        <DropdownMenuItem key={p.id} onClick={() => handleOrder(p.id, gen)}>
                           {p.name}
                         </DropdownMenuItem>
                       ))}
@@ -166,8 +325,15 @@ export default function ProfilePage() {
             </div>
           )}
         </div>
-
       </div>
+
+      {/* 이미지 상세 모달 */}
+      <GenerationModal
+        gen={selected}
+        open={!!selected}
+        onClose={() => setSelected(null)}
+        onOrder={handleOrder}
+      />
     </div>
   );
 }
