@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { collection, getDocs, orderBy, query, limit, doc, getDoc } from 'firebase/firestore';
-import { Sparkles } from 'lucide-react';
-import { Loader2, ShoppingBag, ImageOff, Zap } from 'lucide-react';
+import { Sparkles, Loader2, ShoppingBag, ImageOff, Zap, Download, FileText } from 'lucide-react';
 import type { DreamReport } from '@/app/api/dream/route';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -145,6 +145,7 @@ export default function ProfilePage() {
   const [dreams, setDreams] = useState<DreamResult[]>([]);
   const [loadingData, setLoadingData] = useState(true);
   const [selected, setSelected] = useState<Generation | null>(null);
+  const [dreamPDFLoading, setDreamPDFLoading] = useState<string | null>(null);
 
   useEffect(() => {
     if (authLoading) return;
@@ -173,6 +174,28 @@ export default function ProfilePage() {
 
   const initials = user.displayName?.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase() ?? '?';
   const planLabel = userDoc ? ko.profile.plan[userDoc.plan] : ko.profile.plan.free;
+
+  async function handleDreamImageDownload(dream: DreamResult) {
+    const { downloadImageFromUrl } = await import('@/components/dream/dream-pdf');
+    await downloadImageFromUrl(dream.outputImageUrl, `dream-${dream.career}-${dream.age}살.jpg`);
+  }
+
+  async function handleDreamPDFDownload(dream: DreamResult) {
+    setDreamPDFLoading(dream.id);
+    try {
+      const { downloadDreamPDF } = await import('@/components/dream/dream-pdf');
+      await downloadDreamPDF({
+        imageUrl: dream.outputImageUrl,
+        report: dream.report,
+        career: dream.career,
+        age: dream.age,
+      }, `dream-${dream.career}-${dream.age}살.pdf`);
+    } catch {
+      toast.error('PDF 생성에 실패했습니다.');
+    } finally {
+      setDreamPDFLoading(null);
+    }
+  }
 
   function handleOrder(productId: string, gen: Generation) {
     const params = new URLSearchParams({ img: gen.outputImagePath, gid: gen.id });
@@ -298,18 +321,42 @@ export default function ProfilePage() {
           ) : (
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
               {dreams.map((dream) => (
-                <div key={dream.id} className="flex flex-col gap-1.5">
+                <div key={dream.id} className="group flex flex-col gap-1.5">
                   <div className="aspect-square overflow-hidden rounded-2xl border border-border/40 bg-muted/30">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={dream.outputImageUrl}
                       alt={dream.career}
-                      className="h-full w-full object-cover"
+                      className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                     />
                   </div>
                   <div className="px-0.5">
                     <p className="text-xs font-medium truncate">{dream.career} · {dream.age}살</p>
                     <p className="text-[10px] text-muted-foreground">{formatDate(dream.createdAt)}</p>
+                  </div>
+                  <div className="flex gap-1.5">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1 h-7 text-[10px] rounded-xl gap-1 px-2"
+                      onClick={() => handleDreamImageDownload(dream)}
+                    >
+                      <Download className="size-3" />
+                      이미지
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1 h-7 text-[10px] rounded-xl gap-1 px-2"
+                      onClick={() => handleDreamPDFDownload(dream)}
+                      disabled={dreamPDFLoading === dream.id}
+                    >
+                      {dreamPDFLoading === dream.id
+                        ? <Loader2 className="size-3 animate-spin" />
+                        : <FileText className="size-3" />
+                      }
+                      PDF
+                    </Button>
                   </div>
                 </div>
               ))}

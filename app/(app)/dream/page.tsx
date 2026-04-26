@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import { Sparkles, Upload, Printer, RotateCcw, ChevronRight, User } from 'lucide-react';
+import { Sparkles, Upload, Download, FileText, Loader2, RotateCcw, ChevronRight, User } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -61,12 +61,12 @@ function PathStep({ step, index }: { step: string; index: number }) {
 export default function DreamPage() {
   const { user } = useAuth();
   const fileRef = useRef<HTMLInputElement>(null);
-  const printRef = useRef<HTMLDivElement>(null);
 
   const [photo, setPhoto] = useState<{ base64: string; type: string; previewUrl: string } | null>(null);
   const [career, setCareer] = useState('');
   const [age, setAge] = useState(25);
   const [loading, setLoading] = useState(false);
+  const [pdfLoading, setPdfLoading] = useState(false);
   const [result, setResult] = useState<{ imageUrl: string; report: DreamReport; career: string; age: number } | null>(null);
 
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -109,6 +109,25 @@ export default function DreamPage() {
     }
   }
 
+  async function handleDownloadImage() {
+    if (!result) return;
+    const { downloadImageFromUrl } = await import('@/components/dream/dream-pdf');
+    await downloadImageFromUrl(result.imageUrl, `dream-${result.career}-${result.age}살.webp`);
+  }
+
+  async function handleDownloadPDF() {
+    if (!result) return;
+    setPdfLoading(true);
+    try {
+      const { downloadDreamPDF } = await import('@/components/dream/dream-pdf');
+      await downloadDreamPDF({ imageUrl: result.imageUrl, report: result.report, career: result.career, age: result.age });
+    } catch {
+      toast.error(ko.errors.unknown);
+    } finally {
+      setPdfLoading(false);
+    }
+  }
+
   function handleReset() {
     setResult(null);
     setPhoto(null);
@@ -121,7 +140,7 @@ export default function DreamPage() {
       <div className="mx-auto max-w-4xl px-4 py-8 md:px-6 lg:px-8 flex flex-col gap-8">
 
         {/* Header */}
-        <div className="print:hidden">
+        <div>
           <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-2">
             <Sparkles className="size-6 text-accent" />
             {ko.dream.title}
@@ -224,26 +243,25 @@ export default function DreamPage() {
 
         {/* ── Result ── */}
         {result && (
-          <div ref={printRef} className="flex flex-col gap-6">
+          <div className="flex flex-col gap-6">
 
             {/* Action buttons */}
-            <div className="flex items-center justify-between print:hidden">
+            <div className="flex items-center justify-between flex-wrap gap-3">
               <h2 className="text-lg font-semibold">{ko.dream.resultTitle} — {result.career} · {result.age}살</h2>
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm" className="rounded-xl gap-1.5" onClick={() => window.print()}>
-                  <Printer className="size-4" />
-                  {ko.dream.printButton}
+              <div className="flex gap-2 flex-wrap">
+                <Button variant="outline" size="sm" className="rounded-xl gap-1.5" onClick={handleDownloadImage}>
+                  <Download className="size-4" />
+                  {ko.dream.downloadImage}
+                </Button>
+                <Button variant="outline" size="sm" className="rounded-xl gap-1.5" onClick={handleDownloadPDF} disabled={pdfLoading}>
+                  {pdfLoading ? <Loader2 className="size-4 animate-spin" /> : <FileText className="size-4" />}
+                  {pdfLoading ? 'PDF 생성 중...' : ko.dream.pdfButton}
                 </Button>
                 <Button variant="outline" size="sm" className="rounded-xl gap-1.5" onClick={handleReset}>
                   <RotateCcw className="size-4" />
                   {ko.dream.resetButton}
                 </Button>
               </div>
-            </div>
-
-            {/* Print-only header */}
-            <div className="hidden print:block text-center mb-4">
-              <h1 className="text-2xl font-bold">✦ Dream — {result.career} · {result.age}살</h1>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
