@@ -62,14 +62,14 @@ export const DEFAULT_SLOT_CONFIGS: Record<string, SlotConfig> = {
     zoom: 1, brightness: 1, saturation: 1, sepia: 0,
   },
   minicanvas_left: {
-    x: 0.27, y: 0.30, w: 0.38, h: 0.44,
+    x: 0.23, y: 0.265, w: 0.40, h: 0.49,
     rotation: 0, shape: 'rect', opacity: 1.0, blendMode: 'multiply',
     zoom: 1, brightness: 1, saturation: 1, sepia: 0,
   },
   minicanvas_right: {
-    x: 0.73, y: 0.315, w: 0.38, h: 0.43,
+    x: 0.741, y: 0.733, w: 0.462, h: 0.486,
     rotation: 0, shape: 'rect', opacity: 1.0, blendMode: 'multiply',
-    zoom: 1, brightness: 0.97, saturation: 1, sepia: 0.06,
+    zoom: 1, brightness: 1, saturation: 1, sepia: 0,
   },
 };
 
@@ -81,8 +81,8 @@ export const SLOT_META: { id: string; label: string; productSrc: string; canvasW
   { id: 'totebag_black',   label: '에코백 (검정)',       productSrc: '/mockups/totebag.jpg.png',    canvasW: 185, canvasH: 215 },
   { id: 'totebag_white',   label: '에코백 (흰색)',       productSrc: '/mockups/totebag.jpg.png',    canvasW: 185, canvasH: 215 },
   { id: 'griptok',         label: '그립톡',             productSrc: '/mockups/griptok.jpg.png',    canvasW: 175, canvasH: 190 },
-  { id: 'minicanvas_left', label: '미니캔버스 (왼쪽)',   productSrc: '/mockups/minicanvas.jpg.png', canvasW: 195, canvasH: 215 },
-  { id: 'minicanvas_right',label: '미니캔버스 (오른쪽)', productSrc: '/mockups/minicanvas.jpg.png', canvasW: 195, canvasH: 215 },
+  { id: 'minicanvas_left', label: '미니캔버스 (왼쪽)',   productSrc: '/mockups/minicanvas.jpg.png', canvasW: 215, canvasH: 188 },
+  { id: 'minicanvas_right',label: '미니캔버스 (오른쪽)', productSrc: '/mockups/minicanvas.jpg.png', canvasW: 215, canvasH: 188 },
 ];
 
 export async function getAllSlotConfigs(): Promise<Record<string, SlotConfig>> {

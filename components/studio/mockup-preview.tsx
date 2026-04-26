@@ -135,7 +135,7 @@ const ITEMS = [
   { id: 'cushion',    slotIds: ['cushion_left', 'cushion_right'],       label: ko.studio.mockup.cushion,    w: 200, h: 195, productSrc: '/mockups/cushion.jpg.png'    },
   { id: 'totebag',    slotIds: ['totebag_black', 'totebag_white'],      label: ko.studio.mockup.totebag,    w: 185, h: 215, productSrc: '/mockups/totebag.jpg.png'    },
   { id: 'griptok',    slotIds: ['griptok'],                             label: ko.studio.mockup.griptok,    w: 175, h: 190, productSrc: '/mockups/griptok.jpg.png'    },
-  { id: 'minicanvas', slotIds: ['minicanvas_left', 'minicanvas_right'], label: ko.studio.mockup.minicanvas, w: 195, h: 215, productSrc: '/mockups/minicanvas.jpg.png' },
+  { id: 'minicanvas', slotIds: ['minicanvas_left', 'minicanvas_right'], label: ko.studio.mockup.minicanvas, w: 215, h: 188, productSrc: '/mockups/minicanvas.jpg.png' },
 ] as const;
 
 /* ─── single canvas ──────────────────────────────────────────── */
