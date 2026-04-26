@@ -3,12 +3,11 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { collection, getDocs, orderBy, query, limit, doc, getDoc } from 'firebase/firestore';
-import { Loader2, ShoppingBag, ImageOff, Zap, Calendar, Cpu, Coins, FileText, X } from 'lucide-react';
+import { Loader2, ShoppingBag, ImageOff, Zap } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { Separator } from '@/components/ui/separator';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,15 +17,12 @@ import {
 import { useAuth } from '@/lib/firebase/auth-context';
 import { getFirebaseDb } from '@/lib/firebase/client';
 import { PRODUCT_PRESETS } from '@/lib/presets/products';
+import { STYLES } from '@/lib/presets/styles';
 import { ko } from '@/lib/i18n/ko';
 
 interface Generation {
   id: string;
   outputImagePath: string;
-  inputImagePath?: string;
-  prompt?: string;
-  model?: string;
-  cost?: number;
   presets?: { styleId?: string; customPrompt?: string };
   createdAt: { toDate?: () => Date } | Date | null;
   status: string;
@@ -58,6 +54,11 @@ function formatDateTime(ts: Generation['createdAt']) {
   });
 }
 
+function getStyleName(styleId?: string) {
+  if (!styleId) return null;
+  return STYLES.find((s) => s.id === styleId)?.name ?? styleId;
+}
+
 /* ── 모달 ──────────────────────────────────────────────────── */
 
 function GenerationModal({
@@ -72,113 +73,50 @@ function GenerationModal({
   onOrder: (productId: string, gen: Generation) => void;
 }) {
   if (!gen) return null;
+  const styleName = getStyleName(gen.presets?.styleId);
+
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) onClose(); }}>
-      <DialogContent className="max-w-3xl w-full p-0 overflow-hidden rounded-2xl gap-0">
-        <div className="flex flex-col md:flex-row">
-          {/* 이미지 */}
-          <div className="relative flex-1 bg-muted/30 flex items-center justify-center min-h-64 md:min-h-0">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={gen.outputImagePath}
-              alt="생성 이미지"
-              className="w-full h-full object-contain max-h-[60vh] md:max-h-[80vh]"
-            />
+      <DialogContent className="max-w-lg w-full p-0 overflow-hidden rounded-2xl gap-0 border-border/60">
+        {/* 이미지 */}
+        <div className="w-full bg-muted/20">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={gen.outputImagePath}
+            alt="생성 이미지"
+            className="w-full object-contain max-h-[70vh]"
+          />
+        </div>
+
+        {/* 정보 + 버튼 */}
+        <div className="flex items-center justify-between gap-4 px-5 py-4">
+          <div className="flex flex-col gap-1 min-w-0">
+            <p className="text-sm font-medium">{formatDateTime(gen.createdAt)}</p>
+            <div className="flex items-center gap-2">
+              {styleName && <Badge variant="outline" className="text-xs">{styleName}</Badge>}
+              {gen.presets?.customPrompt && (
+                <span className="text-xs text-muted-foreground truncate max-w-[200px]">
+                  &ldquo;{gen.presets.customPrompt}&rdquo;
+                </span>
+              )}
+            </div>
           </div>
 
-          {/* 사이드 정보 */}
-          <div className="flex flex-col w-full md:w-72 shrink-0 p-6 gap-5 overflow-y-auto">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold">생성 정보</h3>
-              <button onClick={onClose} className="text-muted-foreground hover:text-foreground transition-colors">
-                <X className="size-4" />
-              </button>
-            </div>
-
-            <Separator />
-
-            {/* 생성일시 */}
-            <div className="flex flex-col gap-1">
-              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                <Calendar className="size-3.5" />
-                생성일시
-              </div>
-              <p className="text-sm font-medium">{formatDateTime(gen.createdAt)}</p>
-            </div>
-
-            {/* 상태 */}
-            <div className="flex flex-col gap-1">
-              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                <Cpu className="size-3.5" />
-                상태 / 모델
-              </div>
-              <div className="flex items-center gap-2">
-                <Badge
-                  variant="outline"
-                  className={gen.status === 'success' ? 'text-green-600 border-green-300' : 'text-destructive'}
-                >
-                  {gen.status === 'success' ? '생성 완료' : '실패'}
-                </Badge>
-                {gen.model && (
-                  <span className="text-xs text-muted-foreground truncate">{gen.model}</span>
-                )}
-              </div>
-            </div>
-
-            {/* 크레딧 */}
-            <div className="flex flex-col gap-1">
-              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                <Coins className="size-3.5" />
-                소모 크레딧
-              </div>
-              <p className="text-sm font-medium">{gen.cost ?? 1}크레딧</p>
-            </div>
-
-            {/* 프롬프트 */}
-            {gen.prompt && (
-              <div className="flex flex-col gap-1.5">
-                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <FileText className="size-3.5" />
-                  사용된 프롬프트
-                </div>
-                <p className="text-xs text-muted-foreground leading-relaxed bg-muted/40 rounded-xl p-3 max-h-36 overflow-y-auto">
-                  {gen.prompt}
-                </p>
-              </div>
-            )}
-
-            {/* 추가 요구사항 */}
-            {gen.presets?.customPrompt && (
-              <div className="flex flex-col gap-1.5">
-                <p className="text-xs text-muted-foreground">추가 요구사항</p>
-                <p className="text-xs bg-muted/40 rounded-xl p-3 leading-relaxed">
-                  {gen.presets.customPrompt}
-                </p>
-              </div>
-            )}
-
-            <Separator />
-
-            {/* 주문 버튼 */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button className="w-full rounded-xl gap-2">
-                  <ShoppingBag className="size-4" />
-                  이 이미지로 주문
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-44">
-                {PRODUCT_PRESETS.map((p) => (
-                  <DropdownMenuItem
-                    key={p.id}
-                    onClick={() => { onClose(); onOrder(p.id, gen); }}
-                  >
-                    {p.name}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button size="sm" className="rounded-xl gap-1.5 shrink-0">
+                <ShoppingBag className="size-4" />
+                주문하기
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-44">
+              {PRODUCT_PRESETS.map((p) => (
+                <DropdownMenuItem key={p.id} onClick={() => { onClose(); onOrder(p.id, gen); }}>
+                  {p.name}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </DialogContent>
     </Dialog>
@@ -282,7 +220,7 @@ export default function ProfilePage() {
               </Button>
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
               {generations.map((gen) => (
                 <div key={gen.id} className="group relative flex flex-col gap-1.5">
                   {/* 썸네일 — 클릭 시 모달 */}
