@@ -23,6 +23,9 @@ export interface SlotConfig {
   sepia: number;      // 0–1, default 0
   // Optional per-corner warp (rect only). Overrides x/y/w/h/rotation when set.
   quad?: QuadCorners;
+  // Cylinder warp (rect only). Overrides quad when set.
+  cylinderCurve?: number; // arc depth relative to slot height (0.05–0.25)
+  cylinderFov?: number;   // 0 = arc clip only (A), >0 = strip warp FOV radians (B)
 }
 
 export const DEFAULT_SLOT_CONFIGS: Record<string, SlotConfig> = {
@@ -35,6 +38,7 @@ export const DEFAULT_SLOT_CONFIGS: Record<string, SlotConfig> = {
     x: 0.19, y: 0.54, w: 0.36, h: 0.64,
     rotation: 0, shape: 'rect', opacity: 1.0, blendMode: 'multiply',
     zoom: 1, brightness: 1, saturation: 1, sepia: 0,
+    cylinderCurve: 0.10, cylinderFov: 0,
   },
   cushion_left: {
     x: 0.25, y: 0.345, w: 0.22, h: 0.27,

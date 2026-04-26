@@ -121,6 +121,33 @@ function drawSlot(
     const sc=Math.max(sw/iw, sh/ih)*cfg.zoom;
     ctx.translate(cx, cy); ctx.rotate(rad);
     ctx.drawImage(userImg, -(iw*sc)/2, -(ih*sc)/2, iw*sc, ih*sc);
+  } else if (cfg.cylinderCurve) {
+    const fov = cfg.cylinderFov ?? 0;
+    const arc = sh * cfg.cylinderCurve;
+    const x0 = cx - sw / 2, y0 = cy - sh / 2;
+    ctx.beginPath();
+    ctx.moveTo(x0, y0 + arc);
+    ctx.quadraticCurveTo(cx, y0 - arc, x0 + sw, y0 + arc);
+    ctx.lineTo(x0 + sw, y0 + sh - arc);
+    ctx.quadraticCurveTo(cx, y0 + sh + arc, x0, y0 + sh - arc);
+    ctx.closePath(); ctx.clip();
+    const iw=userImg.naturalWidth, ih=userImg.naturalHeight;
+    const da=sw/sh, ia=iw/ih;
+    let sx=0, sy=0, srcW=iw, srcH=ih;
+    if(ia>da){srcW=ih*da;sx=(iw-srcW)/2;}else{srcH=iw/da;sy=(ih-srcH)/2;}
+    if(cfg.zoom!==1){const zw=srcW/cfg.zoom,zh=srcH/cfg.zoom;sx+=(srcW-zw)/2;sy+=(srcH-zh)/2;srcW=zw;srcH=zh;}
+    if (fov > 0) {
+      const STRIPS=60, sinHalf=Math.sin(fov/2);
+      for(let i=0;i<STRIPS;i++){
+        const t0=i/STRIPS,t1=(i+1)/STRIPS;
+        const dx0=x0+sw*(Math.sin((t0-0.5)*fov)+sinHalf)/(2*sinHalf);
+        const dx1=x0+sw*(Math.sin((t1-0.5)*fov)+sinHalf)/(2*sinHalf);
+        if(dx1<=dx0)continue;
+        ctx.drawImage(userImg,sx+t0*srcW,sy,(t1-t0)*srcW,srcH,dx0,y0,dx1-dx0,sh);
+      }
+    } else {
+      ctx.drawImage(userImg, sx, sy, srcW, srcH, x0, y0, sw, sh);
+    }
   } else if (cfg.quad) {
     const {tl,tr,br,bl} = cfg.quad;
     quadWarp(ctx, userImg, tl[0]*W,tl[1]*H, tr[0]*W,tr[1]*H, br[0]*W,br[1]*H, bl[0]*W,bl[1]*H, cfg.zoom);
@@ -273,54 +300,38 @@ export default function MockupEditorPage() {
     ctx.clearRect(0, 0, W, H);
     if (productImg) ctx.drawImage(productImg, 0, 0, W, H);
 
-    if (sampleImg) {
+    if (sampleImg) drawSlot(ctx, sampleImg, W, H, cfg);
+
+    // Corner handles only when NOT in cylinder mode
+    if (!cfg.cylinderCurve) {
       ctx.save();
-      ctx.globalCompositeOperation = cfg.blendMode as GlobalCompositeOperation;
-      ctx.globalAlpha = cfg.opacity;
-      const f: string[] = [];
-      if (cfg.brightness !== 1) f.push(`brightness(${cfg.brightness})`);
-      if (cfg.saturation !== 1) f.push(`saturate(${cfg.saturation})`);
-      if (cfg.sepia !== 0)      f.push(`sepia(${cfg.sepia})`);
-      if (f.length) ctx.filter = f.join(' ');
-      quadWarp(ctx, sampleImg,
-        corners[0][0], corners[0][1],
-        corners[1][0], corners[1][1],
-        corners[2][0], corners[2][1],
-        corners[3][0], corners[3][1],
-        cfg.zoom,
-      );
-      ctx.restore();
-    }
-
-    // Quad outline
-    ctx.save();
-    ctx.strokeStyle = '#6366f1';
-    ctx.lineWidth = 1.5;
-    ctx.setLineDash([5, 4]);
-    ctx.beginPath();
-    ctx.moveTo(corners[0][0], corners[0][1]);
-    ctx.lineTo(corners[1][0], corners[1][1]);
-    ctx.lineTo(corners[2][0], corners[2][1]);
-    ctx.lineTo(corners[3][0], corners[3][1]);
-    ctx.closePath();
-    ctx.stroke();
-    ctx.setLineDash([]);
-    ctx.restore();
-
-    // Corner handles
-    const labels = ['TL', 'TR', 'BR', 'BL'];
-    corners.forEach(([x, y], i) => {
-      ctx.beginPath();
-      ctx.arc(x, y, HANDLE_R, 0, Math.PI * 2);
-      ctx.fillStyle = dragging.current === i ? '#6366f1' : 'white';
-      ctx.fill();
       ctx.strokeStyle = '#6366f1';
-      ctx.lineWidth = 2;
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([5, 4]);
+      ctx.beginPath();
+      ctx.moveTo(corners[0][0], corners[0][1]);
+      ctx.lineTo(corners[1][0], corners[1][1]);
+      ctx.lineTo(corners[2][0], corners[2][1]);
+      ctx.lineTo(corners[3][0], corners[3][1]);
+      ctx.closePath();
       ctx.stroke();
-      ctx.fillStyle = '#6366f1';
-      ctx.font = 'bold 8px monospace';
-      ctx.fillText(labels[i], x + 11, y - 4);
-    });
+      ctx.setLineDash([]);
+      ctx.restore();
+
+      const labels = ['TL', 'TR', 'BR', 'BL'];
+      corners.forEach(([x, y], i) => {
+        ctx.beginPath();
+        ctx.arc(x, y, HANDLE_R, 0, Math.PI * 2);
+        ctx.fillStyle = dragging.current === i ? '#6366f1' : 'white';
+        ctx.fill();
+        ctx.strokeStyle = '#6366f1';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.fillStyle = '#6366f1';
+        ctx.font = 'bold 8px monospace';
+        ctx.fillText(labels[i], x + 11, y - 4);
+      });
+    }
   }, [corners, productImg, sampleImg, cfg, W, H]);
 
   // Attach Konva transformer for ellipse
@@ -345,6 +356,7 @@ export default function MockupEditorPage() {
   }
 
   function onMouseDown(e: React.MouseEvent<HTMLCanvasElement>) {
+    if (cfg.cylinderCurve) return;
     const [mx, my] = canvasXY(e);
     for (let i = 0; i < 4; i++) {
       if (Math.hypot(mx - corners[i][0], my - corners[i][1]) < HANDLE_R + 4) {
@@ -432,7 +444,8 @@ export default function MockupEditorPage() {
     img.src = url;
   }
 
-  const isQuadActive = cfg.shape === 'rect' && !!cfg.quad;
+  const isCylinderMode = cfg.shape === 'rect' && !!cfg.cylinderCurve;
+  const isQuadActive = cfg.shape === 'rect' && !!cfg.quad && !isCylinderMode;
 
   /* ── Render ─── */
 
@@ -523,10 +536,17 @@ export default function MockupEditorPage() {
               {/* Hint */}
               <div className="text-[10px] text-muted-foreground text-center space-y-0.5">
                 {cfg.shape === 'rect' ? (
-                  <>
-                    <p>{slot.label} — {W}×{H}px</p>
-                    <p className="text-accent/70">● 각 꼭짓점을 드래그하면 해당 코너만 자유롭게 이동합니다</p>
-                  </>
+                  isCylinderMode ? (
+                    <>
+                      <p>{slot.label} — {W}×{H}px</p>
+                      <p className="text-accent/70">● 실린더 워프 활성 — 우측 슬라이더로 아크·FOV 조절</p>
+                    </>
+                  ) : (
+                    <>
+                      <p>{slot.label} — {W}×{H}px</p>
+                      <p className="text-accent/70">● 각 꼭짓점을 드래그하면 해당 코너만 자유롭게 이동합니다</p>
+                    </>
+                  )
                 ) : (
                   <p>{slot.label} — 드래그·핸들로 조절</p>
                 )}
@@ -623,6 +643,59 @@ export default function MockupEditorPage() {
                 <SliderRow label="세피아" value={cfg.sepia} min={0} max={1} step={0.01}
                   onChange={(v) => set('sepia', v)} fmt={(v) => v.toFixed(2)} />
               </div>
+
+              {/* Cylinder warp — rect only */}
+              {cfg.shape === 'rect' && (
+                <>
+                  <Separator />
+                  <div className="flex flex-col gap-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                        실린더 워프
+                      </span>
+                      <div className="flex gap-1">
+                        {isCylinderMode && (
+                          <span className="text-[10px] font-mono bg-accent/10 text-accent border border-accent/30 px-2 py-0.5 rounded-full">
+                            {(cfg.cylinderFov ?? 0) > 0 ? 'B — 스트립' : 'A — 아크'}
+                          </span>
+                        )}
+                        <button
+                          onClick={() => setCfg((p) => {
+                            const n = { ...p };
+                            if (n.cylinderCurve) { delete n.cylinderCurve; delete n.cylinderFov; }
+                            else { n.cylinderCurve = 0.10; n.cylinderFov = 0; }
+                            return n;
+                          })}
+                          className="text-[10px] text-accent hover:underline"
+                        >
+                          {isCylinderMode ? '끄기' : '켜기'}
+                        </button>
+                      </div>
+                    </div>
+                    {isCylinderMode && (
+                      <>
+                        <SliderRow
+                          label="아크 깊이 (A·B 공통)"
+                          value={cfg.cylinderCurve ?? 0}
+                          min={0.02} max={0.30} step={0.01}
+                          onChange={(v) => set('cylinderCurve', v)}
+                          fmt={(v) => `${(v * 100).toFixed(0)}%`}
+                        />
+                        <SliderRow
+                          label="스트립 워프 FOV (0 = A만)"
+                          value={cfg.cylinderFov ?? 0}
+                          min={0} max={1.5} step={0.05}
+                          onChange={(v) => set('cylinderFov', v)}
+                          fmt={(v) => v === 0 ? 'OFF (A)' : `${(v * 180 / Math.PI).toFixed(0)}°`}
+                        />
+                        <p className="text-[10px] text-muted-foreground leading-relaxed">
+                          FOV 0 → 옵션A (아크 클립만) · FOV &gt; 0 → 옵션B (아크+스트립 압축)
+                        </p>
+                      </>
+                    )}
+                  </div>
+                </>
+              )}
 
               <Separator />
 

@@ -76,6 +76,37 @@ function drawSlot(
     const sc=Math.max(sw/iw, sh/ih)*cfg.zoom;
     ctx.translate(cx, cy); ctx.rotate(rad);
     ctx.drawImage(userImg, -(iw*sc)/2, -(ih*sc)/2, iw*sc, ih*sc);
+  } else if (cfg.cylinderCurve) {
+    const fov = cfg.cylinderFov ?? 0;
+    const arc = sh * cfg.cylinderCurve;
+    const x0 = cx - sw / 2, y0 = cy - sh / 2;
+    ctx.beginPath();
+    ctx.moveTo(x0, y0 + arc);
+    ctx.quadraticCurveTo(cx, y0 - arc, x0 + sw, y0 + arc);
+    ctx.lineTo(x0 + sw, y0 + sh - arc);
+    ctx.quadraticCurveTo(cx, y0 + sh + arc, x0, y0 + sh - arc);
+    ctx.closePath(); ctx.clip();
+    const iw = userImg.naturalWidth, ih = userImg.naturalHeight;
+    const da = sw / sh, ia = iw / ih;
+    let sx = 0, sy = 0, srcW = iw, srcH = ih;
+    if (ia > da) { srcW = ih * da; sx = (iw - srcW) / 2; }
+    else         { srcH = iw / da; sy = (ih - srcH) / 2; }
+    if (cfg.zoom !== 1) {
+      const zw = srcW / cfg.zoom, zh = srcH / cfg.zoom;
+      sx += (srcW - zw) / 2; sy += (srcH - zh) / 2; srcW = zw; srcH = zh;
+    }
+    if (fov > 0) {
+      const STRIPS = 60, sinHalf = Math.sin(fov / 2);
+      for (let i = 0; i < STRIPS; i++) {
+        const t0 = i / STRIPS, t1 = (i + 1) / STRIPS;
+        const dx0 = x0 + sw * (Math.sin((t0 - 0.5) * fov) + sinHalf) / (2 * sinHalf);
+        const dx1 = x0 + sw * (Math.sin((t1 - 0.5) * fov) + sinHalf) / (2 * sinHalf);
+        if (dx1 <= dx0) continue;
+        ctx.drawImage(userImg, sx + t0 * srcW, sy, (t1 - t0) * srcW, srcH, dx0, y0, dx1 - dx0, sh);
+      }
+    } else {
+      ctx.drawImage(userImg, sx, sy, srcW, srcH, x0, y0, sw, sh);
+    }
   } else if (cfg.quad) {
     const {tl,tr,br,bl} = cfg.quad;
     quadWarp(ctx, userImg, tl[0]*W,tl[1]*H, tr[0]*W,tr[1]*H, br[0]*W,br[1]*H, bl[0]*W,bl[1]*H, cfg.zoom);
