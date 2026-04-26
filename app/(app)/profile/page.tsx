@@ -77,22 +77,22 @@ function GenerationModal({
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) onClose(); }}>
-      <DialogContent className="max-w-lg w-full p-0 overflow-hidden rounded-2xl gap-0 border-border/60">
+      <DialogContent className="max-w-xl w-full p-0 overflow-hidden rounded-2xl gap-0 border-border/60 bg-background">
         {/* 이미지 */}
-        <div className="w-full bg-muted/20">
+        <div className="w-full bg-muted/30">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={gen.outputImagePath}
             alt="생성 이미지"
-            className="w-full object-contain max-h-[70vh]"
+            className="w-full object-contain max-h-[80vh]"
           />
         </div>
 
         {/* 정보 + 버튼 */}
-        <div className="flex items-center justify-between gap-4 px-5 py-4">
+        <div className="flex items-center justify-between gap-4 px-5 py-4 bg-background border-t border-border/40">
           <div className="flex flex-col gap-1 min-w-0">
-            <p className="text-sm font-medium">{formatDateTime(gen.createdAt)}</p>
-            <div className="flex items-center gap-2">
+            <p className="text-sm font-medium text-foreground">{formatDateTime(gen.createdAt)}</p>
+            <div className="flex items-center gap-2 flex-wrap">
               {styleName && <Badge variant="outline" className="text-xs">{styleName}</Badge>}
               {gen.presets?.customPrompt && (
                 <span className="text-xs text-muted-foreground truncate max-w-[200px]">
@@ -220,7 +220,7 @@ export default function ProfilePage() {
               </Button>
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
               {generations.map((gen) => (
                 <div key={gen.id} className="group relative flex flex-col gap-1.5">
                   {/* 썸네일 — 클릭 시 모달 */}
