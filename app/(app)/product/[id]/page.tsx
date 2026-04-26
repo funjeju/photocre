@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft, ShoppingBag, Minus, Plus, Package } from 'lucide-react';
 import { toast } from 'sonner';
@@ -12,6 +12,86 @@ import { useCartStore } from '@/lib/store/cart';
 import { PRODUCT_MAP, SHIPPING_FEE, FREE_SHIPPING_THRESHOLD } from '@/lib/presets/products';
 import { ko } from '@/lib/i18n/ko';
 import { cn } from '@/lib/utils';
+import {
+  getAllSlotConfigs, DEFAULT_SLOT_CONFIGS, SlotConfig,
+} from '@/lib/firebase/mockup-configs';
+
+/* ── Canvas helpers (mirrors mockup-preview logic) ── */
+
+function drawAffine3(
+  ctx: CanvasRenderingContext2D, img: HTMLImageElement,
+  s0x: number, s0y: number, s1x: number, s1y: number, s2x: number, s2y: number,
+  d0x: number, d0y: number, d1x: number, d1y: number, d2x: number, d2y: number,
+) {
+  const det = s0x*(s1y-s2y) + s1x*(s2y-s0y) + s2x*(s0y-s1y);
+  if (Math.abs(det) < 0.001) return;
+  const a=(d0x*(s1y-s2y)+d1x*(s2y-s0y)+d2x*(s0y-s1y))/det;
+  const b=(d0y*(s1y-s2y)+d1y*(s2y-s0y)+d2y*(s0y-s1y))/det;
+  const c=(s0x*(d1x-d2x)+s1x*(d2x-d0x)+s2x*(d0x-d1x))/det;
+  const d=(s0x*(d1y-d2y)+s1x*(d2y-d0y)+s2x*(d0y-d1y))/det;
+  const e=(s0x*(s1y*d2x-s2y*d1x)+s1x*(s2y*d0x-s0y*d2x)+s2x*(s0y*d1x-s1y*d0x))/det;
+  const f=(s0x*(s1y*d2y-s2y*d1y)+s1x*(s2y*d0y-s0y*d2y)+s2x*(s0y*d1y-s1y*d0y))/det;
+  ctx.save();
+  ctx.beginPath(); ctx.moveTo(d0x,d0y); ctx.lineTo(d1x,d1y); ctx.lineTo(d2x,d2y);
+  ctx.closePath(); ctx.clip();
+  ctx.transform(a,b,c,d,e,f); ctx.drawImage(img,0,0);
+  ctx.restore();
+}
+
+function quadWarp(
+  ctx: CanvasRenderingContext2D, img: HTMLImageElement,
+  x0:number, y0:number, x1:number, y1:number,
+  x2:number, y2:number, x3:number, y3:number, zoom=1,
+) {
+  const iw=img.naturalWidth, ih=img.naturalHeight;
+  const dw=Math.max(x1-x0,x2-x3), dh=Math.max(y3-y0,y2-y1);
+  const da=dw/dh, ia=iw/ih;
+  let sx=0,sy=0,sw=iw,sh=ih;
+  if(ia>da){sw=ih*da;sx=(iw-sw)/2;}else{sh=iw/da;sy=(ih-sh)/2;}
+  if(zoom!==1){const zw=sw/zoom,zh=sh/zoom;sx+=(sw-zw)/2;sy+=(sh-zh)/2;sw=zw;sh=zh;}
+  const ex=sx+sw,ey=sy+sh;
+  drawAffine3(ctx,img,sx,sy,ex,sy,sx,ey, x0,y0,x1,y1,x3,y3);
+  drawAffine3(ctx,img,ex,sy,ex,ey,sx,ey, x1,y1,x2,y2,x3,y3);
+}
+
+function drawSlot(
+  ctx: CanvasRenderingContext2D, userImg: HTMLImageElement,
+  W: number, H: number, cfg: SlotConfig,
+) {
+  const cx=cfg.x*W, cy=cfg.y*H, sw=cfg.w*W, sh=cfg.h*H;
+  const rad=(cfg.rotation*Math.PI)/180, cos=Math.cos(rad), sin=Math.sin(rad);
+  ctx.save();
+  ctx.globalCompositeOperation = cfg.blendMode as GlobalCompositeOperation;
+  ctx.globalAlpha = cfg.opacity;
+  const f: string[] = [];
+  if (cfg.brightness!==1) f.push(`brightness(${cfg.brightness})`);
+  if (cfg.saturation!==1) f.push(`saturate(${cfg.saturation})`);
+  if (cfg.sepia!==0)      f.push(`sepia(${cfg.sepia})`);
+  if (f.length) ctx.filter = f.join(' ');
+  if (cfg.shape === 'ellipse') {
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, sw/2, sh/2, rad, 0, Math.PI*2);
+    ctx.clip();
+    const iw=userImg.naturalWidth, ih=userImg.naturalHeight;
+    const sc=Math.max(sw/iw, sh/ih)*cfg.zoom;
+    ctx.translate(cx, cy); ctx.rotate(rad);
+    ctx.drawImage(userImg, -(iw*sc)/2, -(ih*sc)/2, iw*sc, ih*sc);
+  } else if (cfg.quad) {
+    const {tl,tr,br,bl} = cfg.quad;
+    quadWarp(ctx, userImg, tl[0]*W,tl[1]*H, tr[0]*W,tr[1]*H, br[0]*W,br[1]*H, bl[0]*W,bl[1]*H, cfg.zoom);
+  } else {
+    const tlx=cx-sw/2*cos+sh/2*sin, tly=cy-sw/2*sin-sh/2*cos;
+    const trx=cx+sw/2*cos+sh/2*sin, trY=cy+sw/2*sin-sh/2*cos;
+    const brx=cx+sw/2*cos-sh/2*sin, bry=cy+sw/2*sin+sh/2*cos;
+    const blx=cx-sw/2*cos-sh/2*sin, bly=cy-sw/2*sin+sh/2*cos;
+    quadWarp(ctx, userImg, tlx,tly, trx,trY, brx,bry, blx,bly, cfg.zoom);
+  }
+  ctx.restore();
+}
+
+const SCALE = 2;
+
+/* ── Page ── */
 
 function formatPrice(n: number) {
   return n.toLocaleString('ko-KR') + '원';
@@ -26,7 +106,6 @@ export default function ProductPage() {
 
   const studioImageUrl = useStudioStore((s) => s.generatedImageUrl);
   const studioGenId    = useStudioStore((s) => s.generationId);
-  // ?img= 로 외부 이미지(마이페이지 재주문) 수락, 없으면 스튜디오 스토어 사용
   const imgParam = searchParams.get('img');
   const gidParam = searchParams.get('gid');
   const generatedImageUrl = imgParam ?? studioImageUrl;
@@ -40,9 +119,54 @@ export default function ProductPage() {
   });
   const [quantity, setQuantity] = useState(1);
 
+  // Canvas state
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [slotConfigs, setSlotConfigs] = useState<Record<string, SlotConfig>>(DEFAULT_SLOT_CONFIGS);
+  const [productImg, setProductImg] = useState<HTMLImageElement | null>(null);
+  const [userImg, setUserImg] = useState<HTMLImageElement | null>(null);
+
   useEffect(() => {
     if (!product) router.replace('/studio');
   }, [product, router]);
+
+  useEffect(() => {
+    getAllSlotConfigs().then(setSlotConfigs);
+  }, []);
+
+  useEffect(() => {
+    if (!product) return;
+    const img = new window.Image();
+    img.onload = () => setProductImg(img);
+    img.src = product.mockupSrc;
+  }, [product]);
+
+  useEffect(() => {
+    if (!generatedImageUrl) { setUserImg(null); return; }
+    const img = new window.Image();
+    img.onload = () => setUserImg(img);
+    img.src = generatedImageUrl;
+  }, [generatedImageUrl]);
+
+  // Render composite onto canvas
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas || !product || !productImg) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    const W = product.canvasW;
+    const H = product.canvasH;
+    ctx.clearRect(0, 0, W * SCALE, H * SCALE);
+    ctx.save();
+    ctx.scale(SCALE, SCALE);
+    ctx.drawImage(productImg, 0, 0, W, H);
+    if (userImg) {
+      for (const id of product.slotIds) {
+        const cfg = slotConfigs[id];
+        if (cfg) drawSlot(ctx, userImg, W, H, cfg);
+      }
+    }
+    ctx.restore();
+  }, [productImg, userImg, slotConfigs, product]);
 
   if (!product) return null;
 
@@ -75,7 +199,6 @@ export default function ProductPage() {
   return (
     <div className="flex-1 overflow-y-auto">
       <div className="mx-auto max-w-4xl px-4 py-8 md:px-6 lg:px-8">
-        {/* 뒤로가기 */}
         <button
           onClick={() => router.back()}
           className="mb-6 flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
@@ -85,35 +208,30 @@ export default function ProductPage() {
         </button>
 
         <div className="grid grid-cols-1 gap-10 md:grid-cols-2">
-          {/* 이미지 프리뷰 */}
-          <div className="flex flex-col gap-4">
-            <div className="aspect-square w-full overflow-hidden rounded-2xl bg-muted/40 border border-border/40">
-              {generatedImageUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={generatedImageUrl}
-                  alt={product.name}
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                <div className="flex h-full flex-col items-center justify-center gap-4 p-8 text-center">
-                  <Package className="size-12 text-muted-foreground/40" />
-                  <p className="text-sm text-muted-foreground">{ko.shop.noImage}</p>
-                  <Button variant="outline" size="sm" onClick={() => router.push('/studio')}>
-                    {ko.shop.goStudio}
-                  </Button>
-                </div>
-              )}
-            </div>
-            {/* 제품 사진 */}
-            <div className="grid grid-cols-1 gap-2">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={product.mockupSrc}
-                alt={`${product.name} 샘플`}
-                className="w-full rounded-xl border border-border/40 object-cover"
+          {/* 합성 미리보기 */}
+          <div className="flex flex-col gap-3">
+            <div
+              className="w-full overflow-hidden rounded-2xl bg-muted/40 border border-border/40"
+              style={{ aspectRatio: `${product.canvasW} / ${product.canvasH}` }}
+            >
+              <canvas
+                ref={canvasRef}
+                width={product.canvasW * SCALE}
+                height={product.canvasH * SCALE}
+                style={{ width: '100%', height: 'auto', display: 'block' }}
+                className="rounded-2xl"
               />
             </div>
+
+            {!generatedImageUrl && (
+              <div className="flex items-center justify-center gap-2 py-3 rounded-xl border border-dashed border-border/60 bg-muted/20">
+                <Package className="size-4 text-muted-foreground/50" />
+                <p className="text-sm text-muted-foreground">{ko.shop.noImage}</p>
+                <Button variant="outline" size="sm" onClick={() => router.push('/studio')} className="rounded-xl ml-1">
+                  {ko.shop.goStudio}
+                </Button>
+              </div>
+            )}
           </div>
 
           {/* 상품 정보 */}

@@ -12,6 +12,9 @@ export interface ProductPreset {
   options: ProductOption[];
   deliveryDays: number;
   mockupSrc: string;
+  slotIds: string[];
+  canvasW: number;
+  canvasH: number;
 }
 
 export const SHIPPING_FEE = 3500;
@@ -29,6 +32,8 @@ export const PRODUCT_PRESETS: ProductPreset[] = [
     ],
     deliveryDays: 7,
     mockupSrc: '/mockups/tshirt.jpg.png',
+    slotIds: ['tshirt'],
+    canvasW: 200, canvasH: 220,
   },
   {
     id: 'mug',
@@ -40,6 +45,8 @@ export const PRODUCT_PRESETS: ProductPreset[] = [
     ],
     deliveryDays: 7,
     mockupSrc: '/mockups/mug.jpg.png',
+    slotIds: ['mug'],
+    canvasW: 220, canvasH: 205,
   },
   {
     id: 'cushion',
@@ -51,6 +58,8 @@ export const PRODUCT_PRESETS: ProductPreset[] = [
     ],
     deliveryDays: 10,
     mockupSrc: '/mockups/cushion.jpg.png',
+    slotIds: ['cushion_left', 'cushion_right'],
+    canvasW: 200, canvasH: 195,
   },
   {
     id: 'totebag',
@@ -62,6 +71,8 @@ export const PRODUCT_PRESETS: ProductPreset[] = [
     ],
     deliveryDays: 7,
     mockupSrc: '/mockups/totebag.jpg.png',
+    slotIds: ['totebag_black', 'totebag_white'],
+    canvasW: 185, canvasH: 215,
   },
   {
     id: 'griptok',
@@ -71,6 +82,8 @@ export const PRODUCT_PRESETS: ProductPreset[] = [
     options: [],
     deliveryDays: 5,
     mockupSrc: '/mockups/griptok.jpg.png',
+    slotIds: ['griptok'],
+    canvasW: 175, canvasH: 190,
   },
   {
     id: 'minicanvas',
@@ -82,6 +95,8 @@ export const PRODUCT_PRESETS: ProductPreset[] = [
     ],
     deliveryDays: 10,
     mockupSrc: '/mockups/minicanvas.jpg.png',
+    slotIds: ['minicanvas_left', 'minicanvas_right'],
+    canvasW: 215, canvasH: 188,
   },
 ];
 

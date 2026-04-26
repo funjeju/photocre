@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ShoppingBag } from 'lucide-react';
+import { Download, ShoppingBag } from 'lucide-react';
 import { ko } from '@/lib/i18n/ko';
 import { useStudioStore } from '@/lib/store/studio';
 import {
@@ -219,6 +219,72 @@ export function MockupPreview({ imageUrl }: { imageUrl: string }) {
     const params = new URLSearchParams();
     if (generationId) params.set('gid', generationId);
     router.push(`/product/${id}?${params.toString()}`);
+  }
+
+  async function downloadCombined() {
+    const COLS = 3, ROWS = 2;
+    const CELL_W = 240, CELL_H = 256, LABEL_H = 22, PAD = 14;
+    const totalW = COLS * (CELL_W + PAD) + PAD;
+    const totalH = ROWS * (CELL_H + LABEL_H + PAD) + PAD;
+
+    const offscreen = document.createElement('canvas');
+    offscreen.width = totalW;
+    offscreen.height = totalH;
+    const ctx = offscreen.getContext('2d');
+    if (!ctx) return;
+
+    ctx.fillStyle = '#f4f4f5';
+    ctx.fillRect(0, 0, totalW, totalH);
+
+    for (let i = 0; i < ITEMS.length; i++) {
+      const item = ITEMS[i];
+      const col = i % COLS;
+      const row = Math.floor(i / COLS);
+      const ox = PAD + col * (CELL_W + PAD);
+      const oy = PAD + row * (CELL_H + LABEL_H + PAD);
+
+      const prodImg = productImgs[item.id];
+      if (!prodImg) continue;
+
+      // White rounded cell
+      ctx.save();
+      ctx.beginPath();
+      ctx.roundRect(ox, oy, CELL_W, CELL_H, 12);
+      ctx.fillStyle = '#ffffff';
+      ctx.fill();
+      ctx.restore();
+
+      // Render item to temp canvas at native size
+      const tmp = document.createElement('canvas');
+      tmp.width = item.w; tmp.height = item.h;
+      const tCtx = tmp.getContext('2d');
+      if (!tCtx) continue;
+      tCtx.drawImage(prodImg, 0, 0, item.w, item.h);
+      if (img) {
+        for (const id of item.slotIds) {
+          const cfg = configs[id];
+          if (cfg) drawSlot(tCtx, img, item.w, item.h, cfg);
+        }
+      }
+
+      // Scale to fit inside cell with padding
+      const inner = 16;
+      const scale = Math.min((CELL_W - inner * 2) / item.w, (CELL_H - inner * 2) / item.h);
+      const dw = item.w * scale, dh = item.h * scale;
+      const dx = ox + (CELL_W - dw) / 2, dy = oy + (CELL_H - dh) / 2;
+      ctx.drawImage(tmp, dx, dy, dw, dh);
+
+      // Label
+      ctx.fillStyle = '#71717a';
+      ctx.font = '500 11px system-ui, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(item.label, ox + CELL_W / 2, oy + CELL_H + 15);
+    }
+
+    const a = document.createElement('a');
+    a.download = 'goods-preview.png';
+    a.href = offscreen.toDataURL('image/png');
+    a.click();
   }
 
   return (

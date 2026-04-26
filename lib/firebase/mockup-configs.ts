@@ -81,8 +81,8 @@ export const SLOT_META: { id: string; label: string; productSrc: string; canvasW
   { id: 'totebag_black',   label: '에코백 (검정)',       productSrc: '/mockups/totebag.jpg.png',    canvasW: 185, canvasH: 215 },
   { id: 'totebag_white',   label: '에코백 (흰색)',       productSrc: '/mockups/totebag.jpg.png',    canvasW: 185, canvasH: 215 },
   { id: 'griptok',         label: '그립톡',             productSrc: '/mockups/griptok.jpg.png',    canvasW: 175, canvasH: 190 },
-  { id: 'minicanvas_left', label: '미니캔버스 (왼쪽)',   productSrc: '/mockups/minicanvas.jpg.png', canvasW: 215, canvasH: 188 },
-  { id: 'minicanvas_right',label: '미니캔버스 (오른쪽)', productSrc: '/mockups/minicanvas.jpg.png', canvasW: 215, canvasH: 188 },
+  { id: 'minicanvas_left', label: '미니캔버스 (좌상단)',   productSrc: '/mockups/minicanvas.jpg.png', canvasW: 215, canvasH: 188 },
+  { id: 'minicanvas_right',label: '미니캔버스 (우하단)',  productSrc: '/mockups/minicanvas.jpg.png', canvasW: 215, canvasH: 188 },
 ];
 
 export async function getAllSlotConfigs(): Promise<Record<string, SlotConfig>> {

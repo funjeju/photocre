@@ -95,6 +95,100 @@ function pixelToQuad(c: PixelCorners, W: number, H: number): QuadCorners {
   };
 }
 
+/* ── Config-driven slot renderer (mirrors mockup-preview logic) ─── */
+
+function drawSlot(
+  ctx: CanvasRenderingContext2D,
+  userImg: HTMLImageElement,
+  W: number, H: number,
+  cfg: SlotConfig,
+) {
+  const cx=cfg.x*W, cy=cfg.y*H, sw=cfg.w*W, sh=cfg.h*H;
+  const rad=(cfg.rotation*Math.PI)/180, cos=Math.cos(rad), sin=Math.sin(rad);
+  ctx.save();
+  ctx.globalCompositeOperation = cfg.blendMode as GlobalCompositeOperation;
+  ctx.globalAlpha = cfg.opacity;
+  const f: string[] = [];
+  if (cfg.brightness!==1) f.push(`brightness(${cfg.brightness})`);
+  if (cfg.saturation!==1) f.push(`saturate(${cfg.saturation})`);
+  if (cfg.sepia!==0)      f.push(`sepia(${cfg.sepia})`);
+  if (f.length) ctx.filter = f.join(' ');
+  if (cfg.shape === 'ellipse') {
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, sw/2, sh/2, rad, 0, Math.PI*2);
+    ctx.clip();
+    const iw=userImg.naturalWidth, ih=userImg.naturalHeight;
+    const sc=Math.max(sw/iw, sh/ih)*cfg.zoom;
+    ctx.translate(cx, cy); ctx.rotate(rad);
+    ctx.drawImage(userImg, -(iw*sc)/2, -(ih*sc)/2, iw*sc, ih*sc);
+  } else if (cfg.quad) {
+    const {tl,tr,br,bl} = cfg.quad;
+    quadWarp(ctx, userImg, tl[0]*W,tl[1]*H, tr[0]*W,tr[1]*H, br[0]*W,br[1]*H, bl[0]*W,bl[1]*H, cfg.zoom);
+  } else {
+    const tlx=cx-sw/2*cos+sh/2*sin, tly=cy-sw/2*sin-sh/2*cos;
+    const trx=cx+sw/2*cos+sh/2*sin, trY=cy+sw/2*sin-sh/2*cos;
+    const brx=cx+sw/2*cos-sh/2*sin, bry=cy+sw/2*sin+sh/2*cos;
+    const blx=cx-sw/2*cos-sh/2*sin, bly=cy-sw/2*sin+sh/2*cos;
+    quadWarp(ctx, userImg, tlx,tly, trx,trY, brx,bry, blx,bly, cfg.zoom);
+  }
+  ctx.restore();
+}
+
+const PREVIEW_ITEMS = [
+  { id: 'tshirt',     slotIds: ['tshirt'],                              label: '티셔츠',       w: 200, h: 220, src: '/mockups/tshirt.jpg.png'     },
+  { id: 'mug',        slotIds: ['mug'],                                 label: '머그컵',       w: 220, h: 205, src: '/mockups/mug.jpg.png'        },
+  { id: 'cushion',    slotIds: ['cushion_left','cushion_right'],        label: '쿠션',         w: 200, h: 195, src: '/mockups/cushion.jpg.png'    },
+  { id: 'totebag',    slotIds: ['totebag_black','totebag_white'],       label: '에코백',       w: 185, h: 215, src: '/mockups/totebag.jpg.png'    },
+  { id: 'griptok',    slotIds: ['griptok'],                             label: '그립톡',       w: 175, h: 190, src: '/mockups/griptok.jpg.png'    },
+  { id: 'minicanvas', slotIds: ['minicanvas_left','minicanvas_right'],  label: '미니캔버스',   w: 215, h: 188, src: '/mockups/minicanvas.jpg.png' },
+] as const;
+
+function PreviewCanvas({ label, w, h, slotIds, configs, sampleImg, productSrc }: {
+  label: string; w: number; h: number; slotIds: readonly string[];
+  configs: Record<string, SlotConfig>;
+  sampleImg: HTMLImageElement | null;
+  productSrc: string;
+}) {
+  const ref = useRef<HTMLCanvasElement>(null);
+  const [prodImg, setProdImg] = useState<HTMLImageElement | null>(null);
+  const dpr = typeof window !== 'undefined' ? Math.min(window.devicePixelRatio ?? 1, 2) : 1;
+
+  useEffect(() => {
+    const img = new window.Image();
+    img.onload = () => setProdImg(img);
+    img.src = productSrc;
+  }, [productSrc]);
+
+  useEffect(() => {
+    const canvas = ref.current;
+    if (!canvas || !prodImg) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    ctx.clearRect(0, 0, w*dpr, h*dpr);
+    ctx.save(); ctx.scale(dpr, dpr);
+    ctx.drawImage(prodImg, 0, 0, w, h);
+    if (sampleImg) {
+      for (const id of slotIds) {
+        const cfg = configs[id];
+        if (cfg) drawSlot(ctx, sampleImg, w, h, cfg);
+      }
+    }
+    ctx.restore();
+  }, [prodImg, sampleImg, slotIds, configs, w, h, dpr]);
+
+  return (
+    <div className="flex flex-col items-center gap-1.5">
+      <canvas
+        ref={ref}
+        width={w*dpr} height={h*dpr}
+        style={{ width: '100%', height: 'auto', aspectRatio: `${w}/${h}` }}
+        className="rounded-xl border border-border/30"
+      />
+      <span className="text-[11px] text-muted-foreground font-medium">{label}</span>
+    </div>
+  );
+}
+
 /* ── Slider ─── */
 
 function SliderRow({ label, value, min, max, step, onChange, fmt }: {
@@ -123,6 +217,7 @@ export default function MockupEditorPage() {
   const [productImg, setProductImg] = useState<HTMLImageElement | null>(null);
   const [sampleImg, setSampleImg] = useState<HTMLImageElement | null>(null);
   const [saving, setSaving] = useState(false);
+  const [previewConfigs, setPreviewConfigs] = useState<Record<string, SlotConfig>>(DEFAULT_SLOT_CONFIGS);
 
   // Rect canvas
   const rectCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -138,6 +233,14 @@ export default function MockupEditorPage() {
   const H = slot.canvasH * SCALE;
 
   useEffect(() => setMounted(true), []);
+
+  async function loadPreview() {
+    const cfgs = await getAllSlotConfigs();
+    setPreviewConfigs(cfgs);
+  }
+
+  // Load all configs on mount for preview gallery
+  useEffect(() => { loadPreview(); }, []);
 
   // Load config from Firestore on slot change
   useEffect(() => {
@@ -311,6 +414,7 @@ export default function MockupEditorPage() {
     try {
       await saveSlotConfig(slotId, cfg);
       toast.success(`${slot.label} 저장 완료`);
+      await loadPreview();
     } catch (e) {
       console.error(e);
       toast.error('저장에 실패했습니다.');
@@ -544,6 +648,36 @@ export default function MockupEditorPage() {
                   `${slotId}: x=${cfg.x.toFixed(3)} y=${cfg.y.toFixed(3)} w=${cfg.w.toFixed(3)} h=${cfg.h.toFixed(3)} rot=${cfg.rotation.toFixed(1)}°`
                 )}
               </div>
+            </div>
+          </div>
+
+          {/* Preview gallery */}
+          <Separator />
+          <div className="flex flex-col gap-4 pb-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-semibold">굿즈 전체 미리보기</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  저장된 설정 기준 · 샘플 이미지 업로드 시 합성 결과 확인 가능
+                </p>
+              </div>
+              <Button variant="outline" size="sm" className="rounded-xl gap-1.5" onClick={loadPreview}>
+                <RotateCcw className="size-3.5" />새로고침
+              </Button>
+            </div>
+            <div className="grid grid-cols-3 sm:grid-cols-6 gap-4">
+              {PREVIEW_ITEMS.map((item) => (
+                <PreviewCanvas
+                  key={item.id}
+                  label={item.label}
+                  w={item.w}
+                  h={item.h}
+                  slotIds={item.slotIds}
+                  configs={previewConfigs}
+                  sampleImg={sampleImg}
+                  productSrc={item.src}
+                />
+              ))}
             </div>
           </div>
         </div>
