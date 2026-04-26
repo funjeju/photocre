@@ -109,11 +109,12 @@ function drawSlot(
     const topArc = sh * (cfg.cylinderTopCurve ?? cfg.cylinderCurve);
     const botArc = sh * (cfg.cylinderBottomCurve ?? cfg.cylinderCurve);
     const x0 = cx - sw / 2, y0 = cy - sh / 2;
+    if (rad !== 0) { ctx.translate(cx, cy); ctx.rotate(rad); ctx.translate(-cx, -cy); }
     ctx.beginPath();
     ctx.moveTo(x0, y0);
-    ctx.quadraticCurveTo(cx, y0 + topArc, x0 + sw, y0);   // top: dips down (concave)
-    ctx.lineTo(x0 + sw, y0 + sh);
-    ctx.quadraticCurveTo(cx, y0 + sh + botArc, x0, y0 + sh); // bottom: bulges down (convex)
+    ctx.quadraticCurveTo(cx, y0 + topArc, x0 + sw, y0);               // top: dips down (concave)
+    ctx.lineTo(x0 + sw, y0 + sh - botArc);                              // right corner rises
+    ctx.quadraticCurveTo(cx, y0 + sh + botArc, x0, y0 + sh - botArc); // bottom: clips corners → bulges down
     ctx.closePath(); ctx.clip();
     const iw = userImg.naturalWidth, ih = userImg.naturalHeight;
     const da = sw / sh, ia = iw / ih;
