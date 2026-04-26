@@ -3,7 +3,9 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { collection, getDocs, orderBy, query, limit, doc, getDoc } from 'firebase/firestore';
+import { Sparkles } from 'lucide-react';
 import { Loader2, ShoppingBag, ImageOff, Zap } from 'lucide-react';
+import type { DreamReport } from '@/app/api/dream/route';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -26,6 +28,15 @@ interface Generation {
   presets?: { styleId?: string; customPrompt?: string };
   createdAt: { toDate?: () => Date } | Date | null;
   status: string;
+}
+
+interface DreamResult {
+  id: string;
+  career: string;
+  age: number;
+  outputImageUrl: string;
+  report: DreamReport;
+  createdAt: { toDate?: () => Date } | Date | null;
 }
 
 interface UserDoc {
@@ -131,6 +142,7 @@ export default function ProfilePage() {
 
   const [userDoc, setUserDoc] = useState<UserDoc | null>(null);
   const [generations, setGenerations] = useState<Generation[]>([]);
+  const [dreams, setDreams] = useState<DreamResult[]>([]);
   const [loadingData, setLoadingData] = useState(true);
   const [selected, setSelected] = useState<Generation | null>(null);
 
@@ -141,14 +153,12 @@ export default function ProfilePage() {
     const db = getFirebaseDb();
     Promise.all([
       getDoc(doc(db, 'users', user.uid)),
-      getDocs(query(
-        collection(db, 'users', user.uid, 'generations'),
-        orderBy('createdAt', 'desc'),
-        limit(60),
-      )),
-    ]).then(([userSnap, genSnap]) => {
+      getDocs(query(collection(db, 'users', user.uid, 'generations'), orderBy('createdAt', 'desc'), limit(60))),
+      getDocs(query(collection(db, 'users', user.uid, 'dreams'), orderBy('createdAt', 'desc'), limit(20))),
+    ]).then(([userSnap, genSnap, dreamSnap]) => {
       if (userSnap.exists()) setUserDoc(userSnap.data() as UserDoc);
       setGenerations(genSnap.docs.map((d) => ({ id: d.id, ...d.data() } as Generation)));
+      setDreams(dreamSnap.docs.map((d) => ({ id: d.id, ...d.data() } as DreamResult)));
     }).finally(() => setLoadingData(false));
   }, [user, authLoading, router]);
 
@@ -263,6 +273,50 @@ export default function ProfilePage() {
             </div>
           )}
         </div>
+        {/* Dream 기록 */}
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+              <Sparkles className="size-3.5" />
+              {ko.dream.myDreams}
+            </h2>
+            {dreams.length > 0 && (
+              <span className="text-xs text-muted-foreground">{dreams.length}개</span>
+            )}
+          </div>
+
+          {dreams.length === 0 ? (
+            <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-border/60 py-10 text-center">
+              <Sparkles className="size-8 text-muted-foreground/30" />
+              <p className="text-sm text-muted-foreground">{ko.dream.dreamsEmpty}</p>
+              <p className="text-xs text-muted-foreground/70">{ko.dream.dreamsEmptyHint}</p>
+              <Button variant="outline" size="sm" className="mt-1 rounded-xl gap-1.5" onClick={() => router.push('/dream')}>
+                <Sparkles className="size-3.5" />
+                Dream 열기
+              </Button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+              {dreams.map((dream) => (
+                <div key={dream.id} className="flex flex-col gap-1.5">
+                  <div className="aspect-square overflow-hidden rounded-2xl border border-border/40 bg-muted/30">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={dream.outputImageUrl}
+                      alt={dream.career}
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+                  <div className="px-0.5">
+                    <p className="text-xs font-medium truncate">{dream.career} · {dream.age}살</p>
+                    <p className="text-[10px] text-muted-foreground">{formatDate(dream.createdAt)}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
       </div>
 
       {/* 이미지 상세 모달 */}

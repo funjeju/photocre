@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { History, Wand2, LogOut, BookImage, Newspaper, ShoppingBag, Package, ShieldCheck, UserCircle } from 'lucide-react';
+import { History, Wand2, LogOut, BookImage, Newspaper, ShoppingBag, Package, ShieldCheck, UserCircle, Sparkles } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,10 +18,11 @@ import { CreditsBadge } from '@/components/shared/credits-badge';
 import { ko } from '@/lib/i18n/ko';
 
 const NAV_ITEMS = [
-  { href: '/studio', label: ko.nav.studio, icon: Wand2 },
-  { href: '/cover', label: ko.nav.cover, icon: Newspaper },
+  { href: '/studio',   label: ko.nav.studio,   icon: Wand2 },
+  { href: '/cover',    label: ko.nav.cover,    icon: Newspaper },
   { href: '/magazine', label: ko.nav.magazine, icon: BookImage },
-  { href: '/history', label: ko.nav.history, icon: History },
+  { href: '/dream',    label: ko.nav.dream,    icon: Sparkles },
+  { href: '/history',  label: ko.nav.history,  icon: History },
 ];
 
 export function Header() {
