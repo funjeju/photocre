@@ -123,13 +123,14 @@ function drawSlot(
     ctx.drawImage(userImg, -(iw*sc)/2, -(ih*sc)/2, iw*sc, ih*sc);
   } else if (cfg.cylinderCurve) {
     const fov = cfg.cylinderFov ?? 0;
-    const arc = sh * cfg.cylinderCurve;
+    const topArc = sh * (cfg.cylinderTopCurve ?? cfg.cylinderCurve);
+    const botArc = sh * (cfg.cylinderBottomCurve ?? cfg.cylinderCurve);
     const x0 = cx - sw / 2, y0 = cy - sh / 2;
     ctx.beginPath();
-    ctx.moveTo(x0, y0 + arc);
-    ctx.quadraticCurveTo(cx, y0 - arc, x0 + sw, y0 + arc);
-    ctx.lineTo(x0 + sw, y0 + sh - arc);
-    ctx.quadraticCurveTo(cx, y0 + sh + arc, x0, y0 + sh - arc);
+    ctx.moveTo(x0, y0);
+    ctx.quadraticCurveTo(cx, y0 + topArc, x0 + sw, y0);      // top: dips down (concave)
+    ctx.lineTo(x0 + sw, y0 + sh);
+    ctx.quadraticCurveTo(cx, y0 + sh + botArc, x0, y0 + sh); // bottom: bulges down (convex)
     ctx.closePath(); ctx.clip();
     const iw=userImg.naturalWidth, ih=userImg.naturalHeight;
     const da=sw/sh, ia=iw/ih;
@@ -662,8 +663,15 @@ export default function MockupEditorPage() {
                         <button
                           onClick={() => setCfg((p) => {
                             const n = { ...p };
-                            if (n.cylinderCurve) { delete n.cylinderCurve; delete n.cylinderFov; }
-                            else { n.cylinderCurve = 0.10; n.cylinderFov = 0; }
+                            if (n.cylinderCurve) {
+                              delete n.cylinderCurve; delete n.cylinderFov;
+                              delete n.cylinderTopCurve; delete n.cylinderBottomCurve;
+                            } else {
+                              n.cylinderCurve = 0.10;
+                              n.cylinderTopCurve = 0.10;
+                              n.cylinderBottomCurve = 0.10;
+                              n.cylinderFov = 0;
+                            }
                             return n;
                           })}
                           className="text-[10px] text-accent hover:underline"
@@ -675,10 +683,17 @@ export default function MockupEditorPage() {
                     {isCylinderMode && (
                       <>
                         <SliderRow
-                          label="아크 깊이 (A·B 공통)"
-                          value={cfg.cylinderCurve ?? 0}
-                          min={0.02} max={0.30} step={0.01}
-                          onChange={(v) => set('cylinderCurve', v)}
+                          label="상단 아크 깊이"
+                          value={cfg.cylinderTopCurve ?? cfg.cylinderCurve ?? 0.10}
+                          min={0} max={0.40} step={0.01}
+                          onChange={(v) => set('cylinderTopCurve', v)}
+                          fmt={(v) => `${(v * 100).toFixed(0)}%`}
+                        />
+                        <SliderRow
+                          label="하단 아크 깊이"
+                          value={cfg.cylinderBottomCurve ?? cfg.cylinderCurve ?? 0.10}
+                          min={0} max={0.40} step={0.01}
+                          onChange={(v) => set('cylinderBottomCurve', v)}
                           fmt={(v) => `${(v * 100).toFixed(0)}%`}
                         />
                         <SliderRow

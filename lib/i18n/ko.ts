@@ -7,8 +7,7 @@ export const ko = {
     studio: 'Studio',
     cover: 'Cover',
     magazine: 'Magazine',
-    apply: 'Apply',
-    templates: 'Templates',
+    dream: 'Dream',
     history: 'History',
   },
   auth: {

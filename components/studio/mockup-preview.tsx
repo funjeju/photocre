@@ -106,13 +106,14 @@ function drawSlot(
   } else if (cfg.cylinderCurve) {
     // Cylinder warp: bezier arc clip (A) + optional sinusoidal strip warp (B)
     const fov = cfg.cylinderFov ?? 0;
-    const arc = sh * cfg.cylinderCurve;
+    const topArc = sh * (cfg.cylinderTopCurve ?? cfg.cylinderCurve);
+    const botArc = sh * (cfg.cylinderBottomCurve ?? cfg.cylinderCurve);
     const x0 = cx - sw / 2, y0 = cy - sh / 2;
     ctx.beginPath();
-    ctx.moveTo(x0, y0 + arc);
-    ctx.quadraticCurveTo(cx, y0 - arc, x0 + sw, y0 + arc);
-    ctx.lineTo(x0 + sw, y0 + sh - arc);
-    ctx.quadraticCurveTo(cx, y0 + sh + arc, x0, y0 + sh - arc);
+    ctx.moveTo(x0, y0);
+    ctx.quadraticCurveTo(cx, y0 + topArc, x0 + sw, y0);   // top: dips down (concave)
+    ctx.lineTo(x0 + sw, y0 + sh);
+    ctx.quadraticCurveTo(cx, y0 + sh + botArc, x0, y0 + sh); // bottom: bulges down (convex)
     ctx.closePath(); ctx.clip();
     const iw = userImg.naturalWidth, ih = userImg.naturalHeight;
     const da = sw / sh, ia = iw / ih;
