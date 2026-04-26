@@ -89,9 +89,9 @@ function GenerationModal({
         </div>
 
         {/* 정보 + 버튼 */}
-        <div className="flex items-center justify-between gap-4 px-5 py-4 bg-background border-t border-border/40">
+        <div className="flex items-center justify-between gap-4 px-5 py-4 bg-white border-t border-border/40">
           <div className="flex flex-col gap-1 min-w-0">
-            <p className="text-sm font-medium text-foreground">{formatDateTime(gen.createdAt)}</p>
+            <p className="text-sm font-medium text-gray-900">{formatDateTime(gen.createdAt)}</p>
             <div className="flex items-center gap-2 flex-wrap">
               {styleName && <Badge variant="outline" className="text-xs">{styleName}</Badge>}
               {gen.presets?.customPrompt && (
