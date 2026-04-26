@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import { Sparkles, Upload, Download, FileText, Loader2, RotateCcw, ChevronRight, User } from 'lucide-react';
+import { Sparkles, Upload, Download, FileText, Loader2, RotateCcw, User } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -264,71 +264,110 @@ export default function DreamPage() {
               </div>
             </div>
 
+            {/* ── Hero: image + overview ── */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Generated image */}
               <div className="flex flex-col gap-3">
                 <div className="overflow-hidden rounded-2xl border border-border/40 shadow-sm aspect-square bg-muted/20">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={result.imageUrl} alt={`${result.age}살 ${result.career}`} className="h-full w-full object-cover" />
                 </div>
-                {/* Original photo thumb */}
                 {photo && (
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground print:hidden">
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={photo.previewUrl} alt="원본" className="size-8 rounded-lg object-cover border border-border/40" />
                     원본 → AI 생성 이미지
                   </div>
                 )}
               </div>
-
-              {/* Report card */}
-              <div className="flex flex-col gap-5 rounded-2xl border border-border/40 bg-muted/10 p-6">
-                {/* Headline */}
+              <div className="flex flex-col gap-3 rounded-2xl border border-border/40 bg-muted/10 p-6">
                 <div>
                   <p className="text-xs font-semibold text-accent uppercase tracking-wider mb-1">{result.career}</p>
                   <h3 className="text-xl font-bold leading-snug">{result.report.headline}</h3>
                 </div>
-
                 <Separator />
-
-                {/* Summary */}
-                <p className="text-sm leading-relaxed text-muted-foreground">{result.report.summary}</p>
-
-                {/* Strengths + Skills */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="flex flex-col gap-2">
-                    <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{ko.dream.strengths}</p>
-                    <TagList items={result.report.strengths} />
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{ko.dream.skills}</p>
-                    <TagList items={result.report.skills} />
-                  </div>
-                </div>
-
-                <Separator />
-
-                {/* Career path */}
-                <div className="flex flex-col gap-3">
-                  <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{ko.dream.careerPath}</p>
-                  <div className="flex flex-col gap-2.5">
-                    {result.report.path.map((step, i) => (
-                      <div key={i} className="flex items-start gap-2.5">
-                        <div className="flex size-5 shrink-0 items-center justify-center rounded-full bg-accent/15 text-accent text-[10px] font-bold mt-0.5">
-                          {i + 1}
-                        </div>
-                        <p className="text-sm leading-relaxed">{step}</p>
-                        {i < result.report.path.length - 1 && (
-                          <ChevronRight className="size-3.5 text-muted-foreground/40 shrink-0 mt-1 ml-auto" />
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                <p className="text-sm leading-relaxed text-muted-foreground">
+                  {result.report.overview ?? result.report.summary}
+                </p>
               </div>
             </div>
 
-            {/* Encouragement message */}
+            {/* ── Strengths ── */}
+            <div className="rounded-2xl border border-border/40 bg-muted/10 p-6 flex flex-col gap-4">
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{ko.dream.strengths}</p>
+              <TagList items={result.report.strengths} />
+              {result.report.strengthDetails && (
+                <div className="flex flex-col gap-3">
+                  {result.report.strengthDetails.map((d, i) => (
+                    <div key={i} className="flex gap-3">
+                      <span className="text-accent font-bold text-sm shrink-0 mt-0.5">›</span>
+                      <div className="text-sm leading-relaxed">
+                        <span className="font-semibold">{result.report.strengths[i]}</span>
+                        <span className="text-muted-foreground">{'  '}{d}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* ── Skills ── */}
+            <div className="rounded-2xl border border-border/40 bg-muted/10 p-6 flex flex-col gap-4">
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{ko.dream.skills}</p>
+              <TagList items={result.report.skills} />
+              {result.report.skillDetails && (
+                <div className="flex flex-col gap-3">
+                  {result.report.skillDetails.map((d, i) => (
+                    <div key={i} className="flex gap-3">
+                      <span className="text-accent font-bold text-sm shrink-0 mt-0.5">›</span>
+                      <div className="text-sm leading-relaxed">
+                        <span className="font-semibold">{result.report.skills[i]}</span>
+                        <span className="text-muted-foreground">{'  '}{d}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* ── Career Path ── */}
+            <div className="rounded-2xl border border-border/40 bg-muted/10 p-6 flex flex-col gap-4">
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{ko.dream.careerPath}</p>
+              <div className="flex flex-col gap-4">
+                {result.report.path.map((step, i) => (
+                  <div key={i} className="flex gap-3">
+                    <div className="flex size-6 shrink-0 items-center justify-center rounded-full bg-accent/15 text-accent text-xs font-bold mt-0.5">
+                      {i + 1}
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <p className="text-sm font-semibold leading-snug">{step}</p>
+                      {result.report.pathDetails?.[i] && (
+                        <p className="text-sm text-muted-foreground leading-relaxed">{result.report.pathDetails[i]}</p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* ── Daily Life + Prospects ── */}
+            {(result.report.dailyLife || result.report.prospects) && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {result.report.dailyLife && (
+                  <div className="rounded-2xl border border-border/40 bg-muted/10 p-6 flex flex-col gap-3">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">하루 일상</p>
+                    <p className="text-sm leading-relaxed text-muted-foreground">{result.report.dailyLife}</p>
+                  </div>
+                )}
+                {result.report.prospects && (
+                  <div className="rounded-2xl border border-border/40 bg-muted/10 p-6 flex flex-col gap-3">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">미래 전망</p>
+                    <p className="text-sm leading-relaxed text-muted-foreground">{result.report.prospects}</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ── Encouragement ── */}
             <div className="rounded-2xl border border-accent/30 bg-accent/5 px-6 py-5">
               <p className="text-xs font-semibold text-accent uppercase tracking-wider mb-2">{ko.dream.encouragement}</p>
               <p className="text-base leading-relaxed font-medium">{result.report.message}</p>
