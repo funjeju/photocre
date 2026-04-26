@@ -103,8 +103,18 @@ function drawSlot(
     ctx.translate(cx, cy);
     ctx.rotate(rad);
     ctx.drawImage(userImg, -(iw * scale) / 2, -(ih * scale) / 2, iw * scale, ih * scale);
+  } else if (cfg.quad) {
+    // Free quad warp: use stored corner positions directly
+    const { tl, tr, br, bl } = cfg.quad;
+    quadWarp(ctx, userImg,
+      tl[0]*W, tl[1]*H,
+      tr[0]*W, tr[1]*H,
+      br[0]*W, br[1]*H,
+      bl[0]*W, bl[1]*H,
+      cfg.zoom,
+    );
   } else {
-    // Rotated rect: compute 4 corners
+    // Rotated rect: compute 4 corners from center+size+rotation
     const tlx = cx + (-sw/2)*cos - (-sh/2)*sin, tly = cy + (-sw/2)*sin + (-sh/2)*cos;
     const trx = cx + ( sw/2)*cos - (-sh/2)*sin, trY = cy + ( sw/2)*sin + (-sh/2)*cos;
     const brx = cx + ( sw/2)*cos - ( sh/2)*sin, bry = cy + ( sw/2)*sin + ( sh/2)*cos;

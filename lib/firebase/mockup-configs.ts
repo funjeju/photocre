@@ -1,6 +1,13 @@
 import { doc, setDoc, getDocs, collection } from 'firebase/firestore';
 import { getFirebaseDb } from './client';
 
+export interface QuadCorners {
+  tl: [number, number]; // Top-left  (x,y) normalized 0–1
+  tr: [number, number]; // Top-right
+  br: [number, number]; // Bottom-right
+  bl: [number, number]; // Bottom-left
+}
+
 export interface SlotConfig {
   x: number;        // center x (0–1)
   y: number;        // center y (0–1)
@@ -14,6 +21,8 @@ export interface SlotConfig {
   brightness: number; // 0–2, default 1
   saturation: number; // 0–2, default 1
   sepia: number;      // 0–1, default 0
+  // Optional per-corner warp (rect only). Overrides x/y/w/h/rotation when set.
+  quad?: QuadCorners;
 }
 
 export const DEFAULT_SLOT_CONFIGS: Record<string, SlotConfig> = {

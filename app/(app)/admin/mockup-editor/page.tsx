@@ -1,9 +1,9 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { Stage, Layer, Rect, Ellipse, Image as KonvaImage, Transformer } from 'react-konva';
+import { Stage, Layer, Ellipse, Image as KonvaImage, Transformer } from 'react-konva';
 import Konva from 'konva';
-import { Upload, Save, RotateCcw } from 'lucide-react';
+import { Upload, Save, RotateCcw, Grid3X3 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -12,17 +12,90 @@ import {
 } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import {
-  SLOT_META, DEFAULT_SLOT_CONFIGS, SlotConfig,
+  SLOT_META, DEFAULT_SLOT_CONFIGS, SlotConfig, QuadCorners,
   saveSlotConfig, getAllSlotConfigs,
 } from '@/lib/firebase/mockup-configs';
 
 const SCALE = 2;
+const HANDLE_R = 9; // corner handle hit radius (px)
 const BLEND_MODES = [
   'multiply', 'source-over', 'overlay', 'screen',
   'soft-light', 'hard-light', 'color-burn', 'luminosity',
 ];
 
-/* ── Slider helper ─────────────────────────────────────────── */
+/* ── Canvas draw helpers (same as mockup-preview) ─── */
+
+function drawAffine3(
+  ctx: CanvasRenderingContext2D, img: HTMLImageElement,
+  s0x: number, s0y: number, s1x: number, s1y: number, s2x: number, s2y: number,
+  d0x: number, d0y: number, d1x: number, d1y: number, d2x: number, d2y: number,
+) {
+  const det = s0x*(s1y-s2y) + s1x*(s2y-s0y) + s2x*(s0y-s1y);
+  if (Math.abs(det) < 0.001) return;
+  const a=(d0x*(s1y-s2y)+d1x*(s2y-s0y)+d2x*(s0y-s1y))/det;
+  const b=(d0y*(s1y-s2y)+d1y*(s2y-s0y)+d2y*(s0y-s1y))/det;
+  const c=(s0x*(d1x-d2x)+s1x*(d2x-d0x)+s2x*(d0x-d1x))/det;
+  const d=(s0x*(d1y-d2y)+s1x*(d2y-d0y)+s2x*(d0y-d1y))/det;
+  const e=(s0x*(s1y*d2x-s2y*d1x)+s1x*(s2y*d0x-s0y*d2x)+s2x*(s0y*d1x-s1y*d0x))/det;
+  const f=(s0x*(s1y*d2y-s2y*d1y)+s1x*(s2y*d0y-s0y*d2y)+s2x*(s0y*d1y-s1y*d0y))/det;
+  ctx.save();
+  ctx.beginPath(); ctx.moveTo(d0x,d0y); ctx.lineTo(d1x,d1y); ctx.lineTo(d2x,d2y);
+  ctx.closePath(); ctx.clip();
+  ctx.transform(a,b,c,d,e,f); ctx.drawImage(img,0,0);
+  ctx.restore();
+}
+
+function quadWarp(
+  ctx: CanvasRenderingContext2D, img: HTMLImageElement,
+  x0:number, y0:number, x1:number, y1:number,
+  x2:number, y2:number, x3:number, y3:number, zoom=1,
+) {
+  const iw=img.naturalWidth, ih=img.naturalHeight;
+  const dw=Math.max(x1-x0,x2-x3), dh=Math.max(y3-y0,y2-y1);
+  const da=dw/dh, ia=iw/ih;
+  let sx=0,sy=0,sw=iw,sh=ih;
+  if(ia>da){sw=ih*da;sx=(iw-sw)/2;}else{sh=iw/da;sy=(ih-sh)/2;}
+  if(zoom!==1){const zw=sw/zoom,zh=sh/zoom;sx+=(sw-zw)/2;sy+=(sh-zh)/2;sw=zw;sh=zh;}
+  const ex=sx+sw,ey=sy+sh;
+  drawAffine3(ctx,img,sx,sy,ex,sy,sx,ey, x0,y0,x1,y1,x3,y3);
+  drawAffine3(ctx,img,ex,sy,ex,ey,sx,ey, x1,y1,x2,y2,x3,y3);
+}
+
+/* ── Helpers ─── */
+
+type PixelCorners = [[number,number],[number,number],[number,number],[number,number]];
+
+function quadToPixel(q: QuadCorners, W: number, H: number): PixelCorners {
+  return [
+    [q.tl[0]*W, q.tl[1]*H],
+    [q.tr[0]*W, q.tr[1]*H],
+    [q.br[0]*W, q.br[1]*H],
+    [q.bl[0]*W, q.bl[1]*H],
+  ];
+}
+
+function computeRectCorners(cfg: SlotConfig, W: number, H: number): PixelCorners {
+  if (cfg.quad) return quadToPixel(cfg.quad, W, H);
+  const cx=cfg.x*W, cy=cfg.y*H, hw=cfg.w*W/2, hh=cfg.h*H/2;
+  const rad=(cfg.rotation*Math.PI)/180, cos=Math.cos(rad), sin=Math.sin(rad);
+  return [
+    [cx-hw*cos+hh*sin, cy-hw*sin-hh*cos],
+    [cx+hw*cos+hh*sin, cy+hw*sin-hh*cos],
+    [cx+hw*cos-hh*sin, cy+hw*sin+hh*cos],
+    [cx-hw*cos-hh*sin, cy-hw*sin+hh*cos],
+  ];
+}
+
+function pixelToQuad(c: PixelCorners, W: number, H: number): QuadCorners {
+  return {
+    tl: [c[0][0]/W, c[0][1]/H],
+    tr: [c[1][0]/W, c[1][1]/H],
+    br: [c[2][0]/W, c[2][1]/H],
+    bl: [c[3][0]/W, c[3][1]/H],
+  };
+}
+
+/* ── Slider ─── */
 
 function SliderRow({ label, value, min, max, step, onChange, fmt }: {
   label: string; value: number; min: number; max: number; step: number;
@@ -34,16 +107,14 @@ function SliderRow({ label, value, min, max, step, onChange, fmt }: {
         <span className="text-xs text-muted-foreground">{label}</span>
         <span className="text-xs font-mono text-foreground">{fmt ? fmt(value) : value.toFixed(2)}</span>
       </div>
-      <input
-        type="range" min={min} max={max} step={step} value={value}
+      <input type="range" min={min} max={max} step={step} value={value}
         onChange={(e) => onChange(Number(e.target.value))}
-        className="w-full h-1.5 cursor-pointer accent-accent"
-      />
+        className="w-full h-1.5 cursor-pointer accent-accent" />
     </div>
   );
 }
 
-/* ── Main page ─────────────────────────────────────────────── */
+/* ── Page ─── */
 
 export default function MockupEditorPage() {
   const [mounted, setMounted] = useState(false);
@@ -53,17 +124,18 @@ export default function MockupEditorPage() {
   const [sampleImg, setSampleImg] = useState<HTMLImageElement | null>(null);
   const [saving, setSaving] = useState(false);
 
-  const rectRef = useRef<Konva.Rect>(null);
+  // Rect canvas
+  const rectCanvasRef = useRef<HTMLCanvasElement>(null);
+  const [corners, setCorners] = useState<PixelCorners>([[0,0],[0,0],[0,0],[0,0]]);
+  const dragging = useRef<number | null>(null);
+
+  // Ellipse Konva
   const ellipseRef = useRef<Konva.Ellipse>(null);
   const trRef = useRef<Konva.Transformer>(null);
 
   const slot = SLOT_META.find((m) => m.id === slotId)!;
-  const stageW = slot.canvasW * SCALE;
-  const stageH = slot.canvasH * SCALE;
-  const px = cfg.x * stageW;
-  const py = cfg.y * stageH;
-  const pw = cfg.w * stageW;
-  const ph = cfg.h * stageH;
+  const W = slot.canvasW * SCALE;
+  const H = slot.canvasH * SCALE;
 
   useEffect(() => setMounted(true), []);
 
@@ -74,96 +146,164 @@ export default function MockupEditorPage() {
     });
   }, [slotId]);
 
-  // Load product image when slot changes
+  // Load product image
   useEffect(() => {
     const img = new window.Image();
     img.onload = () => setProductImg(img);
     img.src = slot.productSrc;
   }, [slot.productSrc]);
 
-  // Attach transformer to current shape
+  // Sync cfg → corners (skip during drag)
   useEffect(() => {
-    if (!trRef.current) return;
-    const node = cfg.shape === 'rect' ? rectRef.current : ellipseRef.current;
-    if (!node) return;
-    trRef.current.nodes([node]);
-    trRef.current.getLayer()?.batchDraw();
-  }, [mounted, cfg.shape, slotId]);
+    if (dragging.current !== null) return;
+    if (cfg.shape === 'rect') setCorners(computeRectCorners(cfg, W, H));
+  }, [cfg, W, H]);
 
-  // Refresh transformer bounding box when cfg changes from sliders
+  // Render rect canvas
+  useEffect(() => {
+    if (cfg.shape !== 'rect') return;
+    const canvas = rectCanvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    ctx.clearRect(0, 0, W, H);
+    if (productImg) ctx.drawImage(productImg, 0, 0, W, H);
+
+    if (sampleImg) {
+      ctx.save();
+      ctx.globalCompositeOperation = cfg.blendMode as GlobalCompositeOperation;
+      ctx.globalAlpha = cfg.opacity;
+      const f: string[] = [];
+      if (cfg.brightness !== 1) f.push(`brightness(${cfg.brightness})`);
+      if (cfg.saturation !== 1) f.push(`saturate(${cfg.saturation})`);
+      if (cfg.sepia !== 0)      f.push(`sepia(${cfg.sepia})`);
+      if (f.length) ctx.filter = f.join(' ');
+      quadWarp(ctx, sampleImg,
+        corners[0][0], corners[0][1],
+        corners[1][0], corners[1][1],
+        corners[2][0], corners[2][1],
+        corners[3][0], corners[3][1],
+        cfg.zoom,
+      );
+      ctx.restore();
+    }
+
+    // Quad outline
+    ctx.save();
+    ctx.strokeStyle = '#6366f1';
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([5, 4]);
+    ctx.beginPath();
+    ctx.moveTo(corners[0][0], corners[0][1]);
+    ctx.lineTo(corners[1][0], corners[1][1]);
+    ctx.lineTo(corners[2][0], corners[2][1]);
+    ctx.lineTo(corners[3][0], corners[3][1]);
+    ctx.closePath();
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.restore();
+
+    // Corner handles
+    const labels = ['TL', 'TR', 'BR', 'BL'];
+    corners.forEach(([x, y], i) => {
+      ctx.beginPath();
+      ctx.arc(x, y, HANDLE_R, 0, Math.PI * 2);
+      ctx.fillStyle = dragging.current === i ? '#6366f1' : 'white';
+      ctx.fill();
+      ctx.strokeStyle = '#6366f1';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.fillStyle = '#6366f1';
+      ctx.font = 'bold 8px monospace';
+      ctx.fillText(labels[i], x + 11, y - 4);
+    });
+  }, [corners, productImg, sampleImg, cfg, W, H]);
+
+  // Attach Konva transformer for ellipse
+  useEffect(() => {
+    if (!trRef.current || !ellipseRef.current) return;
+    trRef.current.nodes([ellipseRef.current]);
+    trRef.current.getLayer()?.batchDraw();
+  }, [mounted, slotId, cfg.shape]);
+
   useEffect(() => {
     trRef.current?.getLayer()?.batchDraw();
   }, [cfg]);
 
-  /* ── Fill pattern ─── */
-  const patScale = sampleImg
-    ? Math.max(pw / sampleImg.naturalWidth, ph / sampleImg.naturalHeight) * cfg.zoom
-    : 1;
+  /* ── Rect canvas mouse events ─── */
 
-  function rectFill() {
-    if (!sampleImg) return { stroke: '#6366f1', strokeWidth: 1.5, dash: [6, 4], dashEnabled: true, fill: undefined };
-    return {
-      fillPatternImage: sampleImg,
-      fillPatternX: (pw - sampleImg.naturalWidth * patScale) / 2,
-      fillPatternY: (ph - sampleImg.naturalHeight * patScale) / 2,
-      fillPatternScaleX: patScale,
-      fillPatternScaleY: patScale,
-      fillPatternRepeat: 'no-repeat' as const,
-    };
+  function canvasXY(e: React.MouseEvent<HTMLCanvasElement>): [number, number] {
+    const r = rectCanvasRef.current!.getBoundingClientRect();
+    return [
+      (e.clientX - r.left) * (W / r.width),
+      (e.clientY - r.top)  * (H / r.height),
+    ];
   }
 
-  function ellipseFill() {
-    if (!sampleImg) return { stroke: '#6366f1', strokeWidth: 1.5, dash: [6, 4], dashEnabled: true, fill: undefined };
-    return {
-      fillPatternImage: sampleImg,
-      fillPatternX: -(sampleImg.naturalWidth * patScale) / 2,
-      fillPatternY: -(sampleImg.naturalHeight * patScale) / 2,
-      fillPatternScaleX: patScale,
-      fillPatternScaleY: patScale,
-      fillPatternRepeat: 'no-repeat' as const,
-    };
-  }
-
-  /* ── Transform end (normalize scale → cfg) ─── */
-  function handleTransformEnd() {
-    if (cfg.shape === 'rect' && rectRef.current) {
-      const n = rectRef.current;
-      const newW = n.width() * n.scaleX();
-      const newH = n.height() * n.scaleY();
-      n.width(newW); n.height(newH);
-      n.offsetX(newW / 2); n.offsetY(newH / 2);
-      n.scaleX(1); n.scaleY(1);
-      setCfg((prev) => ({
-        ...prev,
-        x: n.x() / stageW, y: n.y() / stageH,
-        w: newW / stageW, h: newH / stageH,
-        rotation: n.rotation(),
-      }));
-    } else if (cfg.shape === 'ellipse' && ellipseRef.current) {
-      const n = ellipseRef.current;
-      const newRx = n.radiusX() * n.scaleX();
-      const newRy = n.radiusY() * n.scaleY();
-      n.radiusX(newRx); n.radiusY(newRy);
-      n.scaleX(1); n.scaleY(1);
-      setCfg((prev) => ({
-        ...prev,
-        x: n.x() / stageW, y: n.y() / stageH,
-        w: (newRx * 2) / stageW, h: (newRy * 2) / stageH,
-        rotation: n.rotation(),
-      }));
+  function onMouseDown(e: React.MouseEvent<HTMLCanvasElement>) {
+    const [mx, my] = canvasXY(e);
+    for (let i = 0; i < 4; i++) {
+      if (Math.hypot(mx - corners[i][0], my - corners[i][1]) < HANDLE_R + 4) {
+        dragging.current = i;
+        return;
+      }
     }
   }
 
-  function handleDragEnd(e: Konva.KonvaEventObject<DragEvent>) {
+  function onMouseMove(e: React.MouseEvent<HTMLCanvasElement>) {
+    if (dragging.current === null) return;
+    const [mx, my] = canvasXY(e);
+    const idx = dragging.current;
+    const nc: PixelCorners = corners.map((c, i) =>
+      i === idx ? [mx, my] : c,
+    ) as PixelCorners;
+    setCorners(nc);
+    setCfg((prev) => ({ ...prev, quad: pixelToQuad(nc, W, H) }));
+  }
+
+  function onMouseUp() { dragging.current = null; }
+
+  /* ── Ellipse Konva events ─── */
+
+  function onEllipseTransformEnd() {
+    if (!ellipseRef.current) return;
+    const n = ellipseRef.current;
+    const rx = n.radiusX() * n.scaleX(), ry = n.radiusY() * n.scaleY();
+    n.radiusX(rx); n.radiusY(ry); n.scaleX(1); n.scaleY(1);
     setCfg((prev) => ({
       ...prev,
-      x: e.target.x() / stageW,
-      y: e.target.y() / stageH,
+      x: n.x()/W, y: n.y()/H, w: rx*2/W, h: ry*2/H, rotation: n.rotation(),
     }));
   }
 
-  function set<K extends keyof SlotConfig>(key: K, value: SlotConfig[K]) {
-    setCfg((prev) => ({ ...prev, [key]: value }));
+  function onEllipseDragEnd(e: Konva.KonvaEventObject<DragEvent>) {
+    setCfg((prev) => ({ ...prev, x: e.target.x()/W, y: e.target.y()/H }));
+  }
+
+  /* ── Ellipse fill pattern ─── */
+
+  const px = cfg.x*W, py = cfg.y*H, pw = cfg.w*W, ph = cfg.h*H;
+  const eps = sampleImg
+    ? Math.max(pw/sampleImg.naturalWidth, ph/sampleImg.naturalHeight) * cfg.zoom
+    : 1;
+  const ellipseFill = sampleImg ? {
+    fillPatternImage: sampleImg,
+    fillPatternX: -(sampleImg.naturalWidth * eps) / 2,
+    fillPatternY: -(sampleImg.naturalHeight * eps) / 2,
+    fillPatternScaleX: eps, fillPatternScaleY: eps,
+    fillPatternRepeat: 'no-repeat' as const,
+  } : { stroke: '#6366f1', strokeWidth: 1.5, dash: [6, 4], dashEnabled: true };
+
+  /* ── Config helpers ─── */
+
+  function set<K extends keyof SlotConfig>(k: K, v: SlotConfig[K]) {
+    setCfg((prev) => ({ ...prev, [k]: v }));
+  }
+
+  // Position/size/rotation sliders clear quad (revert to regular rect)
+  function setGeom<K extends 'x'|'y'|'w'|'h'|'rotation'>(k: K, v: number) {
+    setCfg((prev) => { const n = { ...prev, [k]: v }; delete n.quad; return n; });
   }
 
   async function handleSave() {
@@ -174,14 +314,10 @@ export default function MockupEditorPage() {
     } catch (e) {
       console.error(e);
       toast.error('저장에 실패했습니다.');
-    } finally {
-      setSaving(false);
-    }
+    } finally { setSaving(false); }
   }
 
-  function handleReset() {
-    setCfg(DEFAULT_SLOT_CONFIGS[slotId]);
-  }
+  function handleReset() { setCfg(DEFAULT_SLOT_CONFIGS[slotId]); }
 
   function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -192,7 +328,10 @@ export default function MockupEditorPage() {
     img.src = url;
   }
 
-  /* ── Render ─────────────────────────────────────────────── */
+  const isQuadActive = cfg.shape === 'rect' && !!cfg.quad;
+
+  /* ── Render ─── */
+
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
       <div className="flex-1 overflow-y-auto">
@@ -200,23 +339,27 @@ export default function MockupEditorPage() {
 
           {/* Top bar */}
           <div className="flex items-center justify-between gap-4 flex-wrap">
-            <h1 className="text-lg font-semibold">굿즈 배치 설정</h1>
+            <div className="flex items-center gap-3">
+              <h1 className="text-lg font-semibold">굿즈 배치 설정</h1>
+              {isQuadActive && (
+                <span className="text-[10px] font-mono bg-accent/10 text-accent border border-accent/30 px-2 py-0.5 rounded-full">
+                  쿼드 워프 활성
+                </span>
+              )}
+            </div>
             <div className="flex items-center gap-3 flex-wrap">
               <Select value={slotId} onValueChange={setSlotId}>
-                <SelectTrigger className="w-52 rounded-xl">
-                  <SelectValue />
-                </SelectTrigger>
+                <SelectTrigger className="w-52 rounded-xl"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {SLOT_META.map((m) => (
                     <SelectItem key={m.id} value={m.id}>{m.label}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-
               <label className="cursor-pointer">
                 <input type="file" accept="image/*" className="sr-only" onChange={handleImageUpload} />
                 <Button variant="outline" size="sm" className="rounded-xl gap-1.5 pointer-events-none">
-                  <Upload className="size-4" />샘플 이미지 업로드
+                  <Upload className="size-4" />샘플 이미지
                 </Button>
               </label>
             </div>
@@ -224,52 +367,42 @@ export default function MockupEditorPage() {
 
           <div className="flex gap-8 flex-col lg:flex-row items-start">
 
-            {/* Canvas */}
+            {/* Canvas area */}
             <div className="shrink-0 flex flex-col items-center gap-2">
               <div
                 className="rounded-2xl overflow-hidden border border-border/40 bg-muted/20"
-                style={{ width: stageW, height: stageH }}
+                style={{ width: W, height: H }}
               >
-                {mounted && (
-                  <Stage width={stageW} height={stageH}>
+                {/* Rect mode: Canvas 2D with corner handles */}
+                {cfg.shape === 'rect' && (
+                  <canvas
+                    ref={rectCanvasRef}
+                    width={W} height={H}
+                    style={{ display: 'block', width: W, height: H, cursor: 'crosshair' }}
+                    onMouseDown={onMouseDown}
+                    onMouseMove={onMouseMove}
+                    onMouseUp={onMouseUp}
+                    onMouseLeave={onMouseUp}
+                  />
+                )}
+
+                {/* Ellipse mode: Konva Stage */}
+                {cfg.shape === 'ellipse' && mounted && (
+                  <Stage width={W} height={H}>
                     <Layer>
-                      {productImg && (
-                        <KonvaImage image={productImg} width={stageW} height={stageH} />
-                      )}
-
-                      {cfg.shape === 'rect' && (
-                        <Rect
-                          ref={rectRef}
-                          key={`rect-${slotId}`}
-                          x={px} y={py}
-                          width={pw} height={ph}
-                          offsetX={pw / 2} offsetY={ph / 2}
-                          rotation={cfg.rotation}
-                          opacity={cfg.opacity}
-                          globalCompositeOperation={cfg.blendMode as GlobalCompositeOperation}
-                          draggable
-                          onDragEnd={handleDragEnd}
-                          onTransformEnd={handleTransformEnd}
-                          {...rectFill()}
-                        />
-                      )}
-
-                      {cfg.shape === 'ellipse' && (
-                        <Ellipse
-                          ref={ellipseRef}
-                          key={`ellipse-${slotId}`}
-                          x={px} y={py}
-                          radiusX={pw / 2} radiusY={ph / 2}
-                          rotation={cfg.rotation}
-                          opacity={cfg.opacity}
-                          globalCompositeOperation={cfg.blendMode as GlobalCompositeOperation}
-                          draggable
-                          onDragEnd={handleDragEnd}
-                          onTransformEnd={handleTransformEnd}
-                          {...ellipseFill()}
-                        />
-                      )}
-
+                      {productImg && <KonvaImage image={productImg} width={W} height={H} />}
+                      <Ellipse
+                        ref={ellipseRef}
+                        key={`ellipse-${slotId}`}
+                        x={px} y={py} radiusX={pw/2} radiusY={ph/2}
+                        rotation={cfg.rotation}
+                        opacity={cfg.opacity}
+                        globalCompositeOperation={cfg.blendMode as GlobalCompositeOperation}
+                        draggable
+                        onDragEnd={onEllipseDragEnd}
+                        onTransformEnd={onEllipseTransformEnd}
+                        {...ellipseFill}
+                      />
                       <Transformer
                         ref={trRef}
                         keepRatio={false}
@@ -284,9 +417,18 @@ export default function MockupEditorPage() {
                   </Stage>
                 )}
               </div>
-              <p className="text-[10px] text-muted-foreground">
-                {slot.label} — {stageW}×{stageH}px (SCALE×{SCALE})
-              </p>
+
+              {/* Hint */}
+              <div className="text-[10px] text-muted-foreground text-center space-y-0.5">
+                {cfg.shape === 'rect' ? (
+                  <>
+                    <p>{slot.label} — {W}×{H}px</p>
+                    <p className="text-accent/70">● 각 꼭짓점을 드래그하면 해당 코너만 자유롭게 이동합니다</p>
+                  </>
+                ) : (
+                  <p>{slot.label} — 드래그·핸들로 조절</p>
+                )}
+              </div>
             </div>
 
             {/* Controls */}
@@ -297,9 +439,7 @@ export default function MockupEditorPage() {
                 <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">모양</span>
                 <div className="flex gap-2">
                   {(['rect', 'ellipse'] as const).map((s) => (
-                    <button
-                      key={s}
-                      onClick={() => set('shape', s)}
+                    <button key={s} onClick={() => set('shape', s)}
                       className={cn(
                         'flex-1 rounded-xl border py-1.5 text-sm font-medium transition-all',
                         cfg.shape === s
@@ -317,60 +457,62 @@ export default function MockupEditorPage() {
               <div className="flex flex-col gap-2">
                 <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">블렌드 모드</span>
                 <Select value={cfg.blendMode} onValueChange={(v) => set('blendMode', v)}>
-                  <SelectTrigger className="rounded-xl">
-                    <SelectValue />
-                  </SelectTrigger>
+                  <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    {BLEND_MODES.map((m) => (
-                      <SelectItem key={m} value={m}>{m}</SelectItem>
-                    ))}
+                    {BLEND_MODES.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
 
               <Separator />
 
-              {/* Position */}
+              {/* Position / size — sliders clear quad when changed */}
               <div className="flex flex-col gap-3">
-                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">위치</span>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">위치 / 크기</span>
+                  {isQuadActive && (
+                    <button
+                      onClick={() => setGeom('x', cfg.x)}
+                      className="text-[10px] text-accent hover:underline flex items-center gap-1"
+                      title="쿼드 워프를 초기화하고 사각형 모드로 전환"
+                    >
+                      <Grid3X3 className="size-3" />사각형 리셋
+                    </button>
+                  )}
+                </div>
                 <SliderRow label="X (가로 중심)" value={cfg.x} min={0} max={1} step={0.001}
-                  onChange={(v) => set('x', v)} fmt={(v) => `${(v * 100).toFixed(1)}%`} />
+                  onChange={(v) => setGeom('x', v)} fmt={(v) => `${(v*100).toFixed(1)}%`} />
                 <SliderRow label="Y (세로 중심)" value={cfg.y} min={0} max={1} step={0.001}
-                  onChange={(v) => set('y', v)} fmt={(v) => `${(v * 100).toFixed(1)}%`} />
-              </div>
-
-              {/* Size */}
-              <div className="flex flex-col gap-3">
-                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">크기</span>
+                  onChange={(v) => setGeom('y', v)} fmt={(v) => `${(v*100).toFixed(1)}%`} />
                 <SliderRow label="너비" value={cfg.w} min={0.01} max={1} step={0.001}
-                  onChange={(v) => set('w', v)} fmt={(v) => `${(v * 100).toFixed(1)}%`} />
+                  onChange={(v) => setGeom('w', v)} fmt={(v) => `${(v*100).toFixed(1)}%`} />
                 <SliderRow label="높이" value={cfg.h} min={0.01} max={1} step={0.001}
-                  onChange={(v) => set('h', v)} fmt={(v) => `${(v * 100).toFixed(1)}%`} />
+                  onChange={(v) => setGeom('h', v)} fmt={(v) => `${(v*100).toFixed(1)}%`} />
               </div>
 
-              {/* Tilt */}
-              <div className="flex flex-col gap-3">
-                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">기울기 (틸트)</span>
-                <SliderRow label="회전 각도" value={cfg.rotation} min={-180} max={180} step={0.1}
-                  onChange={(v) => set('rotation', v)} fmt={(v) => `${v.toFixed(1)}°`} />
-              </div>
+              {/* Rotation (only shown when NOT in quad warp mode) */}
+              {!isQuadActive && (
+                <div className="flex flex-col gap-3">
+                  <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">기울기 (틸트)</span>
+                  <SliderRow label="회전" value={cfg.rotation} min={-180} max={180} step={0.1}
+                    onChange={(v) => setGeom('rotation', v)} fmt={(v) => `${v.toFixed(1)}°`} />
+                </div>
+              )}
 
               <Separator />
 
-              {/* Opacity / Zoom */}
               <div className="flex flex-col gap-3">
                 <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">불투명도 / 줌</span>
                 <SliderRow label="투명도" value={cfg.opacity} min={0} max={1} step={0.01}
-                  onChange={(v) => set('opacity', v)} fmt={(v) => `${(v * 100).toFixed(0)}%`} />
+                  onChange={(v) => set('opacity', v)} fmt={(v) => `${(v*100).toFixed(0)}%`} />
                 <SliderRow label="줌 (이미지 크롭)" value={cfg.zoom} min={1} max={3} step={0.01}
                   onChange={(v) => set('zoom', v)} fmt={(v) => `${v.toFixed(2)}×`} />
               </div>
 
-              {/* Color filters */}
               <div className="flex flex-col gap-3">
                 <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   색상 보정
-                  <span className="ml-1 normal-case text-[10px] font-normal">(저장 후 굿즈 미리보기 반영)</span>
+                  <span className="ml-1 normal-case text-[10px] font-normal">(저장 후 반영)</span>
                 </span>
                 <SliderRow label="밝기" value={cfg.brightness} min={0} max={2} step={0.01}
                   onChange={(v) => set('brightness', v)} fmt={(v) => v.toFixed(2)} />
@@ -382,7 +524,6 @@ export default function MockupEditorPage() {
 
               <Separator />
 
-              {/* Actions */}
               <div className="flex gap-2">
                 <Button onClick={handleReset} variant="outline" size="sm" className="rounded-xl gap-1.5 flex-1">
                   <RotateCcw className="size-3.5" />초기화
@@ -392,9 +533,18 @@ export default function MockupEditorPage() {
                 </Button>
               </div>
 
-              {/* Debug: current normalized values */}
+              {/* Debug readout */}
               <div className="rounded-xl bg-muted/30 p-3 text-[10px] font-mono text-muted-foreground leading-relaxed">
-                {slotId}: x={cfg.x.toFixed(3)} y={cfg.y.toFixed(3)} w={cfg.w.toFixed(3)} h={cfg.h.toFixed(3)} rot={cfg.rotation.toFixed(1)}°
+                {isQuadActive ? (
+                  <>
+                    <div>TL ({(cfg.quad!.tl[0]*100).toFixed(1)}%, {(cfg.quad!.tl[1]*100).toFixed(1)}%)</div>
+                    <div>TR ({(cfg.quad!.tr[0]*100).toFixed(1)}%, {(cfg.quad!.tr[1]*100).toFixed(1)}%)</div>
+                    <div>BR ({(cfg.quad!.br[0]*100).toFixed(1)}%, {(cfg.quad!.br[1]*100).toFixed(1)}%)</div>
+                    <div>BL ({(cfg.quad!.bl[0]*100).toFixed(1)}%, {(cfg.quad!.bl[1]*100).toFixed(1)}%)</div>
+                  </>
+                ) : (
+                  `${slotId}: x=${cfg.x.toFixed(3)} y=${cfg.y.toFixed(3)} w=${cfg.w.toFixed(3)} h=${cfg.h.toFixed(3)} rot=${cfg.rotation.toFixed(1)}°`
+                )}
               </div>
             </div>
           </div>
