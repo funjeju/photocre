@@ -2,38 +2,43 @@
 
 import { useState, useEffect } from 'react'
 
-const MESSAGES = [
-  '지금 이미지 만들고 있어요!',
-  'AI가 열심히 그리는 중 🎨',
-  '쪼끔만 기달려주세요~',
-  '거의 다 됐어요! ✨',
+const SLIDES = [
+  { src: '/style-samples/none.png',        msg: '지금 이미지 만들고 있어요!' },
+  { src: '/style-samples/ghibli.png',      msg: '지브리풍으로도 될 수 있어요 🌿' },
+  { src: '/style-samples/pixar-3d.png',    msg: '픽사 스타일은 어때요? 🎬' },
+  { src: '/style-samples/anime.png',       msg: 'AI가 열심히 그리는 중 🎨' },
+  { src: '/style-samples/disney-3d.png',   msg: '쪼끔만 기달려주세요~' },
+  { src: '/style-samples/oil-painting.png',msg: '유화 스타일도 귀엽죠? 🖌️' },
+  { src: '/style-samples/pencil-sketch.png', msg: '거의 다 됐어요! ✨' },
 ]
 
 export function StudioLoading() {
-  const [msgIdx, setMsgIdx] = useState(0)
-  const [fade, setFade] = useState(true)
+  const [idx, setIdx] = useState(0)
+  const [visible, setVisible] = useState(true)
 
   useEffect(() => {
     const id = setInterval(() => {
-      setFade(false)
+      setVisible(false)
       setTimeout(() => {
-        setMsgIdx((i) => (i + 1) % MESSAGES.length)
-        setFade(true)
-      }, 250)
-    }, 2400)
+        setIdx((i) => (i + 1) % SLIDES.length)
+        setVisible(true)
+      }, 220)
+    }, 1500)
     return () => clearInterval(id)
   }, [])
+
+  const slide = SLIDES[idx]
 
   return (
     <div className="flex flex-col items-center select-none py-6">
       {/* 말풍선 */}
       <div className="relative mb-0">
-        <div className="bg-white border border-border/70 rounded-2xl px-5 py-3 shadow-md min-w-[200px]">
+        <div className="bg-white border border-border/70 rounded-2xl px-5 py-3 shadow-md min-w-[210px]">
           <p
-            className="text-sm font-semibold text-center text-foreground leading-snug transition-opacity duration-250"
-            style={{ opacity: fade ? 1 : 0 }}
+            className="text-sm font-semibold text-center text-foreground leading-snug"
+            style={{ opacity: visible ? 1 : 0, transition: 'opacity 0.2s' }}
           >
-            {MESSAGES[msgIdx]}
+            {slide.msg}
           </p>
           {/* 로딩 점 */}
           <div className="flex justify-center gap-1 mt-2">
@@ -47,22 +52,21 @@ export function StudioLoading() {
           </div>
         </div>
 
-        {/* 말풍선 꼬리 (아래쪽) */}
+        {/* 말풍선 꼬리 */}
         <div className="absolute left-1/2 -translate-x-1/2 -bottom-[9px]">
           <svg width="22" height="10" viewBox="0 0 22 10" fill="none">
-            <path d="M1 0 L11 10 L21 0" fill="white" />
             <path d="M0 0 L11 10.5 L22 0" stroke="hsl(var(--border))" strokeWidth="1.2" fill="none" strokeLinejoin="round" />
-            {/* border 위에 white로 덮어서 하단 테두리만 보이게 */}
             <path d="M1 0 L11 10 L21 0" fill="white" />
           </svg>
         </div>
       </div>
 
-      {/* 여자아이 이미지 */}
+      {/* 꼬마 이미지 */}
       <div style={{ animation: 'studioLoadFloat 2.8s ease-in-out infinite' }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src="/style-samples/none.png"
+          key={slide.src}
+          src={slide.src}
           alt="로딩 중"
           className="rounded-2xl shadow-sm"
           style={{
@@ -70,6 +74,8 @@ export function StudioLoading() {
             height: 140,
             objectFit: 'cover',
             objectPosition: 'center 32%',
+            opacity: visible ? 1 : 0,
+            transition: 'opacity 0.2s',
           }}
         />
       </div>
