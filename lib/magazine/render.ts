@@ -99,7 +99,8 @@ export async function renderAtResolution(
   templateId: string,
   contentSetIndex: number,
   images: string[],
-  resolution: "preview" | "download"
+  resolution: "preview" | "download",
+  overrideContentSet?: ContentSet
 ): Promise<RenderVariant> {
   const layouts = (await import("@/data/magazine_layouts_v5.json")) as unknown as MagazineLayouts
   const { renderToBlob } = await import("./konva-renderer")
@@ -107,8 +108,13 @@ export async function renderAtResolution(
   const template = layouts.templates.find((t) => t.id === templateId)
   if (!template) throw new Error(`Template not found: ${templateId}`)
 
-  const contentSet = template.dedicated_sets[contentSetIndex]
-  if (!contentSet) throw new Error(`ContentSet index out of range: ${contentSetIndex}`)
+  const baseContentSet = template.dedicated_sets[contentSetIndex]
+  if (!baseContentSet) throw new Error(`ContentSet index out of range: ${contentSetIndex}`)
+
+  // Merge override on top of base so unedited slots keep their original values
+  const contentSet: ContentSet = overrideContentSet
+    ? { ...baseContentSet, ...overrideContentSet }
+    : baseContentSet
 
   return renderToBlob(
     template,
@@ -118,6 +124,18 @@ export async function renderAtResolution(
     contentSetIndex,
     resolution
   )
+}
+
+export async function getTemplateAndContentSet(
+  templateId: string,
+  contentSetIndex: number
+): Promise<{ template: MagazineTemplate; contentSet: ContentSet }> {
+  const layouts = (await import("@/data/magazine_layouts_v5.json")) as unknown as MagazineLayouts
+  const template = layouts.templates.find((t) => t.id === templateId)
+  if (!template) throw new Error(`Template not found: ${templateId}`)
+  const contentSet = template.dedicated_sets[contentSetIndex]
+  if (!contentSet) throw new Error(`ContentSet index out of range: ${contentSetIndex}`)
+  return { template, contentSet }
 }
 
 export type { RenderResolution }
