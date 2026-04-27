@@ -6,8 +6,10 @@ import type {
   RenderVariant,
   RenderResolution,
 } from "./types"
+import { buildUnifiedPalette, getDedicatedSets, mergeTemplates } from "./layouts"
 
-// Linear-congruential seeded RNG (deterministic, good enough for layout picking)
+// ── Seeded RNG ────────────────────────────────────────────────────────────────
+
 function makeRng(seed: number) {
   let s = seed >>> 0
   return () => {
@@ -26,11 +28,13 @@ function seededShuffle<T>(arr: T[], seed: number): T[] {
   return result
 }
 
+// ── Template / content-set pickers ────────────────────────────────────────────
+
 export function getTemplatesForImageCount(
-  layouts: MagazineLayouts,
+  templates: MagazineTemplate[],
   imageCount: 1 | 2 | 3 | 4
 ): MagazineTemplate[] {
-  return layouts.templates.filter((t) => t.imageCount === imageCount)
+  return templates.filter((t) => t.imageCount === imageCount)
 }
 
 export function pickThreeTemplates(
@@ -52,29 +56,60 @@ export function pickThreeTemplates(
 
 export function pickContentSet(
   template: MagazineTemplate,
+  allTemplates: MagazineTemplate[],
   seed?: number
 ): { set: ContentSet; index: number } {
-  const sets = template.dedicated_sets
+  const sets = getDedicatedSets(template, allTemplates)
+  if (sets.length === 0) {
+    // Fallback: return empty set so the template still renders
+    return { set: {}, index: 0 }
+  }
   const index =
     seed !== undefined
-      ? Math.abs(makeRng(seed + 99)() * sets.length | 0) % sets.length
+      ? Math.abs((makeRng(seed + 99)() * sets.length) | 0) % sets.length
       : Math.floor(Math.random() * sets.length)
   return { set: sets[index], index }
 }
 
+// ── Async layout loader (merged base + extension) ─────────────────────────────
+
+async function loadMergedLayouts() {
+  const [baseModule, extModule] = await Promise.all([
+    import("@/data/magazine_layouts_v5.json"),
+    import("@/data/magazine_layouts_v5_extension.json"),
+  ])
+
+  const base = baseModule as unknown as MagazineLayouts
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const ext = extModule as unknown as any
+
+  const allTemplates = mergeTemplates(
+    base.templates as MagazineTemplate[],
+    ext.templates as MagazineTemplate[]
+  )
+
+  const unifiedPalette = buildUnifiedPalette(
+    base.background_palette,
+    ext.background_system ?? {}
+  )
+
+  return { allTemplates, unifiedPalette }
+}
+
+// ── Public API ────────────────────────────────────────────────────────────────
+
 export async function* generateThreeVariants(
   input: RenderInput
 ): AsyncGenerator<RenderVariant, void, unknown> {
-  const layouts = (await import("@/data/magazine_layouts_v5.json")) as unknown as MagazineLayouts
+  const { allTemplates, unifiedPalette } = await loadMergedLayouts()
   const { renderToBlob } = await import("./konva-renderer")
 
-  const candidates = getTemplatesForImageCount(layouts, input.imageCount)
+  const candidates = getTemplatesForImageCount(allTemplates, input.imageCount)
   const [t1, t2, t3] = pickThreeTemplates(candidates, input.seed)
 
-  // Each template gets its own content-set seed so they don't all land on the same set
-  const cs1 = pickContentSet(t1, input.seed)
-  const cs2 = pickContentSet(t2, input.seed !== undefined ? input.seed + 37 : undefined)
-  const cs3 = pickContentSet(t3, input.seed !== undefined ? input.seed + 73 : undefined)
+  const cs1 = pickContentSet(t1, allTemplates, input.seed)
+  const cs2 = pickContentSet(t2, allTemplates, input.seed !== undefined ? input.seed + 37 : undefined)
+  const cs3 = pickContentSet(t3, allTemplates, input.seed !== undefined ? input.seed + 73 : undefined)
 
   const triples: [MagazineTemplate, ContentSet, number][] = [
     [t1, cs1.set, cs1.index],
@@ -85,7 +120,7 @@ export async function* generateThreeVariants(
   for (const [template, contentSet, contentSetIndex] of triples) {
     const variant = await renderToBlob(
       template,
-      layouts.background_palette,
+      unifiedPalette,
       input.images,
       contentSet,
       contentSetIndex,
@@ -102,39 +137,33 @@ export async function renderAtResolution(
   resolution: "preview" | "download",
   overrideContentSet?: ContentSet
 ): Promise<RenderVariant> {
-  const layouts = (await import("@/data/magazine_layouts_v5.json")) as unknown as MagazineLayouts
+  const { allTemplates, unifiedPalette } = await loadMergedLayouts()
   const { renderToBlob } = await import("./konva-renderer")
 
-  const template = layouts.templates.find((t) => t.id === templateId)
+  const template = allTemplates.find((t) => t.id === templateId)
   if (!template) throw new Error(`Template not found: ${templateId}`)
 
-  const baseContentSet = template.dedicated_sets[contentSetIndex]
-  if (!baseContentSet) throw new Error(`ContentSet index out of range: ${contentSetIndex}`)
+  const sets = getDedicatedSets(template, allTemplates)
+  const baseContentSet = sets[contentSetIndex] ?? {}
 
-  // Merge override on top of base so unedited slots keep their original values
   const contentSet: ContentSet = overrideContentSet
     ? { ...baseContentSet, ...overrideContentSet }
     : baseContentSet
 
-  return renderToBlob(
-    template,
-    layouts.background_palette,
-    images,
-    contentSet,
-    contentSetIndex,
-    resolution
-  )
+  return renderToBlob(template, unifiedPalette, images, contentSet, contentSetIndex, resolution)
 }
 
 export async function getTemplateAndContentSet(
   templateId: string,
   contentSetIndex: number
 ): Promise<{ template: MagazineTemplate; contentSet: ContentSet }> {
-  const layouts = (await import("@/data/magazine_layouts_v5.json")) as unknown as MagazineLayouts
-  const template = layouts.templates.find((t) => t.id === templateId)
+  const { allTemplates } = await loadMergedLayouts()
+
+  const template = allTemplates.find((t) => t.id === templateId)
   if (!template) throw new Error(`Template not found: ${templateId}`)
-  const contentSet = template.dedicated_sets[contentSetIndex]
-  if (!contentSet) throw new Error(`ContentSet index out of range: ${contentSetIndex}`)
+
+  const sets = getDedicatedSets(template, allTemplates)
+  const contentSet = sets[contentSetIndex] ?? {}
   return { template, contentSet }
 }
 

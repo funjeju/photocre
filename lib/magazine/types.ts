@@ -10,6 +10,9 @@ export interface ImageSlot {
   y: number
   w: number
   h: number
+  rotation?: number   // degrees, for tilted/polaroid images
+  frame?: string      // "polaroid" | "thin_border" etc. (visual hint, future use)
+  clip?: string       // "triangle_top_left" etc. (visual hint, future use)
 }
 
 export interface TextSlot {
@@ -31,7 +34,8 @@ export interface TextSlot {
 }
 
 export interface Decoration {
-  type: "line" | string
+  type: "line" | "card_box" | "overlay_gradient" | "quad_color_overlay" | string
+  // line fields
   orientation?: "horizontal" | "vertical"
   x1?: number
   y1?: number
@@ -39,6 +43,20 @@ export interface Decoration {
   y2?: number
   thickness?: number
   color?: string
+  // card_box fields
+  x?: number
+  y?: number
+  w?: number
+  h?: number
+  fill?: string
+  opacity?: number
+  // overlay_gradient fields
+  from?: string
+  to?: string
+  direction?: string
+  y_range?: [number, number]
+  // quad_color_overlay fields
+  colors?: string[]
 }
 
 export interface CharLimit {
@@ -67,6 +85,7 @@ export interface MagazineTemplate {
   id: string
   name: string
   description: string
+  category?: "editorial" | "cute"
   imageCount: 1 | 2 | 3 | 4
   style: string
   aspectRatio: AspectRatio
@@ -75,11 +94,12 @@ export interface MagazineTemplate {
   texts: TextSlot[]
   decorations: Decoration[]
   char_limits: Record<string, CharLimit>
-  dedicated_sets: ContentSet[]
+  dedicated_sets?: ContentSet[]       // base templates only
+  borrows_sets_from?: string          // extension templates: borrow sets from this id
 }
 
 export interface MagazineLayouts {
-  schema_version: "5.0-final"
+  schema_version: string
   background_palette: Record<string, BackgroundPaletteEntry>
   templates: MagazineTemplate[]
 }

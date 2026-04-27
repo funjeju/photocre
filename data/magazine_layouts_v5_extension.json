@@ -1,0 +1,951 @@
+{
+  "schema_version": "5.0-extension-v1",
+  "description": "Magazine Layouts v5 Extension - 40 new templates (Editorial 20 + Cute 20) + background system. Use merged with magazine_layouts_v5.json. New templates use borrows_sets_from to reference existing dedicated_sets.",
+  "category_filter": {
+    "editorial": "refined magazine style (existing 1-01~4-10 + new 1-11~15, 2-11~15, 3-11~15, 4-11~15)",
+    "cute": "cute collage style (new 1-21~25, 2-21~25, 3-21~25, 4-21~25)"
+  },
+  "background_system": {
+    "solid": {
+      "paper_white": "#FAFAFA",
+      "paper_cream": "#F4F0E8",
+      "paper_beige": "#F2EFEA",
+      "ivory": "#F8F5EE",
+      "platinum": "#E8E5DD",
+      "obsidian": "#0A0A0A",
+      "midnight": "#0F1419",
+      "ink_blue": "#1A2B3F",
+      "navy_deep": "#0F1B30",
+      "peach_soft": "#F5DDD2",
+      "blush_pink": "#F2D7D5",
+      "sage_warm": "#D4DDD0",
+      "mint_pale": "#D5E8DC",
+      "sky_pale": "#D8E3EC",
+      "lavender_soft": "#DCD5E5",
+      "butter_cream": "#F5E8C7",
+      "kraft_warm": "#D9C5A6",
+      "rose_dust": "#E8C9C5",
+      "sand_light": "#EDE0CC",
+      "terracotta_pale": "#E8B89C",
+      "denim_dust": "#A8B5C5",
+      "forest_pale": "#B5C2A8"
+    },
+    "gradient": {
+      "warm_sunset": {
+        "type": "linear",
+        "direction": "135deg",
+        "stops": [{ "color": "#F5DDD2", "at": 0 }, { "color": "#E8B89C", "at": 1 }]
+      },
+      "sky_breeze": {
+        "type": "linear",
+        "direction": "180deg",
+        "stops": [{ "color": "#D8E3EC", "at": 0 }, { "color": "#FFFFFF", "at": 1 }]
+      },
+      "cream_glow": {
+        "type": "radial",
+        "center": "50% 30%",
+        "stops": [{ "color": "#FFFFFF", "at": 0 }, { "color": "#F5E8C7", "at": 1 }]
+      },
+      "lavender_morning": {
+        "type": "linear",
+        "direction": "165deg",
+        "stops": [{ "color": "#DCD5E5", "at": 0 }, { "color": "#F2D7D5", "at": 1 }]
+      },
+      "mint_fade": {
+        "type": "linear",
+        "direction": "180deg",
+        "stops": [{ "color": "#D5E8DC", "at": 0 }, { "color": "#FAFAFA", "at": 1 }]
+      },
+      "peach_ombre": {
+        "type": "linear",
+        "direction": "180deg",
+        "stops": [{ "color": "#F5DDD2", "at": 0 }, { "color": "#FFFFFF", "at": 1 }]
+      },
+      "obsidian_glow": {
+        "type": "radial",
+        "center": "50% 50%",
+        "stops": [{ "color": "#1A2B3F", "at": 0 }, { "color": "#0A0A0A", "at": 1 }]
+      }
+    },
+    "texture": {
+      "linen_paper": { "asset": "/textures/linen.png", "base_color": "#F4F0E8", "blend": "multiply", "opacity": 0.15 },
+      "newsprint": { "asset": "/textures/newsprint.png", "base_color": "#F8F5EE", "blend": "multiply", "opacity": 0.2 },
+      "kraft_paper": { "asset": "/textures/kraft.png", "base_color": "#D9C5A6", "blend": "multiply", "opacity": 0.25 },
+      "vintage_map": { "asset": "/textures/vintage_map.jpg", "base_color": "#EDE0CC", "blend": "soft-light", "opacity": 0.3 },
+      "watercolor_blot": { "asset": "/textures/watercolor.png", "base_color": "#FAFAFA", "blend": "multiply", "opacity": 0.2 },
+      "fabric_weave": { "asset": "/textures/fabric.png", "base_color": "#F4F0E8", "blend": "overlay", "opacity": 0.1 },
+      "cardboard": { "asset": "/textures/cardboard.png", "base_color": "#D9C5A6", "blend": "multiply", "opacity": 0.3 }
+    },
+    "pattern": {
+      "polka_dots_soft": { "type": "svg_repeat", "pattern": "circle", "fg_color": "#E8C9C5", "bg_color": "#FFFFFF", "size": 24, "opacity": 0.4 },
+      "hearts_repeating": { "type": "svg_repeat", "pattern": "heart", "fg_color": "#F2D7D5", "bg_color": "#FFFFFF", "size": 32, "opacity": 0.3 },
+      "stars_scatter": { "type": "svg_repeat", "pattern": "star", "fg_color": "#F5E8C7", "bg_color": "#FAFAFA", "size": 28, "opacity": 0.4 },
+      "paw_prints": { "type": "svg_repeat", "pattern": "paw", "fg_color": "#D9C5A6", "bg_color": "#FAFAFA", "size": 36, "opacity": 0.25 },
+      "dots_grid": { "type": "svg_repeat", "pattern": "dot_small", "fg_color": "#A8B5C5", "bg_color": "#FAFAFA", "size": 16, "opacity": 0.5 },
+      "diagonal_lines": { "type": "svg_repeat", "pattern": "diagonal", "fg_color": "#E8E5DD", "bg_color": "#FFFFFF", "size": 40, "opacity": 0.5 },
+      "confetti_soft": { "type": "svg_repeat", "pattern": "confetti", "fg_colors": ["#F2D7D5", "#D5E8DC", "#F5E8C7", "#DCD5E5"], "bg_color": "#FFFFFF", "size": 48, "opacity": 0.5 }
+    }
+  },
+  "templates": [
+    {
+      "id": "1-11", "name": "Side Caption Minimal", "description": "Large photo left + small caption card right. Most minimal gallery style.",
+      "category": "editorial", "imageCount": 1, "style": "minimal_gallery", "aspectRatio": "4:3",
+      "background": "paper_white", "borrows_sets_from": "1-05",
+      "images": [{ "x": 4, "y": 8, "w": 60, "h": 84 }],
+      "texts": [
+        { "type": "title", "x": 68, "y": 12, "w": 28, "h": 6, "align": "left", "size": "lg", "weight": "regular", "font": "sans" },
+        { "type": "body", "x": 68, "y": 22, "w": 28, "h": 30, "align": "left", "size": "xs", "weight": "regular", "lineHeight": "relaxed" },
+        { "type": "infobox", "x": 68, "y": 60, "w": 28, "h": 25, "align": "left", "size": "xs", "weight": "regular" },
+        { "type": "folio", "x": 68, "y": 92, "w": 28, "h": 3, "align": "left", "size": "xs", "color": "muted" }
+      ],
+      "decorations": [{ "type": "line", "orientation": "horizontal", "x1": 68, "y1": 20, "x2": 78, "y2": 20, "thickness": 1, "color": "muted" }],
+      "char_limits": {
+        "title": { "min": 13, "ideal": 26, "max": 35, "lines": 2, "case": "title" },
+        "body": { "min": 443, "ideal": 806, "max": 1128, "lines": 26, "case": "sentence" },
+        "infobox": { "min": 358, "ideal": 651, "max": 878, "lines": 21, "case": "mixed" },
+        "folio": { "min": 1, "ideal": 4, "max": 8, "lines": 1, "case": "lowercase" }
+      }
+    },
+    {
+      "id": "1-12", "name": "Vertical Strip Sidetext", "description": "Vertical strip photo left + side caption + large label overlapping photo.",
+      "category": "editorial", "imageCount": 1, "style": "vertical_strip_overlay", "aspectRatio": "4:3",
+      "background": "paper_white", "borrows_sets_from": "1-01",
+      "images": [{ "x": 4, "y": 6, "w": 36, "h": 88 }],
+      "texts": [
+        { "type": "vertical", "x": 38, "y": 30, "w": 6, "h": 50, "align": "center", "size": "5xl", "weight": "regular", "font": "serif", "italic": true, "rotation": -90, "color": "white_overlay" },
+        { "type": "eyebrow", "x": 50, "y": 20, "w": 30, "h": 3, "align": "left", "size": "xs", "weight": "bold", "letterSpacing": "widest" },
+        { "type": "title", "x": 50, "y": 26, "w": 35, "h": 12, "align": "left", "size": "2xl", "weight": "regular", "font": "serif", "lineHeight": "tight" },
+        { "type": "byline", "x": 50, "y": 42, "w": 30, "h": 3, "align": "left", "size": "xs", "weight": "medium", "color": "muted" },
+        { "type": "body", "x": 50, "y": 50, "w": 40, "h": 35, "align": "left", "size": "sm", "lineHeight": "relaxed" },
+        { "type": "folio", "x": 50, "y": 92, "w": 30, "h": 3, "align": "left", "size": "xs", "color": "muted" }
+      ],
+      "decorations": [],
+      "char_limits": {
+        "vertical": { "min": 3, "ideal": 7, "max": 12, "lines": 1, "case": "title" },
+        "eyebrow": { "min": 13, "ideal": 33, "max": 39, "lines": 1, "case": "uppercase" },
+        "title": { "min": 15, "ideal": 30, "max": 40, "lines": 3, "case": "title" },
+        "byline": { "min": 13, "ideal": 33, "max": 39, "lines": 1, "case": "uppercase" },
+        "body": { "min": 392, "ideal": 714, "max": 999, "lines": 21, "case": "sentence" },
+        "folio": { "min": 1, "ideal": 4, "max": 8, "lines": 1, "case": "lowercase" }
+      }
+    },
+    {
+      "id": "1-13", "name": "Top Wide Bottom Card", "description": "Top wide photo + bottom text card (left body + right meta).",
+      "category": "editorial", "imageCount": 1, "style": "top_wide_bottom_card", "aspectRatio": "3:4",
+      "background": "paper_white", "borrows_sets_from": "1-08",
+      "images": [{ "x": 0, "y": 0, "w": 100, "h": 55 }],
+      "texts": [
+        { "type": "eyebrow", "x": 6, "y": 60, "w": 40, "h": 3, "align": "left", "size": "xs", "weight": "bold", "letterSpacing": "widest" },
+        { "type": "title", "x": 6, "y": 65, "w": 60, "h": 10, "align": "left", "size": "3xl", "weight": "medium", "font": "serif", "lineHeight": "tight" },
+        { "type": "kicker", "x": 6, "y": 78, "w": 60, "h": 4, "align": "left", "size": "sm", "italic": true, "color": "muted" },
+        { "type": "body", "x": 6, "y": 84, "w": 55, "h": 12, "align": "left", "size": "xs", "weight": "regular", "lineHeight": "relaxed" },
+        { "type": "byline", "x": 70, "y": 84, "w": 25, "h": 3, "align": "right", "size": "xs", "weight": "bold", "letterSpacing": "wide" },
+        { "type": "caption", "x": 70, "y": 88, "w": 25, "h": 4, "align": "right", "size": "xs", "italic": true, "color": "muted" },
+        { "type": "folio", "x": 90, "y": 95, "w": 8, "h": 3, "align": "right", "size": "xs", "color": "muted" }
+      ],
+      "decorations": [{ "type": "line", "orientation": "horizontal", "x1": 6, "y1": 76, "x2": 30, "y2": 76, "thickness": 1, "color": "accent" }],
+      "char_limits": {
+        "eyebrow": { "min": 17, "ideal": 44, "max": 52, "lines": 1, "case": "uppercase" },
+        "title": { "min": 13, "ideal": 26, "max": 35, "lines": 2, "case": "title" },
+        "kicker": { "min": 56, "ideal": 102, "max": 137, "lines": 2, "case": "sentence" },
+        "body": { "min": 335, "ideal": 610, "max": 854, "lines": 10, "case": "sentence" },
+        "byline": { "min": 11, "ideal": 28, "max": 33, "lines": 1, "case": "uppercase" },
+        "caption": { "min": 33, "ideal": 84, "max": 126, "lines": 3, "case": "sentence" },
+        "folio": { "min": 1, "ideal": 4, "max": 8, "lines": 1, "case": "lowercase" }
+      }
+    },
+    {
+      "id": "1-14", "name": "Big Number Hero", "description": "Large serif number + left photo + right text.",
+      "category": "editorial", "imageCount": 1, "style": "big_number_hero", "aspectRatio": "4:3",
+      "background": "paper_white", "borrows_sets_from": "1-02",
+      "images": [{ "x": 4, "y": 8, "w": 50, "h": 84 }],
+      "texts": [
+        { "type": "number", "x": 76, "y": 8, "w": 22, "h": 22, "align": "right", "size": "6xl", "weight": "regular", "font": "serif", "color": "muted_strong" },
+        { "type": "eyebrow", "x": 58, "y": 32, "w": 38, "h": 3, "align": "left", "size": "xs", "weight": "bold", "letterSpacing": "widest" },
+        { "type": "title", "x": 58, "y": 37, "w": 38, "h": 12, "align": "left", "size": "2xl", "weight": "medium", "font": "serif", "lineHeight": "tight" },
+        { "type": "body", "x": 58, "y": 52, "w": 38, "h": 32, "align": "left", "size": "sm", "lineHeight": "relaxed" },
+        { "type": "byline", "x": 58, "y": 88, "w": 38, "h": 3, "align": "left", "size": "xs", "weight": "medium", "color": "muted" },
+        { "type": "folio", "x": 90, "y": 95, "w": 8, "h": 3, "align": "right", "size": "xs", "color": "muted" }
+      ],
+      "decorations": [],
+      "char_limits": {
+        "number": { "min": 2, "ideal": 2, "max": 4, "lines": 1, "case": "numeric" },
+        "eyebrow": { "min": 16, "ideal": 42, "max": 50, "lines": 1, "case": "uppercase" },
+        "title": { "min": 16, "ideal": 33, "max": 44, "lines": 3, "case": "title" },
+        "body": { "min": 334, "ideal": 608, "max": 851, "lines": 19, "case": "sentence" },
+        "byline": { "min": 16, "ideal": 42, "max": 50, "lines": 1, "case": "uppercase" },
+        "folio": { "min": 1, "ideal": 4, "max": 8, "lines": 1, "case": "lowercase" }
+      }
+    },
+    {
+      "id": "1-15", "name": "Magazine Cover Pure", "description": "Full bleed photo + masthead top left + captions bottom.",
+      "category": "editorial", "imageCount": 1, "style": "magazine_cover_full", "aspectRatio": "3:4",
+      "background": "paper_white", "borrows_sets_from": "1-10",
+      "images": [{ "x": 0, "y": 0, "w": 100, "h": 100 }],
+      "texts": [
+        { "type": "masthead", "x": 6, "y": 6, "w": 50, "h": 10, "align": "left", "size": "5xl", "weight": "bold", "font": "serif", "color": "white_overlay" },
+        { "type": "kicker", "x": 6, "y": 18, "w": 50, "h": 3, "align": "left", "size": "xs", "italic": true, "color": "white_overlay" },
+        { "type": "eyebrow", "x": 6, "y": 78, "w": 60, "h": 3, "align": "left", "size": "xs", "weight": "bold", "letterSpacing": "widest", "color": "white_overlay" },
+        { "type": "title", "x": 6, "y": 82, "w": 60, "h": 8, "align": "left", "size": "2xl", "weight": "medium", "font": "serif", "color": "white_overlay" },
+        { "type": "byline", "x": 6, "y": 92, "w": 30, "h": 3, "align": "left", "size": "xs", "weight": "medium", "color": "white_overlay" },
+        { "type": "caption", "x": 70, "y": 94, "w": 25, "h": 3, "align": "right", "size": "xs", "color": "white_overlay" },
+        { "type": "folio", "x": 90, "y": 4, "w": 8, "h": 3, "align": "right", "size": "xs", "color": "white_overlay" }
+      ],
+      "decorations": [
+        { "type": "overlay_gradient", "from": "rgba(0,0,0,0.4)", "to": "rgba(0,0,0,0)", "direction": "180deg", "y_range": [0, 30] },
+        { "type": "overlay_gradient", "from": "rgba(0,0,0,0)", "to": "rgba(0,0,0,0.5)", "direction": "180deg", "y_range": [70, 100] }
+      ],
+      "char_limits": {
+        "masthead": { "min": 4, "ideal": 6, "max": 8, "lines": 1, "case": "uppercase" },
+        "kicker": { "min": 60, "ideal": 110, "max": 148, "lines": 2, "case": "sentence" },
+        "eyebrow": { "min": 26, "ideal": 66, "max": 79, "lines": 1, "case": "uppercase" },
+        "title": { "min": 18, "ideal": 36, "max": 48, "lines": 2, "case": "title" },
+        "byline": { "min": 13, "ideal": 33, "max": 39, "lines": 1, "case": "uppercase" },
+        "caption": { "min": 33, "ideal": 84, "max": 126, "lines": 3, "case": "sentence" },
+        "folio": { "min": 1, "ideal": 4, "max": 8, "lines": 1, "case": "lowercase" }
+      }
+    },
+    {
+      "id": "2-11", "name": "Big Number Duo", "description": "Large serif number + left photo + right small photo + meta.",
+      "category": "editorial", "imageCount": 2, "style": "big_number_duo", "aspectRatio": "3:4",
+      "background": "paper_white", "borrows_sets_from": "2-02",
+      "images": [{ "x": 0, "y": 0, "w": 50, "h": 65 }, { "x": 56, "y": 30, "w": 38, "h": 35 }],
+      "texts": [
+        { "type": "number", "x": 56, "y": 4, "w": 38, "h": 22, "align": "left", "size": "6xl", "weight": "regular", "font": "serif", "color": "muted_strong" },
+        { "type": "eyebrow", "x": 4, "y": 70, "w": 40, "h": 3, "align": "left", "size": "xs", "weight": "bold", "letterSpacing": "widest" },
+        { "type": "title", "x": 4, "y": 74, "w": 50, "h": 8, "align": "left", "size": "2xl", "weight": "medium", "font": "serif" },
+        { "type": "body", "x": 4, "y": 84, "w": 50, "h": 12, "align": "left", "size": "xs", "lineHeight": "relaxed" },
+        { "type": "kicker", "x": 56, "y": 70, "w": 38, "h": 12, "align": "left", "size": "sm", "italic": true, "color": "muted" },
+        { "type": "folio", "x": 90, "y": 95, "w": 8, "h": 3, "align": "right", "size": "xs", "color": "muted" }
+      ],
+      "decorations": [],
+      "char_limits": {
+        "number": { "min": 2, "ideal": 2, "max": 4, "lines": 1, "case": "numeric" },
+        "eyebrow": { "min": 17, "ideal": 44, "max": 52, "lines": 1, "case": "uppercase" },
+        "title": { "min": 15, "ideal": 30, "max": 40, "lines": 2, "case": "title" },
+        "body": { "min": 302, "ideal": 550, "max": 770, "lines": 10, "case": "sentence" },
+        "kicker": { "min": 35, "ideal": 64, "max": 86, "lines": 2, "case": "sentence" },
+        "folio": { "min": 1, "ideal": 4, "max": 8, "lines": 1, "case": "lowercase" }
+      }
+    },
+    {
+      "id": "2-12", "name": "Top Hero Bottom Duo", "description": "Top wide photo + bottom duo photo + side text.",
+      "category": "editorial", "imageCount": 2, "style": "top_hero_bottom_duo", "aspectRatio": "4:3",
+      "background": "paper_white", "borrows_sets_from": "2-08",
+      "images": [{ "x": 0, "y": 0, "w": 100, "h": 50 }, { "x": 4, "y": 55, "w": 35, "h": 40 }],
+      "texts": [
+        { "type": "runninghead", "x": 4, "y": 52, "w": 92, "h": 3, "align": "left", "size": "xs", "weight": "bold", "letterSpacing": "widest", "color": "muted" },
+        { "type": "caption", "x": 4, "y": 96, "w": 35, "h": 3, "align": "left", "size": "xs", "italic": true, "color": "muted" },
+        { "type": "eyebrow", "x": 44, "y": 58, "w": 50, "h": 3, "align": "left", "size": "xs", "weight": "bold", "letterSpacing": "widest" },
+        { "type": "title", "x": 44, "y": 63, "w": 52, "h": 10, "align": "left", "size": "3xl", "weight": "medium", "font": "serif", "lineHeight": "tight" },
+        { "type": "body", "x": 44, "y": 76, "w": 52, "h": 18, "align": "left", "size": "sm", "lineHeight": "relaxed" },
+        { "type": "folio", "x": 90, "y": 96, "w": 8, "h": 3, "align": "right", "size": "xs", "color": "muted" }
+      ],
+      "decorations": [{ "type": "line", "orientation": "horizontal", "x1": 4, "y1": 53.5, "x2": 96, "y2": 53.5, "thickness": 0.5, "color": "muted" }],
+      "char_limits": {
+        "runninghead": { "min": 40, "ideal": 101, "max": 121, "lines": 1, "case": "uppercase" },
+        "caption": { "min": 45, "ideal": 114, "max": 171, "lines": 3, "case": "sentence" },
+        "eyebrow": { "min": 22, "ideal": 55, "max": 66, "lines": 1, "case": "uppercase" },
+        "title": { "min": 11, "ideal": 22, "max": 29, "lines": 2, "case": "title" },
+        "body": { "min": 266, "ideal": 484, "max": 677, "lines": 11, "case": "sentence" },
+        "folio": { "min": 1, "ideal": 4, "max": 8, "lines": 1, "case": "lowercase" }
+      }
+    },
+    {
+      "id": "2-13", "name": "Side by Side Spread", "description": "Equal left/right split — left photo+caption, right photo+body.",
+      "category": "editorial", "imageCount": 2, "style": "spread_side_by_side", "aspectRatio": "4:3",
+      "background": "paper_white", "borrows_sets_from": "2-08",
+      "images": [{ "x": 4, "y": 8, "w": 44, "h": 60 }, { "x": 52, "y": 8, "w": 44, "h": 50 }],
+      "texts": [
+        { "type": "runninghead", "x": 4, "y": 4, "w": 92, "h": 3, "align": "center", "size": "xs", "weight": "bold", "letterSpacing": "widest", "color": "muted" },
+        { "type": "caption", "x": 4, "y": 70, "w": 44, "h": 4, "align": "left", "size": "xs", "italic": true, "color": "muted" },
+        { "type": "title", "x": 4, "y": 76, "w": 44, "h": 10, "align": "left", "size": "2xl", "weight": "medium", "font": "serif" },
+        { "type": "body", "x": 4, "y": 88, "w": 44, "h": 8, "align": "left", "size": "xs", "lineHeight": "relaxed" },
+        { "type": "eyebrow", "x": 52, "y": 62, "w": 44, "h": 3, "align": "left", "size": "xs", "weight": "bold", "letterSpacing": "widest" },
+        { "type": "body_2", "x": 52, "y": 68, "w": 44, "h": 26, "align": "left", "size": "sm", "lineHeight": "relaxed" },
+        { "type": "folio", "x": 4, "y": 96, "w": 8, "h": 3, "align": "left", "size": "xs", "color": "muted" }
+      ],
+      "decorations": [{ "type": "line", "orientation": "vertical", "x1": 50, "y1": 8, "x2": 50, "y2": 95, "thickness": 0.5, "color": "muted" }],
+      "char_limits": {
+        "runninghead": { "min": 40, "ideal": 101, "max": 121, "lines": 1, "case": "uppercase" },
+        "caption": { "min": 57, "ideal": 144, "max": 216, "lines": 3, "case": "sentence" },
+        "title": { "min": 13, "ideal": 26, "max": 35, "lines": 2, "case": "title" },
+        "body": { "min": 184, "ideal": 336, "max": 470, "lines": 7, "case": "sentence" },
+        "eyebrow": { "min": 19, "ideal": 48, "max": 57, "lines": 1, "case": "uppercase" },
+        "body_2": { "min": 325, "ideal": 592, "max": 799, "lines": 16, "case": "sentence" },
+        "folio": { "min": 1, "ideal": 4, "max": 8, "lines": 1, "case": "lowercase" }
+      }
+    },
+    {
+      "id": "2-14", "name": "Mono Spread Editorial", "description": "B&W magazine duo — large left photo + small right photo + body.",
+      "category": "editorial", "imageCount": 2, "style": "mono_spread_editorial", "aspectRatio": "4:3",
+      "background": "paper_white", "borrows_sets_from": "2-04",
+      "images": [{ "x": 0, "y": 0, "w": 56, "h": 100 }, { "x": 60, "y": 8, "w": 36, "h": 38 }],
+      "texts": [
+        { "type": "eyebrow", "x": 60, "y": 50, "w": 36, "h": 3, "align": "left", "size": "xs", "weight": "bold", "letterSpacing": "widest" },
+        { "type": "title", "x": 60, "y": 54, "w": 36, "h": 12, "align": "left", "size": "2xl", "weight": "medium", "font": "serif", "lineHeight": "tight" },
+        { "type": "body", "x": 60, "y": 70, "w": 36, "h": 22, "align": "left", "size": "sm", "lineHeight": "relaxed" },
+        { "type": "byline", "x": 60, "y": 95, "w": 30, "h": 3, "align": "left", "size": "xs", "weight": "medium", "color": "muted" },
+        { "type": "folio", "x": 90, "y": 95, "w": 8, "h": 3, "align": "right", "size": "xs", "color": "white_overlay" }
+      ],
+      "decorations": [],
+      "char_limits": {
+        "eyebrow": { "min": 16, "ideal": 40, "max": 48, "lines": 1, "case": "uppercase" },
+        "title": { "min": 16, "ideal": 33, "max": 44, "lines": 3, "case": "title" },
+        "body": { "min": 221, "ideal": 403, "max": 564, "lines": 13, "case": "sentence" },
+        "byline": { "min": 13, "ideal": 33, "max": 39, "lines": 1, "case": "uppercase" },
+        "folio": { "min": 1, "ideal": 4, "max": 8, "lines": 1, "case": "lowercase" }
+      }
+    },
+    {
+      "id": "2-15", "name": "Triangle Split Duo", "description": "Two photos split diagonally + center text card.",
+      "category": "editorial", "imageCount": 2, "style": "triangle_diagonal_split", "aspectRatio": "3:4",
+      "background": "paper_white", "borrows_sets_from": "2-09",
+      "images": [{ "x": 0, "y": 0, "w": 100, "h": 60 }, { "x": 0, "y": 40, "w": 100, "h": 60 }],
+      "texts": [
+        { "type": "eyebrow", "x": 30, "y": 44, "w": 40, "h": 3, "align": "center", "size": "xs", "weight": "bold", "letterSpacing": "widest" },
+        { "type": "title", "x": 25, "y": 48, "w": 50, "h": 8, "align": "center", "size": "2xl", "weight": "regular", "font": "serif", "italic": true },
+        { "type": "kicker", "x": 30, "y": 58, "w": 40, "h": 4, "align": "center", "size": "xs" },
+        { "type": "folio", "x": 90, "y": 95, "w": 8, "h": 3, "align": "right", "size": "xs", "color": "muted" }
+      ],
+      "decorations": [{ "type": "card_box", "x": 20, "y": 42, "w": 60, "h": 24, "fill": "white", "opacity": 0.9 }],
+      "char_limits": {
+        "eyebrow": { "min": 17, "ideal": 44, "max": 52, "lines": 1, "case": "uppercase" },
+        "title": { "min": 15, "ideal": 30, "max": 40, "lines": 2, "case": "title" },
+        "kicker": { "min": 48, "ideal": 88, "max": 118, "lines": 2, "case": "sentence" },
+        "folio": { "min": 1, "ideal": 4, "max": 8, "lines": 1, "case": "lowercase" }
+      }
+    },
+    {
+      "id": "3-11", "name": "Big Plus Two Mosaic", "description": "Large photo 1 + right small photos 2 mosaic + side caption.",
+      "category": "editorial", "imageCount": 3, "style": "big_plus_two_mosaic", "aspectRatio": "4:3",
+      "background": "paper_white", "borrows_sets_from": "3-05",
+      "images": [{ "x": 0, "y": 8, "w": 50, "h": 84 }, { "x": 54, "y": 8, "w": 42, "h": 40 }, { "x": 54, "y": 52, "w": 42, "h": 40 }],
+      "texts": [
+        { "type": "title", "x": 4, "y": 4, "w": 92, "h": 3, "align": "left", "size": "lg", "weight": "regular", "font": "sans" },
+        { "type": "body", "x": 0, "y": 96, "w": 50, "h": 3, "align": "left", "size": "xs", "color": "muted" },
+        { "type": "infobox", "x": 54, "y": 95, "w": 42, "h": 3, "align": "right", "size": "xs", "color": "muted" },
+        { "type": "folio", "x": 90, "y": 96, "w": 8, "h": 3, "align": "right", "size": "xs", "color": "muted" }
+      ],
+      "decorations": [],
+      "char_limits": {
+        "title": { "min": 22, "ideal": 44, "max": 59, "lines": 1, "case": "title" },
+        "body": { "min": 90, "ideal": 165, "max": 230, "lines": 3, "case": "sentence" },
+        "infobox": { "min": 75, "ideal": 138, "max": 186, "lines": 3, "case": "mixed" },
+        "folio": { "min": 1, "ideal": 4, "max": 8, "lines": 1, "case": "lowercase" }
+      }
+    },
+    {
+      "id": "3-12", "name": "Three Up Wide Caption", "description": "Horizontal 3-up grid + bottom wide body.",
+      "category": "editorial", "imageCount": 3, "style": "three_up_wide_caption", "aspectRatio": "4:3",
+      "background": "paper_white", "borrows_sets_from": "3-08",
+      "images": [{ "x": 4, "y": 8, "w": 30, "h": 50 }, { "x": 35, "y": 8, "w": 30, "h": 50 }, { "x": 66, "y": 8, "w": 30, "h": 50 }],
+      "texts": [
+        { "type": "eyebrow", "x": 4, "y": 62, "w": 92, "h": 3, "align": "left", "size": "xs", "weight": "bold", "letterSpacing": "widest" },
+        { "type": "title", "x": 4, "y": 67, "w": 92, "h": 8, "align": "left", "size": "2xl", "weight": "medium", "font": "serif" },
+        { "type": "body", "x": 4, "y": 78, "w": 60, "h": 16, "align": "left", "size": "sm", "lineHeight": "relaxed" },
+        { "type": "caption", "x": 66, "y": 78, "w": 30, "h": 6, "align": "left", "size": "xs", "italic": true, "color": "muted" },
+        { "type": "caption_2", "x": 66, "y": 86, "w": 30, "h": 6, "align": "left", "size": "xs", "italic": true, "color": "muted" },
+        { "type": "folio", "x": 90, "y": 96, "w": 8, "h": 3, "align": "right", "size": "xs", "color": "muted" }
+      ],
+      "decorations": [],
+      "char_limits": {
+        "eyebrow": { "min": 40, "ideal": 101, "max": 121, "lines": 1, "case": "uppercase" },
+        "title": { "min": 28, "ideal": 56, "max": 75, "lines": 2, "case": "title" },
+        "body": { "min": 280, "ideal": 510, "max": 714, "lines": 10, "case": "sentence" },
+        "caption": { "min": 39, "ideal": 99, "max": 148, "lines": 3, "case": "sentence" },
+        "caption_2": { "min": 90, "ideal": 165, "max": 222, "lines": 5, "case": "sentence" },
+        "folio": { "min": 1, "ideal": 4, "max": 8, "lines": 1, "case": "lowercase" }
+      }
+    },
+    {
+      "id": "3-13", "name": "Hero Plus Two Side", "description": "Large left photo + right vertical duo + right text column.",
+      "category": "editorial", "imageCount": 3, "style": "hero_plus_two_side", "aspectRatio": "4:3",
+      "background": "paper_white", "borrows_sets_from": "3-08",
+      "images": [{ "x": 4, "y": 8, "w": 48, "h": 84 }, { "x": 54, "y": 8, "w": 22, "h": 40 }, { "x": 54, "y": 52, "w": 22, "h": 40 }],
+      "texts": [
+        { "type": "eyebrow", "x": 78, "y": 12, "w": 18, "h": 3, "align": "left", "size": "xs", "weight": "bold", "letterSpacing": "widest" },
+        { "type": "title", "x": 78, "y": 16, "w": 18, "h": 14, "align": "left", "size": "lg", "weight": "medium", "font": "serif", "lineHeight": "tight" },
+        { "type": "body", "x": 78, "y": 32, "w": 18, "h": 50, "align": "left", "size": "xs", "lineHeight": "relaxed" },
+        { "type": "caption", "x": 78, "y": 84, "w": 18, "h": 6, "align": "left", "size": "xs", "italic": true, "color": "muted" },
+        { "type": "caption_2", "x": 4, "y": 96, "w": 48, "h": 3, "align": "left", "size": "xs", "color": "muted" },
+        { "type": "folio", "x": 90, "y": 96, "w": 6, "h": 3, "align": "right", "size": "xs", "color": "muted" }
+      ],
+      "decorations": [],
+      "char_limits": {
+        "eyebrow": { "min": 8, "ideal": 20, "max": 24, "lines": 1, "case": "uppercase" },
+        "title": { "min": 18, "ideal": 36, "max": 48, "lines": 4, "case": "title" },
+        "body": { "min": 462, "ideal": 840, "max": 1176, "lines": 42, "case": "sentence" },
+        "caption": { "min": 24, "ideal": 60, "max": 90, "lines": 3, "case": "sentence" },
+        "caption_2": { "min": 87, "ideal": 159, "max": 214, "lines": 3, "case": "sentence" },
+        "folio": { "min": 1, "ideal": 4, "max": 8, "lines": 1, "case": "lowercase" }
+      }
+    },
+    {
+      "id": "3-14", "name": "Vertical Strip Trio City", "description": "Three vertical strip photos + side body + city label overlapping.",
+      "category": "editorial", "imageCount": 3, "style": "vertical_strip_trio_city", "aspectRatio": "4:3",
+      "background": "paper_white", "borrows_sets_from": "3-06",
+      "images": [{ "x": 4, "y": 6, "w": 18, "h": 88 }, { "x": 24, "y": 6, "w": 18, "h": 88 }, { "x": 44, "y": 6, "w": 18, "h": 88 }],
+      "texts": [
+        { "type": "label", "x": 18, "y": 40, "w": 30, "h": 12, "align": "center", "size": "4xl", "weight": "bold", "font": "serif", "letterSpacing": "widest", "color": "white_overlay" },
+        { "type": "caption", "x": 66, "y": 30, "w": 30, "h": 25, "align": "left", "size": "sm", "italic": true, "color": "muted" },
+        { "type": "caption_2", "x": 66, "y": 60, "w": 30, "h": 25, "align": "left", "size": "sm", "italic": true, "color": "muted" },
+        { "type": "folio", "x": 90, "y": 95, "w": 8, "h": 3, "align": "right", "size": "xs", "color": "muted" }
+      ],
+      "decorations": [{ "type": "card_box", "x": 16, "y": 42, "w": 32, "h": 8, "fill": "white", "opacity": 0.85 }],
+      "char_limits": {
+        "label": { "min": 3, "ideal": 8, "max": 14, "lines": 1, "case": "uppercase" },
+        "caption": { "min": 31, "ideal": 78, "max": 117, "lines": 3, "case": "sentence" },
+        "caption_2": { "min": 214, "ideal": 390, "max": 526, "lines": 15, "case": "sentence" },
+        "folio": { "min": 1, "ideal": 4, "max": 8, "lines": 1, "case": "lowercase" }
+      }
+    },
+    {
+      "id": "3-15", "name": "Editorial Magazine Spread Trio", "description": "Magazine spread — left page big photo+caption / right page small duo+body column.",
+      "category": "editorial", "imageCount": 3, "style": "editorial_spread_trio", "aspectRatio": "4:3",
+      "background": "paper_white", "borrows_sets_from": "3-08",
+      "images": [{ "x": 4, "y": 8, "w": 44, "h": 60 }, { "x": 52, "y": 8, "w": 21, "h": 30 }, { "x": 75, "y": 8, "w": 21, "h": 30 }],
+      "texts": [
+        { "type": "runninghead", "x": 4, "y": 4, "w": 92, "h": 3, "align": "center", "size": "xs", "weight": "bold", "letterSpacing": "widest", "color": "muted" },
+        { "type": "title", "x": 4, "y": 70, "w": 44, "h": 12, "align": "left", "size": "2xl", "weight": "medium", "font": "serif" },
+        { "type": "body", "x": 4, "y": 84, "w": 44, "h": 12, "align": "left", "size": "xs", "lineHeight": "relaxed" },
+        { "type": "eyebrow", "x": 52, "y": 42, "w": 44, "h": 3, "align": "left", "size": "xs", "weight": "bold", "letterSpacing": "widest" },
+        { "type": "body_2", "x": 52, "y": 47, "w": 44, "h": 48, "align": "left", "size": "sm", "lineHeight": "relaxed" },
+        { "type": "caption", "x": 4, "y": 96, "w": 44, "h": 3, "align": "left", "size": "xs", "italic": true, "color": "muted" },
+        { "type": "folio", "x": 90, "y": 96, "w": 8, "h": 3, "align": "right", "size": "xs", "color": "muted" }
+      ],
+      "decorations": [{ "type": "line", "orientation": "vertical", "x1": 50, "y1": 8, "x2": 50, "y2": 95, "thickness": 0.5, "color": "muted" }],
+      "char_limits": {
+        "runninghead": { "min": 40, "ideal": 101, "max": 121, "lines": 1, "case": "uppercase" },
+        "title": { "min": 19, "ideal": 39, "max": 52, "lines": 3, "case": "title" },
+        "body": { "min": 264, "ideal": 480, "max": 672, "lines": 10, "case": "sentence" },
+        "eyebrow": { "min": 19, "ideal": 48, "max": 57, "lines": 1, "case": "uppercase" },
+        "body_2": { "min": 590, "ideal": 1073, "max": 1448, "lines": 29, "case": "sentence" },
+        "caption": { "min": 57, "ideal": 144, "max": 216, "lines": 3, "case": "sentence" },
+        "folio": { "min": 1, "ideal": 4, "max": 8, "lines": 1, "case": "lowercase" }
+      }
+    },
+    {
+      "id": "4-11", "name": "Irregular Mosaic Big Three", "description": "1 large + 3 small irregular mosaic + right text card.",
+      "category": "editorial", "imageCount": 4, "style": "irregular_mosaic", "aspectRatio": "4:3",
+      "background": "paper_white", "borrows_sets_from": "4-05",
+      "images": [{ "x": 4, "y": 8, "w": 44, "h": 84 }, { "x": 50, "y": 8, "w": 22, "h": 40 }, { "x": 74, "y": 8, "w": 22, "h": 40 }, { "x": 50, "y": 50, "w": 46, "h": 42 }],
+      "texts": [
+        { "type": "title", "x": 4, "y": 4, "w": 60, "h": 3, "align": "left", "size": "lg", "weight": "regular", "font": "sans" },
+        { "type": "body", "x": 4, "y": 95, "w": 92, "h": 3, "align": "left", "size": "xs", "color": "muted" },
+        { "type": "infobox", "x": 70, "y": 95, "w": 25, "h": 3, "align": "right", "size": "xs", "color": "muted" },
+        { "type": "folio", "x": 90, "y": 95, "w": 6, "h": 3, "align": "right", "size": "xs", "color": "muted" }
+      ],
+      "decorations": [],
+      "char_limits": {
+        "title": { "min": 14, "ideal": 29, "max": 39, "lines": 1, "case": "title" },
+        "body": { "min": 166, "ideal": 303, "max": 424, "lines": 3, "case": "sentence" },
+        "infobox": { "min": 46, "ideal": 84, "max": 113, "lines": 3, "case": "mixed" },
+        "folio": { "min": 1, "ideal": 4, "max": 8, "lines": 1, "case": "lowercase" }
+      }
+    },
+    {
+      "id": "4-12", "name": "Quad Big Caption", "description": "4-up equal grid + left big caption (3 landscape + 1 wide side).",
+      "category": "editorial", "imageCount": 4, "style": "quad_big_caption", "aspectRatio": "4:3",
+      "background": "paper_white", "borrows_sets_from": "4-06",
+      "images": [{ "x": 30, "y": 8, "w": 22, "h": 40 }, { "x": 54, "y": 8, "w": 22, "h": 40 }, { "x": 78, "y": 8, "w": 18, "h": 40 }, { "x": 30, "y": 52, "w": 66, "h": 40 }],
+      "texts": [
+        { "type": "eyebrow", "x": 4, "y": 12, "w": 24, "h": 3, "align": "left", "size": "xs", "weight": "bold", "letterSpacing": "widest" },
+        { "type": "title", "x": 4, "y": 16, "w": 24, "h": 20, "align": "left", "size": "3xl", "weight": "medium", "font": "serif", "lineHeight": "tight" },
+        { "type": "byline", "x": 4, "y": 40, "w": 24, "h": 3, "align": "left", "size": "xs", "weight": "medium", "color": "muted" },
+        { "type": "body", "x": 4, "y": 50, "w": 24, "h": 42, "align": "left", "size": "xs", "lineHeight": "relaxed" },
+        { "type": "folio", "x": 90, "y": 96, "w": 6, "h": 3, "align": "right", "size": "xs", "color": "muted" }
+      ],
+      "decorations": [],
+      "char_limits": {
+        "eyebrow": { "min": 10, "ideal": 26, "max": 31, "lines": 1, "case": "uppercase" },
+        "title": { "min": 7, "ideal": 15, "max": 20, "lines": 3, "case": "title" },
+        "byline": { "min": 10, "ideal": 26, "max": 31, "lines": 1, "case": "uppercase" },
+        "body": { "min": 514, "ideal": 936, "max": 1310, "lines": 36, "case": "sentence" },
+        "folio": { "min": 1, "ideal": 4, "max": 8, "lines": 1, "case": "lowercase" }
+      }
+    },
+    {
+      "id": "4-13", "name": "Travel Album Quad Wide", "description": "4-up wide layout (landscape magazine) + city label bottom right.",
+      "category": "editorial", "imageCount": 4, "style": "travel_album_quad_wide", "aspectRatio": "4:3",
+      "background": "paper_white", "borrows_sets_from": "4-02",
+      "images": [{ "x": 4, "y": 8, "w": 44, "h": 84 }, { "x": 50, "y": 8, "w": 23, "h": 41 }, { "x": 75, "y": 8, "w": 21, "h": 41 }, { "x": 50, "y": 51, "w": 46, "h": 41 }],
+      "texts": [
+        { "type": "label", "x": 28, "y": 42, "w": 16, "h": 8, "align": "center", "size": "xl", "weight": "bold", "font": "sans", "letterSpacing": "widest", "color": "white_overlay" },
+        { "type": "caption", "x": 4, "y": 96, "w": 92, "h": 3, "align": "left", "size": "xs", "italic": true, "color": "muted" }
+      ],
+      "decorations": [{ "type": "card_box", "x": 26, "y": 40, "w": 20, "h": 12, "fill": "white", "opacity": 0.92 }],
+      "char_limits": {
+        "label": { "min": 3, "ideal": 8, "max": 14, "lines": 1, "case": "uppercase" },
+        "caption": { "min": 121, "ideal": 303, "max": 454, "lines": 3, "case": "sentence" }
+      }
+    },
+    {
+      "id": "4-14", "name": "Magazine Spread Quad", "description": "Magazine spread — left full body + right 4-up grid.",
+      "category": "editorial", "imageCount": 4, "style": "magazine_spread_quad", "aspectRatio": "4:3",
+      "background": "paper_white", "borrows_sets_from": "4-07",
+      "images": [{ "x": 52, "y": 8, "w": 21, "h": 41 }, { "x": 75, "y": 8, "w": 21, "h": 41 }, { "x": 52, "y": 51, "w": 21, "h": 41 }, { "x": 75, "y": 51, "w": 21, "h": 41 }],
+      "texts": [
+        { "type": "runninghead", "x": 4, "y": 4, "w": 92, "h": 3, "align": "center", "size": "xs", "weight": "bold", "letterSpacing": "widest", "color": "muted" },
+        { "type": "eyebrow", "x": 4, "y": 12, "w": 44, "h": 3, "align": "left", "size": "xs", "weight": "bold", "letterSpacing": "widest" },
+        { "type": "title", "x": 4, "y": 16, "w": 44, "h": 14, "align": "left", "size": "3xl", "weight": "medium", "font": "serif", "lineHeight": "tight" },
+        { "type": "kicker", "x": 4, "y": 32, "w": 44, "h": 5, "align": "left", "size": "sm", "italic": true, "color": "muted" },
+        { "type": "byline", "x": 4, "y": 40, "w": 44, "h": 3, "align": "left", "size": "xs", "weight": "medium", "color": "muted" },
+        { "type": "body", "x": 4, "y": 46, "w": 44, "h": 46, "align": "left", "size": "sm", "lineHeight": "relaxed" },
+        { "type": "caption", "x": 52, "y": 94, "w": 44, "h": 3, "align": "left", "size": "xs", "italic": true, "color": "muted" },
+        { "type": "folio", "x": 4, "y": 96, "w": 8, "h": 3, "align": "left", "size": "xs", "color": "muted" }
+      ],
+      "decorations": [{ "type": "line", "orientation": "vertical", "x1": 50, "y1": 8, "x2": 50, "y2": 95, "thickness": 0.5, "color": "muted" }],
+      "char_limits": {
+        "runninghead": { "min": 40, "ideal": 101, "max": 121, "lines": 1, "case": "uppercase" },
+        "eyebrow": { "min": 19, "ideal": 48, "max": 57, "lines": 1, "case": "uppercase" },
+        "title": { "min": 10, "ideal": 20, "max": 27, "lines": 2, "case": "title" },
+        "kicker": { "min": 40, "ideal": 74, "max": 99, "lines": 2, "case": "sentence" },
+        "byline": { "min": 19, "ideal": 48, "max": 57, "lines": 1, "case": "uppercase" },
+        "body": { "min": 569, "ideal": 1036, "max": 1450, "lines": 28, "case": "sentence" },
+        "caption": { "min": 57, "ideal": 144, "max": 216, "lines": 3, "case": "sentence" },
+        "folio": { "min": 1, "ideal": 4, "max": 8, "lines": 1, "case": "lowercase" }
+      }
+    },
+    {
+      "id": "4-15", "name": "Horizontal Strip Quad", "description": "Horizontal 4-up strips (equal) + top large title.",
+      "category": "editorial", "imageCount": 4, "style": "horizontal_strip_quad", "aspectRatio": "4:3",
+      "background": "paper_white", "borrows_sets_from": "4-05",
+      "images": [{ "x": 2, "y": 30, "w": 23, "h": 50 }, { "x": 26, "y": 30, "w": 23, "h": 50 }, { "x": 50, "y": 30, "w": 23, "h": 50 }, { "x": 74, "y": 30, "w": 23, "h": 50 }],
+      "texts": [
+        { "type": "title", "x": 4, "y": 10, "w": 92, "h": 16, "align": "left", "size": "4xl", "weight": "regular", "font": "serif", "lineHeight": "tight" },
+        { "type": "body", "x": 4, "y": 84, "w": 60, "h": 8, "align": "left", "size": "xs", "lineHeight": "relaxed" },
+        { "type": "infobox", "x": 70, "y": 84, "w": 26, "h": 8, "align": "right", "size": "xs", "color": "muted" },
+        { "type": "folio", "x": 90, "y": 95, "w": 6, "h": 3, "align": "right", "size": "xs", "color": "muted" }
+      ],
+      "decorations": [],
+      "char_limits": {
+        "title": { "min": 16, "ideal": 32, "max": 43, "lines": 2, "case": "title" },
+        "body": { "min": 254, "ideal": 462, "max": 646, "lines": 7, "case": "sentence" },
+        "infobox": { "min": 111, "ideal": 203, "max": 274, "lines": 7, "case": "mixed" },
+        "folio": { "min": 1, "ideal": 4, "max": 8, "lines": 1, "case": "lowercase" }
+      }
+    },
+    {
+      "id": "1-21", "name": "Big Name Pet Card", "description": "Large serif name top + photo + left 4 icon metadata.",
+      "category": "cute", "imageCount": 1, "style": "big_name_pet_card", "aspectRatio": "3:4",
+      "background": "peach_soft", "borrows_sets_from": "1-09",
+      "images": [{ "x": 35, "y": 12, "w": 60, "h": 70 }],
+      "texts": [
+        { "type": "title", "x": 4, "y": 3, "w": 92, "h": 12, "align": "center", "size": "5xl", "weight": "regular", "font": "serif", "letterSpacing": "wide" },
+        { "type": "infobox", "x": 4, "y": 18, "w": 28, "h": 60, "align": "left", "size": "xs", "lineHeight": "relaxed" },
+        { "type": "kicker", "x": 4, "y": 84, "w": 92, "h": 5, "align": "center", "size": "md", "italic": true, "font": "serif", "color": "muted" },
+        { "type": "caption", "x": 4, "y": 91, "w": 92, "h": 6, "align": "center", "size": "xs", "weight": "bold", "letterSpacing": "wide" },
+        { "type": "folio", "x": 90, "y": 96, "w": 6, "h": 3, "align": "right", "size": "xs", "color": "muted" }
+      ],
+      "decorations": [],
+      "char_limits": {
+        "title": { "min": 6, "ideal": 12, "max": 16, "lines": 1, "case": "title" },
+        "infobox": { "min": 869, "ideal": 1581, "max": 2134, "lines": 51, "case": "mixed" },
+        "kicker": { "min": 62, "ideal": 114, "max": 153, "lines": 2, "case": "sentence" },
+        "caption": { "min": 121, "ideal": 303, "max": 454, "lines": 3, "case": "sentence" },
+        "folio": { "min": 1, "ideal": 4, "max": 8, "lines": 1, "case": "lowercase" }
+      }
+    },
+    {
+      "id": "1-22", "name": "Goodest Boy Portrait", "description": "Top small badge + large serif name + photo + bottom 4 icon horizontal meta.",
+      "category": "cute", "imageCount": 1, "style": "goodest_boy_portrait", "aspectRatio": "3:4",
+      "background": "blush_pink", "borrows_sets_from": "1-09",
+      "images": [{ "x": 8, "y": 18, "w": 84, "h": 60 }],
+      "texts": [
+        { "type": "kicker", "x": 4, "y": 6, "w": 92, "h": 4, "align": "center", "size": "md", "italic": true, "font": "serif", "color": "muted" },
+        { "type": "title", "x": 4, "y": 10, "w": 92, "h": 8, "align": "center", "size": "5xl", "weight": "bold", "font": "serif", "letterSpacing": "wide" },
+        { "type": "infobox", "x": 4, "y": 82, "w": 92, "h": 12, "align": "center", "size": "xs", "lineHeight": "relaxed" },
+        { "type": "folio", "x": 90, "y": 96, "w": 6, "h": 3, "align": "right", "size": "xs", "color": "muted" }
+      ],
+      "decorations": [],
+      "char_limits": {
+        "kicker": { "min": 62, "ideal": 114, "max": 153, "lines": 2, "case": "sentence" },
+        "title": { "min": 6, "ideal": 12, "max": 16, "lines": 1, "case": "title" },
+        "infobox": { "min": 555, "ideal": 1010, "max": 1363, "lines": 10, "case": "mixed" },
+        "folio": { "min": 1, "ideal": 4, "max": 8, "lines": 1, "case": "lowercase" }
+      }
+    },
+    {
+      "id": "1-23", "name": "Definition Card", "description": "Large script name + photo + star rating + soft definition caption.",
+      "category": "cute", "imageCount": 1, "style": "definition_card", "aspectRatio": "3:4",
+      "background": "kraft_warm", "borrows_sets_from": "1-09",
+      "images": [{ "x": 6, "y": 14, "w": 88, "h": 56 }],
+      "texts": [
+        { "type": "title", "x": 4, "y": 3, "w": 92, "h": 10, "align": "center", "size": "5xl", "weight": "regular", "font": "serif", "italic": true },
+        { "type": "byline", "x": 4, "y": 73, "w": 92, "h": 4, "align": "center", "size": "lg", "weight": "regular", "color": "accent" },
+        { "type": "kicker", "x": 4, "y": 78, "w": 92, "h": 4, "align": "center", "size": "md", "italic": true, "font": "serif" },
+        { "type": "eyebrow", "x": 4, "y": 84, "w": 92, "h": 3, "align": "left", "size": "xs", "weight": "bold" },
+        { "type": "body", "x": 4, "y": 88, "w": 92, "h": 9, "align": "left", "size": "xs", "lineHeight": "relaxed" },
+        { "type": "folio", "x": 90, "y": 96, "w": 6, "h": 3, "align": "right", "size": "xs", "color": "muted" }
+      ],
+      "decorations": [],
+      "char_limits": {
+        "title": { "min": 6, "ideal": 12, "max": 16, "lines": 1, "case": "title" },
+        "byline": { "min": 17, "ideal": 44, "max": 52, "lines": 1, "case": "uppercase" },
+        "kicker": { "min": 62, "ideal": 114, "max": 153, "lines": 2, "case": "sentence" },
+        "eyebrow": { "min": 40, "ideal": 101, "max": 121, "lines": 1, "case": "uppercase" },
+        "body": { "min": 444, "ideal": 808, "max": 1131, "lines": 8, "case": "sentence" },
+        "folio": { "min": 1, "ideal": 4, "max": 8, "lines": 1, "case": "lowercase" }
+      }
+    },
+    {
+      "id": "1-24", "name": "Polaroid Single Soft", "description": "Tilted polaroid photo 1 + short handwritten caption.",
+      "category": "cute", "imageCount": 1, "style": "polaroid_single_soft", "aspectRatio": "3:4",
+      "background": "sky_pale", "borrows_sets_from": "1-04",
+      "images": [{ "x": 18, "y": 18, "w": 64, "h": 60, "rotation": -2 }],
+      "texts": [
+        { "type": "eyebrow", "x": 4, "y": 6, "w": 92, "h": 4, "align": "center", "size": "md", "italic": true, "font": "script", "color": "accent" },
+        { "type": "title", "x": 4, "y": 11, "w": 92, "h": 8, "align": "center", "size": "4xl", "weight": "bold", "font": "sans", "letterSpacing": "wide" },
+        { "type": "body", "x": 10, "y": 84, "w": 80, "h": 10, "align": "center", "size": "sm", "italic": true, "font": "serif" },
+        { "type": "folio", "x": 90, "y": 96, "w": 6, "h": 3, "align": "right", "size": "xs", "color": "muted" }
+      ],
+      "decorations": [],
+      "char_limits": {
+        "eyebrow": { "min": 22, "ideal": 57, "max": 68, "lines": 1, "case": "uppercase" },
+        "title": { "min": 8, "ideal": 16, "max": 21, "lines": 1, "case": "title" },
+        "body": { "min": 224, "ideal": 408, "max": 571, "lines": 6, "case": "sentence" },
+        "folio": { "min": 1, "ideal": 4, "max": 8, "lines": 1, "case": "lowercase" }
+      }
+    },
+    {
+      "id": "1-25", "name": "Magazine Cover Cute", "description": "Cute magazine cover — large masthead + side captions + full photo.",
+      "category": "cute", "imageCount": 1, "style": "magazine_cover_cute", "aspectRatio": "3:4",
+      "background": "butter_cream", "borrows_sets_from": "1-10",
+      "images": [{ "x": 0, "y": 0, "w": 100, "h": 100 }],
+      "texts": [
+        { "type": "masthead", "x": 4, "y": 4, "w": 92, "h": 14, "align": "left", "size": "6xl", "weight": "bold", "font": "serif", "color": "white_overlay" },
+        { "type": "kicker", "x": 4, "y": 16, "w": 92, "h": 4, "align": "left", "size": "sm", "italic": true, "color": "white_overlay" },
+        { "type": "eyebrow", "x": 4, "y": 50, "w": 35, "h": 3, "align": "left", "size": "xs", "weight": "bold", "letterSpacing": "widest", "color": "white_overlay" },
+        { "type": "title", "x": 4, "y": 54, "w": 35, "h": 8, "align": "left", "size": "xl", "weight": "bold", "font": "sans", "color": "white_overlay" },
+        { "type": "byline", "x": 4, "y": 64, "w": 35, "h": 4, "align": "left", "size": "xs", "color": "white_overlay" },
+        { "type": "caption", "x": 60, "y": 50, "w": 36, "h": 6, "align": "right", "size": "xs", "italic": true, "color": "white_overlay" },
+        { "type": "folio", "x": 90, "y": 96, "w": 6, "h": 3, "align": "right", "size": "xs", "color": "white_overlay" }
+      ],
+      "decorations": [
+        { "type": "overlay_gradient", "from": "rgba(0,0,0,0.45)", "to": "rgba(0,0,0,0)", "direction": "180deg", "y_range": [0, 30] },
+        { "type": "overlay_gradient", "from": "rgba(0,0,0,0)", "to": "rgba(0,0,0,0.4)", "direction": "180deg", "y_range": [70, 100] }
+      ],
+      "char_limits": {
+        "masthead": { "min": 4, "ideal": 9, "max": 12, "lines": 1, "case": "uppercase" },
+        "kicker": { "min": 85, "ideal": 156, "max": 210, "lines": 2, "case": "sentence" },
+        "eyebrow": { "min": 15, "ideal": 38, "max": 45, "lines": 1, "case": "uppercase" },
+        "title": { "min": 13, "ideal": 26, "max": 35, "lines": 2, "case": "title" },
+        "byline": { "min": 15, "ideal": 38, "max": 45, "lines": 1, "case": "uppercase" },
+        "caption": { "min": 48, "ideal": 120, "max": 180, "lines": 3, "case": "sentence" },
+        "folio": { "min": 1, "ideal": 4, "max": 8, "lines": 1, "case": "lowercase" }
+      }
+    },
+    {
+      "id": "2-21", "name": "Polaroid Duo Soft", "description": "Tilted polaroid 2 + soft background + top short caption.",
+      "category": "cute", "imageCount": 2, "style": "polaroid_duo_soft", "aspectRatio": "3:4",
+      "background": "sky_pale", "borrows_sets_from": "2-04",
+      "images": [{ "x": 6, "y": 30, "w": 44, "h": 50, "rotation": -3 }, { "x": 50, "y": 35, "w": 44, "h": 50, "rotation": 4 }],
+      "texts": [
+        { "type": "eyebrow", "x": 4, "y": 8, "w": 92, "h": 4, "align": "center", "size": "md", "italic": true, "font": "script", "color": "accent" },
+        { "type": "title", "x": 4, "y": 14, "w": 92, "h": 10, "align": "center", "size": "4xl", "weight": "bold", "font": "sans" },
+        { "type": "body", "x": 10, "y": 88, "w": 80, "h": 8, "align": "center", "size": "sm", "italic": true, "font": "serif" },
+        { "type": "byline", "x": 4, "y": 96, "w": 92, "h": 3, "align": "center", "size": "xs", "color": "muted" },
+        { "type": "folio", "x": 90, "y": 96, "w": 6, "h": 3, "align": "right", "size": "xs", "color": "muted" }
+      ],
+      "decorations": [],
+      "char_limits": {
+        "eyebrow": { "min": 22, "ideal": 57, "max": 68, "lines": 1, "case": "uppercase" },
+        "title": { "min": 8, "ideal": 16, "max": 21, "lines": 1, "case": "title" },
+        "body": { "min": 187, "ideal": 340, "max": 475, "lines": 5, "case": "sentence" },
+        "byline": { "min": 40, "ideal": 101, "max": 121, "lines": 1, "case": "uppercase" },
+        "folio": { "min": 1, "ideal": 4, "max": 8, "lines": 1, "case": "lowercase" }
+      }
+    },
+    {
+      "id": "2-22", "name": "Pet Care Frame Duo", "description": "Two square frame cards side by side + each label.",
+      "category": "cute", "imageCount": 2, "style": "pet_care_frame_duo", "aspectRatio": "4:3",
+      "background": "paper_cream", "borrows_sets_from": "2-04",
+      "images": [{ "x": 6, "y": 18, "w": 40, "h": 64 }, { "x": 54, "y": 18, "w": 40, "h": 64 }],
+      "texts": [
+        { "type": "eyebrow", "x": 6, "y": 10, "w": 40, "h": 3, "align": "center", "size": "xs", "weight": "bold", "letterSpacing": "widest" },
+        { "type": "title", "x": 6, "y": 86, "w": 40, "h": 6, "align": "center", "size": "lg", "weight": "regular", "font": "serif", "italic": true },
+        { "type": "byline", "x": 54, "y": 10, "w": 40, "h": 3, "align": "center", "size": "xs", "weight": "bold", "letterSpacing": "widest" },
+        { "type": "body", "x": 54, "y": 86, "w": 40, "h": 8, "align": "center", "size": "sm", "italic": true, "font": "serif" },
+        { "type": "caption", "x": 4, "y": 96, "w": 92, "h": 3, "align": "center", "size": "xs", "color": "muted" },
+        { "type": "folio", "x": 90, "y": 4, "w": 6, "h": 3, "align": "right", "size": "xs", "color": "muted" }
+      ],
+      "decorations": [],
+      "char_limits": {
+        "eyebrow": { "min": 17, "ideal": 44, "max": 52, "lines": 1, "case": "uppercase" },
+        "title": { "min": 19, "ideal": 38, "max": 51, "lines": 2, "case": "title" },
+        "byline": { "min": 17, "ideal": 44, "max": 52, "lines": 1, "case": "uppercase" },
+        "body": { "min": 93, "ideal": 170, "max": 237, "lines": 5, "case": "sentence" },
+        "caption": { "min": 121, "ideal": 303, "max": 454, "lines": 3, "case": "sentence" },
+        "folio": { "min": 1, "ideal": 4, "max": 8, "lines": 1, "case": "lowercase" }
+      }
+    },
+    {
+      "id": "2-23", "name": "Got a Pet Polaroid Pair", "description": "Two polaroids + warm background + top large caption + bottom body.",
+      "category": "cute", "imageCount": 2, "style": "got_a_pet_pair", "aspectRatio": "3:4",
+      "background": "sage_warm", "borrows_sets_from": "2-04",
+      "images": [{ "x": 8, "y": 25, "w": 40, "h": 45, "rotation": -2 }, { "x": 52, "y": 30, "w": 40, "h": 45, "rotation": 3 }],
+      "texts": [
+        { "type": "title", "x": 4, "y": 8, "w": 92, "h": 14, "align": "center", "size": "5xl", "weight": "bold", "font": "serif", "italic": true, "color": "accent" },
+        { "type": "eyebrow", "x": 4, "y": 78, "w": 92, "h": 3, "align": "center", "size": "xs", "weight": "bold", "letterSpacing": "widest" },
+        { "type": "body", "x": 10, "y": 83, "w": 80, "h": 12, "align": "center", "size": "sm", "italic": true, "font": "serif" },
+        { "type": "byline", "x": 4, "y": 96, "w": 92, "h": 3, "align": "center", "size": "xs", "color": "muted" },
+        { "type": "folio", "x": 90, "y": 4, "w": 6, "h": 3, "align": "right", "size": "xs", "color": "muted" }
+      ],
+      "decorations": [],
+      "char_limits": {
+        "title": { "min": 6, "ideal": 12, "max": 16, "lines": 1, "case": "title" },
+        "eyebrow": { "min": 40, "ideal": 101, "max": 121, "lines": 1, "case": "uppercase" },
+        "body": { "min": 261, "ideal": 476, "max": 666, "lines": 7, "case": "sentence" },
+        "byline": { "min": 40, "ideal": 101, "max": 121, "lines": 1, "case": "uppercase" },
+        "folio": { "min": 1, "ideal": 4, "max": 8, "lines": 1, "case": "lowercase" }
+      }
+    },
+    {
+      "id": "2-24", "name": "Profile Cards Horizontal", "description": "Horizontal name card duo (each card: photo+name+meta). cute vertical.",
+      "category": "cute", "imageCount": 2, "style": "profile_cards_horizontal", "aspectRatio": "4:3",
+      "background": "lavender_soft", "borrows_sets_from": "2-05",
+      "images": [{ "x": 60, "y": 10, "w": 35, "h": 36 }, { "x": 60, "y": 54, "w": 35, "h": 36 }],
+      "texts": [
+        { "type": "title", "x": 5, "y": 14, "w": 50, "h": 10, "align": "left", "size": "3xl", "weight": "bold", "font": "sans" },
+        { "type": "body", "x": 5, "y": 26, "w": 50, "h": 12, "align": "left", "size": "sm", "lineHeight": "relaxed", "color": "muted" },
+        { "type": "infobox", "x": 5, "y": 40, "w": 50, "h": 6, "align": "left", "size": "xs", "color": "muted" },
+        { "type": "caption", "x": 5, "y": 58, "w": 50, "h": 10, "align": "left", "size": "3xl", "weight": "bold", "font": "sans" },
+        { "type": "folio", "x": 90, "y": 96, "w": 6, "h": 3, "align": "right", "size": "xs", "color": "muted" }
+      ],
+      "decorations": [
+        { "type": "card_box", "x": 0, "y": 8, "w": 100, "h": 40, "fill": "white", "opacity": 1 },
+        { "type": "card_box", "x": 0, "y": 52, "w": 100, "h": 40, "fill": "white", "opacity": 1 }
+      ],
+      "char_limits": {
+        "title": { "min": 11, "ideal": 22, "max": 29, "lines": 2, "case": "title" },
+        "body": { "min": 161, "ideal": 294, "max": 411, "lines": 7, "case": "sentence" },
+        "infobox": { "min": 151, "ideal": 275, "max": 371, "lines": 5, "case": "mixed" },
+        "caption": { "min": 10, "ideal": 22, "max": 33, "lines": 2, "case": "sentence" },
+        "folio": { "min": 1, "ideal": 4, "max": 8, "lines": 1, "case": "lowercase" }
+      }
+    },
+    {
+      "id": "2-25", "name": "Side by Side Posters", "description": "Two full bleed poster split + unified headline top.",
+      "category": "cute", "imageCount": 2, "style": "side_by_side_posters", "aspectRatio": "4:3",
+      "background": "lavender_soft", "borrows_sets_from": "2-04",
+      "images": [{ "x": 0, "y": 18, "w": 50, "h": 82 }, { "x": 50, "y": 18, "w": 50, "h": 82 }],
+      "texts": [
+        { "type": "eyebrow", "x": 4, "y": 6, "w": 92, "h": 3, "align": "center", "size": "xs", "weight": "bold", "letterSpacing": "widest" },
+        { "type": "title", "x": 4, "y": 10, "w": 92, "h": 7, "align": "center", "size": "3xl", "weight": "bold", "font": "sans" },
+        { "type": "body", "x": 4, "y": 88, "w": 92, "h": 8, "align": "center", "size": "sm", "italic": true, "color": "white_overlay" },
+        { "type": "byline", "x": 4, "y": 96, "w": 92, "h": 3, "align": "center", "size": "xs", "color": "white_overlay" },
+        { "type": "folio", "x": 90, "y": 4, "w": 6, "h": 3, "align": "right", "size": "xs", "color": "muted" }
+      ],
+      "decorations": [{ "type": "overlay_gradient", "from": "rgba(0,0,0,0)", "to": "rgba(0,0,0,0.5)", "direction": "180deg", "y_range": [70, 100] }],
+      "char_limits": {
+        "eyebrow": { "min": 40, "ideal": 101, "max": 121, "lines": 1, "case": "uppercase" },
+        "title": { "min": 10, "ideal": 20, "max": 27, "lines": 1, "case": "title" },
+        "body": { "min": 214, "ideal": 390, "max": 546, "lines": 5, "case": "sentence" },
+        "byline": { "min": 40, "ideal": 101, "max": 121, "lines": 1, "case": "uppercase" },
+        "folio": { "min": 1, "ideal": 4, "max": 8, "lines": 1, "case": "lowercase" }
+      }
+    },
+    {
+      "id": "3-21", "name": "Adopt Trio", "description": "Horizontal trio photos + large headline + meta box.",
+      "category": "cute", "imageCount": 3, "style": "adopt_trio", "aspectRatio": "3:4",
+      "background": "kraft_warm", "borrows_sets_from": "3-05",
+      "images": [{ "x": 4, "y": 22, "w": 30, "h": 40 }, { "x": 35, "y": 22, "w": 30, "h": 40 }, { "x": 66, "y": 22, "w": 30, "h": 40 }],
+      "texts": [
+        { "type": "title", "x": 4, "y": 6, "w": 92, "h": 14, "align": "center", "size": "5xl", "weight": "bold", "font": "sans", "letterSpacing": "wide", "color": "white_overlay" },
+        { "type": "infobox", "x": 4, "y": 66, "w": 92, "h": 28, "align": "center", "size": "sm", "lineHeight": "relaxed", "color": "white_overlay" },
+        { "type": "body", "x": 4, "y": 96, "w": 92, "h": 3, "align": "center", "size": "xs", "color": "white_overlay" },
+        { "type": "folio", "x": 90, "y": 4, "w": 6, "h": 3, "align": "right", "size": "xs", "color": "white_overlay" }
+      ],
+      "decorations": [
+        { "type": "card_box", "x": 4, "y": 4, "w": 92, "h": 16, "fill": "obsidian", "opacity": 0.9 },
+        { "type": "card_box", "x": 4, "y": 64, "w": 92, "h": 32, "fill": "obsidian", "opacity": 0.9 }
+      ],
+      "char_limits": {
+        "title": { "min": 6, "ideal": 12, "max": 16, "lines": 1, "case": "title" },
+        "infobox": { "min": 729, "ideal": 1326, "max": 1790, "lines": 17, "case": "mixed" },
+        "body": { "min": 166, "ideal": 303, "max": 424, "lines": 3, "case": "sentence" },
+        "folio": { "min": 1, "ideal": 4, "max": 8, "lines": 1, "case": "lowercase" }
+      }
+    },
+    {
+      "id": "3-22", "name": "Polaroid Trio Scattered", "description": "Scattered tilted polaroid 3 + soft background + top short caption.",
+      "category": "cute", "imageCount": 3, "style": "polaroid_trio_scattered", "aspectRatio": "3:4",
+      "background": "rose_dust", "borrows_sets_from": "3-04",
+      "images": [{ "x": 4, "y": 22, "w": 36, "h": 40, "rotation": -4 }, { "x": 32, "y": 38, "w": 36, "h": 40, "rotation": 3 }, { "x": 58, "y": 26, "w": 36, "h": 40, "rotation": -2 }],
+      "texts": [
+        { "type": "eyebrow", "x": 4, "y": 8, "w": 92, "h": 4, "align": "center", "size": "lg", "italic": true, "font": "script", "color": "accent" },
+        { "type": "title", "x": 4, "y": 13, "w": 92, "h": 8, "align": "center", "size": "4xl", "weight": "bold", "font": "sans" },
+        { "type": "body", "x": 10, "y": 84, "w": 80, "h": 10, "align": "center", "size": "sm", "italic": true, "font": "serif" },
+        { "type": "caption", "x": 4, "y": 96, "w": 92, "h": 3, "align": "center", "size": "xs", "color": "muted" },
+        { "type": "folio", "x": 90, "y": 4, "w": 6, "h": 3, "align": "right", "size": "xs", "color": "muted" }
+      ],
+      "decorations": [],
+      "char_limits": {
+        "eyebrow": { "min": 17, "ideal": 44, "max": 52, "lines": 1, "case": "uppercase" },
+        "title": { "min": 8, "ideal": 16, "max": 21, "lines": 1, "case": "title" },
+        "body": { "min": 224, "ideal": 408, "max": 571, "lines": 6, "case": "sentence" },
+        "caption": { "min": 121, "ideal": 303, "max": 454, "lines": 3, "case": "sentence" },
+        "folio": { "min": 1, "ideal": 4, "max": 8, "lines": 1, "case": "lowercase" }
+      }
+    },
+    {
+      "id": "3-23", "name": "Family Mosaic", "description": "Grid mosaic 3-up + family label + color accent box.",
+      "category": "cute", "imageCount": 3, "style": "family_mosaic", "aspectRatio": "4:3",
+      "background": "paper_cream", "borrows_sets_from": "3-05",
+      "images": [{ "x": 4, "y": 8, "w": 40, "h": 60 }, { "x": 46, "y": 8, "w": 25, "h": 28 }, { "x": 73, "y": 8, "w": 23, "h": 28 }],
+      "texts": [
+        { "type": "title", "x": 46, "y": 40, "w": 50, "h": 16, "align": "left", "size": "5xl", "weight": "regular", "font": "serif", "italic": true, "lineHeight": "tight" },
+        { "type": "body", "x": 46, "y": 60, "w": 50, "h": 12, "align": "left", "size": "sm", "lineHeight": "relaxed", "color": "muted" },
+        { "type": "infobox", "x": 4, "y": 72, "w": 92, "h": 20, "align": "left", "size": "xs", "lineHeight": "relaxed" },
+        { "type": "folio", "x": 90, "y": 96, "w": 6, "h": 3, "align": "right", "size": "xs", "color": "muted" }
+      ],
+      "decorations": [{ "type": "card_box", "x": 46, "y": 38, "w": 18, "h": 6, "fill": "accent", "opacity": 1 }],
+      "char_limits": {
+        "title": { "min": 6, "ideal": 6, "max": 8, "lines": 1, "case": "title" },
+        "body": { "min": 161, "ideal": 294, "max": 411, "lines": 7, "case": "sentence" },
+        "infobox": { "min": 944, "ideal": 1717, "max": 2317, "lines": 17, "case": "mixed" },
+        "folio": { "min": 1, "ideal": 4, "max": 8, "lines": 1, "case": "lowercase" }
+      }
+    },
+    {
+      "id": "3-24", "name": "Same Theme Trio", "description": "Same headline (top left) + 3 full bleed vertical cards.",
+      "category": "cute", "imageCount": 3, "style": "same_theme_trio", "aspectRatio": "4:3",
+      "background": "lavender_soft", "borrows_sets_from": "3-04",
+      "images": [{ "x": 0, "y": 25, "w": 33, "h": 75 }, { "x": 33, "y": 25, "w": 34, "h": 75 }, { "x": 67, "y": 25, "w": 33, "h": 75 }],
+      "texts": [
+        { "type": "eyebrow", "x": 4, "y": 6, "w": 50, "h": 3, "align": "left", "size": "xs", "weight": "bold", "letterSpacing": "widest", "color": "accent" },
+        { "type": "title", "x": 4, "y": 10, "w": 50, "h": 12, "align": "left", "size": "4xl", "weight": "bold", "font": "sans", "lineHeight": "tight" },
+        { "type": "body", "x": 4, "y": 88, "w": 92, "h": 8, "align": "center", "size": "sm", "italic": true, "color": "white_overlay" },
+        { "type": "caption", "x": 4, "y": 96, "w": 92, "h": 3, "align": "center", "size": "xs", "color": "white_overlay" },
+        { "type": "folio", "x": 90, "y": 4, "w": 6, "h": 3, "align": "right", "size": "xs", "color": "muted" }
+      ],
+      "decorations": [{ "type": "overlay_gradient", "from": "rgba(0,0,0,0)", "to": "rgba(0,0,0,0.4)", "direction": "180deg", "y_range": [80, 100] }],
+      "char_limits": {
+        "eyebrow": { "min": 22, "ideal": 55, "max": 66, "lines": 1, "case": "uppercase" },
+        "title": { "min": 6, "ideal": 8, "max": 10, "lines": 1, "case": "title" },
+        "body": { "min": 214, "ideal": 390, "max": 546, "lines": 5, "case": "sentence" },
+        "caption": { "min": 121, "ideal": 303, "max": 454, "lines": 3, "case": "sentence" },
+        "folio": { "min": 1, "ideal": 4, "max": 8, "lines": 1, "case": "lowercase" }
+      }
+    },
+    {
+      "id": "3-25", "name": "Polaroid Stack", "description": "Polaroid 3 horizontal stack (overlapping) + handwritten short caption.",
+      "category": "cute", "imageCount": 3, "style": "polaroid_stack", "aspectRatio": "4:3",
+      "background": "butter_cream", "borrows_sets_from": "3-04",
+      "images": [{ "x": 6, "y": 22, "w": 30, "h": 56, "rotation": -3 }, { "x": 35, "y": 26, "w": 30, "h": 56, "rotation": 4 }, { "x": 64, "y": 22, "w": 30, "h": 56, "rotation": -2 }],
+      "texts": [
+        { "type": "eyebrow", "x": 4, "y": 8, "w": 92, "h": 4, "align": "center", "size": "md", "italic": true, "font": "script" },
+        { "type": "title", "x": 4, "y": 13, "w": 92, "h": 8, "align": "center", "size": "3xl", "weight": "bold", "font": "sans" },
+        { "type": "body", "x": 10, "y": 86, "w": 80, "h": 10, "align": "center", "size": "sm", "italic": true, "font": "serif" },
+        { "type": "caption", "x": 4, "y": 96, "w": 92, "h": 3, "align": "center", "size": "xs", "color": "muted" },
+        { "type": "folio", "x": 90, "y": 4, "w": 6, "h": 3, "align": "right", "size": "xs", "color": "muted" }
+      ],
+      "decorations": [],
+      "char_limits": {
+        "eyebrow": { "min": 22, "ideal": 57, "max": 68, "lines": 1, "case": "uppercase" },
+        "title": { "min": 10, "ideal": 20, "max": 27, "lines": 1, "case": "title" },
+        "body": { "min": 224, "ideal": 408, "max": 571, "lines": 6, "case": "sentence" },
+        "caption": { "min": 121, "ideal": 303, "max": 454, "lines": 3, "case": "sentence" },
+        "folio": { "min": 1, "ideal": 4, "max": 8, "lines": 1, "case": "lowercase" }
+      }
+    },
+    {
+      "id": "4-21", "name": "Canvas Gallery 2x2", "description": "2x2 canvas gallery — 4 equal grid + aged frame effect.",
+      "category": "cute", "imageCount": 4, "style": "canvas_gallery_2x2", "aspectRatio": "3:4",
+      "background": "linen_paper", "borrows_sets_from": "4-05",
+      "images": [{ "x": 8, "y": 14, "w": 40, "h": 36 }, { "x": 52, "y": 14, "w": 40, "h": 36 }, { "x": 8, "y": 54, "w": 40, "h": 36 }, { "x": 52, "y": 54, "w": 40, "h": 36 }],
+      "texts": [
+        { "type": "title", "x": 4, "y": 4, "w": 92, "h": 8, "align": "center", "size": "3xl", "weight": "regular", "font": "serif", "italic": true },
+        { "type": "body", "x": 4, "y": 92, "w": 60, "h": 4, "align": "left", "size": "xs", "color": "muted" },
+        { "type": "infobox", "x": 70, "y": 92, "w": 26, "h": 4, "align": "right", "size": "xs", "color": "muted" },
+        { "type": "folio", "x": 90, "y": 96, "w": 6, "h": 3, "align": "right", "size": "xs", "color": "muted" }
+      ],
+      "decorations": [],
+      "char_limits": {
+        "title": { "min": 10, "ideal": 20, "max": 27, "lines": 1, "case": "title" },
+        "body": { "min": 108, "ideal": 198, "max": 277, "lines": 3, "case": "sentence" },
+        "infobox": { "min": 47, "ideal": 87, "max": 117, "lines": 3, "case": "mixed" },
+        "folio": { "min": 1, "ideal": 4, "max": 8, "lines": 1, "case": "lowercase" }
+      }
+    },
+    {
+      "id": "4-22", "name": "Cute Animals Cover", "description": "Cute magazine cover — large masthead + side captions + 4-up mosaic.",
+      "category": "cute", "imageCount": 4, "style": "cute_animals_cover", "aspectRatio": "3:4",
+      "background": "kraft_warm", "borrows_sets_from": "4-09",
+      "images": [{ "x": 25, "y": 28, "w": 35, "h": 35 }, { "x": 60, "y": 28, "w": 35, "h": 35 }, { "x": 25, "y": 65, "w": 35, "h": 30 }, { "x": 60, "y": 65, "w": 35, "h": 30 }],
+      "texts": [
+        { "type": "masthead", "x": 4, "y": 4, "w": 92, "h": 14, "align": "center", "size": "6xl", "weight": "bold", "font": "serif", "letterSpacing": "wide" },
+        { "type": "kicker", "x": 4, "y": 18, "w": 92, "h": 4, "align": "center", "size": "sm", "italic": true, "color": "muted" },
+        { "type": "eyebrow", "x": 4, "y": 30, "w": 18, "h": 3, "align": "left", "size": "xs", "weight": "bold", "letterSpacing": "widest", "color": "accent" },
+        { "type": "title", "x": 4, "y": 35, "w": 18, "h": 14, "align": "left", "size": "lg", "weight": "bold", "font": "sans", "lineHeight": "tight" },
+        { "type": "body", "x": 4, "y": 65, "w": 18, "h": 30, "align": "left", "size": "xs", "lineHeight": "relaxed" },
+        { "type": "folio", "x": 90, "y": 96, "w": 6, "h": 3, "align": "right", "size": "xs", "color": "muted" }
+      ],
+      "decorations": [],
+      "char_limits": {
+        "masthead": { "min": 4, "ideal": 9, "max": 12, "lines": 1, "case": "uppercase" },
+        "kicker": { "min": 85, "ideal": 156, "max": 210, "lines": 2, "case": "sentence" },
+        "eyebrow": { "min": 8, "ideal": 20, "max": 24, "lines": 1, "case": "uppercase" },
+        "title": { "min": 18, "ideal": 36, "max": 48, "lines": 4, "case": "title" },
+        "body": { "min": 286, "ideal": 520, "max": 728, "lines": 26, "case": "sentence" },
+        "folio": { "min": 1, "ideal": 4, "max": 8, "lines": 1, "case": "lowercase" }
+      }
+    },
+    {
+      "id": "4-23", "name": "Color Quad Series", "description": "4 color blocks (2x2 grid) + same character + short one-line caption each.",
+      "category": "cute", "imageCount": 4, "style": "color_quad_series", "aspectRatio": "3:4",
+      "background": "paper_white", "borrows_sets_from": "4-10",
+      "images": [{ "x": 0, "y": 0, "w": 50, "h": 50 }, { "x": 50, "y": 0, "w": 50, "h": 50 }, { "x": 0, "y": 50, "w": 50, "h": 50 }, { "x": 50, "y": 50, "w": 50, "h": 50 }],
+      "texts": [
+        { "type": "kicker", "x": 4, "y": 4, "w": 42, "h": 6, "align": "center", "size": "sm", "weight": "bold", "color": "white_overlay" },
+        { "type": "kicker_2", "x": 54, "y": 4, "w": 42, "h": 6, "align": "center", "size": "sm", "weight": "bold", "color": "white_overlay" },
+        { "type": "script", "x": 4, "y": 54, "w": 42, "h": 6, "align": "center", "size": "sm", "italic": true, "color": "white_overlay" },
+        { "type": "folio", "x": 90, "y": 95, "w": 6, "h": 3, "align": "right", "size": "xs", "color": "white_overlay" }
+      ],
+      "decorations": [{ "type": "quad_color_overlay", "colors": ["#9C2B2B", "#3A8AB5", "#9C5D3A", "#5A8D5A"], "opacity": 0.7 }],
+      "char_limits": {
+        "kicker": { "min": 39, "ideal": 72, "max": 97, "lines": 2, "case": "sentence" },
+        "kicker_2": { "min": 79, "ideal": 144, "max": 194, "lines": 4, "case": "sentence" },
+        "script": { "min": 4, "ideal": 14, "max": 22, "lines": 2, "case": "title" },
+        "folio": { "min": 1, "ideal": 4, "max": 8, "lines": 1, "case": "lowercase" }
+      }
+    },
+    {
+      "id": "4-24", "name": "Scrapbook Memory", "description": "Scrapbook mood — 4 scattered polaroids + tape/pin decorations + handwritten caption.",
+      "category": "cute", "imageCount": 4, "style": "scrapbook_memory", "aspectRatio": "3:4",
+      "background": "vintage_map", "borrows_sets_from": "4-10",
+      "images": [{ "x": 4, "y": 8, "w": 32, "h": 30, "rotation": -5 }, { "x": 40, "y": 18, "w": 32, "h": 30, "rotation": 3 }, { "x": 8, "y": 50, "w": 32, "h": 30, "rotation": 4 }, { "x": 50, "y": 58, "w": 32, "h": 30, "rotation": -3 }],
+      "texts": [
+        { "type": "script", "x": 60, "y": 4, "w": 36, "h": 12, "align": "left", "size": "4xl", "weight": "regular", "font": "script", "italic": true },
+        { "type": "kicker", "x": 60, "y": 30, "w": 36, "h": 16, "align": "left", "size": "sm", "italic": true, "font": "serif", "lineHeight": "relaxed" },
+        { "type": "folio", "x": 90, "y": 96, "w": 6, "h": 3, "align": "right", "size": "xs", "color": "muted" }
+      ],
+      "decorations": [],
+      "char_limits": {
+        "script": { "min": 4, "ideal": 14, "max": 22, "lines": 1, "case": "title" },
+        "kicker": { "min": 34, "ideal": 62, "max": 83, "lines": 2, "case": "sentence" },
+        "folio": { "min": 1, "ideal": 4, "max": 8, "lines": 1, "case": "lowercase" }
+      }
+    },
+    {
+      "id": "4-25", "name": "Great Qualities 4up", "description": "2x2 polaroids + newsprint background + top short headline.",
+      "category": "cute", "imageCount": 4, "style": "great_qualities_4up", "aspectRatio": "3:4",
+      "background": "newsprint", "borrows_sets_from": "4-09",
+      "images": [{ "x": 8, "y": 18, "w": 40, "h": 36, "rotation": -2 }, { "x": 52, "y": 22, "w": 40, "h": 36, "rotation": 3 }, { "x": 8, "y": 58, "w": 40, "h": 32, "rotation": 4 }, { "x": 52, "y": 62, "w": 40, "h": 32, "rotation": -3 }],
+      "texts": [
+        { "type": "masthead", "x": 4, "y": 4, "w": 92, "h": 10, "align": "center", "size": "5xl", "weight": "bold", "font": "serif", "letterSpacing": "wide" },
+        { "type": "eyebrow", "x": 4, "y": 14, "w": 92, "h": 3, "align": "center", "size": "xs", "italic": true, "color": "muted" },
+        { "type": "kicker", "x": 4, "y": 95, "w": 92, "h": 3, "align": "center", "size": "xs", "italic": true, "color": "muted" },
+        { "type": "folio", "x": 90, "y": 4, "w": 6, "h": 3, "align": "right", "size": "xs", "color": "muted" }
+      ],
+      "decorations": [],
+      "char_limits": {
+        "masthead": { "min": 6, "ideal": 12, "max": 16, "lines": 1, "case": "uppercase" },
+        "eyebrow": { "min": 40, "ideal": 101, "max": 121, "lines": 1, "case": "uppercase" },
+        "kicker": { "min": 111, "ideal": 202, "max": 272, "lines": 2, "case": "sentence" },
+        "folio": { "min": 1, "ideal": 4, "max": 8, "lines": 1, "case": "lowercase" }
+      }
+    }
+  ]
+}

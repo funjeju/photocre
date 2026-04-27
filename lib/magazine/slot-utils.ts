@@ -65,6 +65,8 @@ export function resolveTextColor(slot: TextSlot, palette: BackgroundPaletteEntry
   if (!slot.color || slot.color === "default") return palette.textColor
   if (slot.color === "accent") return palette.accentColor
   if (slot.color === "muted") return hexToRgba(palette.textColor, 0.45)
+  if (slot.color === "muted_strong") return hexToRgba(palette.textColor, 0.20)
+  if (slot.color === "white_overlay") return "rgba(255,255,255,0.95)"
   return slot.color
 }
 
