@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useCallback, useEffect } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Upload, X, RefreshCw, ChevronLeft, ImagePlus, Loader2, Save } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -21,6 +21,127 @@ import { resolveContentKey } from '@/lib/magazine/slot-utils'
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage'
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
 import { getFirebaseAuth, getFirebaseStorage, getFirebaseDb } from '@/lib/firebase/client'
+
+// ── Layout Sample Data (hardcoded from magazine_layouts_v5.json) ────────────
+
+interface SlotRect { x: number; y: number; w: number; h: number }
+interface LayoutSample {
+  id: string
+  name: string
+  imageCount: 1 | 2 | 3 | 4
+  aspectRatio: '4:3' | '3:4'
+  bgColor: string
+  textColor: string
+  images: SlotRect[]
+}
+
+const LAYOUT_SAMPLES: LayoutSample[] = [
+  // 1장
+  { id:'1-01', name:'Vertical Label Spread', imageCount:1, aspectRatio:'4:3', bgColor:'#FAFAFA', textColor:'#0A0A0A', images:[{x:38,y:5,w:60,h:90}] },
+  { id:'1-02', name:'Lookbook Hero',         imageCount:1, aspectRatio:'3:4', bgColor:'#FAFAFA', textColor:'#0A0A0A', images:[{x:45,y:10,w:55,h:65}] },
+  { id:'1-03', name:'Pullquote Page',        imageCount:1, aspectRatio:'4:3', bgColor:'#E8E8E5', textColor:'#1A1A1A', images:[{x:60,y:60,w:35,h:32}] },
+  // 2장
+  { id:'2-01', name:'Vertical Label Duo',    imageCount:2, aspectRatio:'4:3', bgColor:'#FAFAFA', textColor:'#0A0A0A', images:[{x:4,y:6,w:32,h:88},{x:67,y:30,w:29,h:50}] },
+  { id:'2-02', name:'Lookbook Duo',          imageCount:2, aspectRatio:'3:4', bgColor:'#FAFAFA', textColor:'#0A0A0A', images:[{x:35,y:4,w:60,h:55},{x:4,y:60,w:50,h:35}] },
+  { id:'2-03', name:'Quote Plus Frame',      imageCount:2, aspectRatio:'4:3', bgColor:'#E8E8E5', textColor:'#1A1A1A', images:[{x:48,y:8,w:48,h:60},{x:70,y:72,w:26,h:22}] },
+  // 3장
+  { id:'3-01', name:'Three Verticals',       imageCount:3, aspectRatio:'4:3', bgColor:'#FAFAFA', textColor:'#0A0A0A', images:[{x:34,y:8,w:20,h:84},{x:56,y:8,w:20,h:84},{x:78,y:8,w:20,h:84}] },
+  { id:'3-02', name:'Hero Plus Duo',         imageCount:3, aspectRatio:'3:4', bgColor:'#FAFAFA', textColor:'#0A0A0A', images:[{x:0,y:0,w:100,h:42},{x:34,y:50,w:32,h:35},{x:68,y:50,w:30,h:35}] },
+  { id:'3-03', name:'Quote Plus Trio',       imageCount:3, aspectRatio:'4:3', bgColor:'#F5F1E8', textColor:'#1A1A1A', images:[{x:48,y:6,w:48,h:38},{x:48,y:48,w:23,h:46},{x:73,y:48,w:23,h:46}] },
+  // 4장
+  { id:'4-01', name:'Quad Grid',             imageCount:4, aspectRatio:'4:3', bgColor:'#FAFAFA', textColor:'#0A0A0A', images:[{x:12,y:8,w:21,h:40},{x:35,y:8,w:21,h:40},{x:58,y:8,w:19,h:40},{x:79,y:8,w:17,h:40}] },
+  { id:'4-02', name:'Travel Album',          imageCount:4, aspectRatio:'4:3', bgColor:'#FAFAFA', textColor:'#0A0A0A', images:[{x:2,y:4,w:47,h:46},{x:51,y:4,w:47,h:46},{x:2,y:52,w:47,h:44},{x:51,y:52,w:47,h:44}] },
+  { id:'4-03', name:'Heritage Quad',         imageCount:4, aspectRatio:'4:3', bgColor:'#F5F1E8', textColor:'#1A1A1A', images:[{x:4,y:4,w:38,h:56},{x:46,y:4,w:22,h:26},{x:70,y:4,w:22,h:26},{x:46,y:32,w:46,h:28}] },
+]
+
+// ── Layout Preview Card (SVG wireframe) ──────────────────────────────────────
+
+function LayoutPreviewCard({ sample }: { sample: LayoutSample }) {
+  const isPortrait = sample.aspectRatio === '3:4'
+  // Viewbox: 100×75 (4:3) or 75×100 (3:4)
+  const vw = isPortrait ? 75 : 100
+  const vh = isPortrait ? 100 : 75
+  const imgAlpha = sample.bgColor === '#FAFAFA' || sample.bgColor === '#F5F1E8' ? '0.18' : '0.30'
+
+  return (
+    <div className="flex flex-col gap-1.5">
+      <div
+        className="rounded-xl overflow-hidden border border-border/50 shadow-sm"
+        style={{ aspectRatio: isPortrait ? '3/4' : '4/3' }}
+      >
+        <svg
+          viewBox={`0 0 ${vw} ${vh}`}
+          xmlns="http://www.w3.org/2000/svg"
+          className="w-full h-full"
+          style={{ background: sample.bgColor }}
+        >
+          {/* Image slots */}
+          {sample.images.map((img, i) => (
+            <rect
+              key={i}
+              x={(img.x / 100) * vw}
+              y={(img.y / 100) * vh}
+              width={(img.w / 100) * vw}
+              height={(img.h / 100) * vh}
+              fill={sample.textColor}
+              fillOpacity={imgAlpha}
+              rx="1"
+            />
+          ))}
+          {/* Subtle text-area hint lines */}
+          {[0.25, 0.4, 0.55].map((py, i) => (
+            <rect
+              key={`t${i}`}
+              x={isPortrait ? 4 : 4}
+              y={py * vh}
+              width={isPortrait ? 28 : 22}
+              height={1.5}
+              fill={sample.textColor}
+              fillOpacity={0.12}
+              rx="0.5"
+            />
+          ))}
+        </svg>
+      </div>
+      <p className="text-[10px] text-muted-foreground text-center leading-tight truncate px-0.5">{sample.name}</p>
+    </div>
+  )
+}
+
+// ── Layout Samples Section ────────────────────────────────────────────────────
+
+function LayoutSamplesSection() {
+  const groups: { label: string; count: 1|2|3|4 }[] = [
+    { label: '사진 1장', count: 1 },
+    { label: '사진 2장', count: 2 },
+    { label: '사진 3장', count: 3 },
+    { label: '사진 4장', count: 4 },
+  ]
+
+  return (
+    <div className="flex flex-col gap-5 pt-2">
+      <div className="flex items-center gap-3">
+        <div className="h-px flex-1 bg-border" />
+        <p className="text-xs text-muted-foreground font-medium shrink-0">레이아웃 샘플</p>
+        <div className="h-px flex-1 bg-border" />
+      </div>
+      <p className="text-xs text-muted-foreground -mt-2">
+        업로드한 사진 수에 따라 아래 스타일 중 3가지가 자동 생성됩니다.
+      </p>
+      {groups.map(({ label, count }) => {
+        const samples = LAYOUT_SAMPLES.filter(s => s.imageCount === count)
+        return (
+          <div key={count} className="flex flex-col gap-2">
+            <p className="text-xs font-semibold text-foreground/70">{label}</p>
+            <div className="grid grid-cols-3 gap-2">
+              {samples.map(s => <LayoutPreviewCard key={s.id} sample={s} />)}
+            </div>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
 
 // ── Constants ───────────────────────────────────────────────────────────────
 
@@ -268,8 +389,8 @@ function EditModal({
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) onClose() }}>
-      <DialogContent className="max-w-4xl w-full p-0 gap-0 overflow-hidden rounded-2xl">
-        <div className="flex flex-col md:flex-row h-full max-h-[90vh]">
+      <DialogContent className="sm:max-w-4xl w-full p-0 gap-0 overflow-hidden rounded-2xl max-h-[90vh]">
+        <div className="flex flex-col md:flex-row max-h-[90vh]">
 
           {/* ── Left: Preview ─────────────────────────────────── */}
           <div className={cn(
@@ -563,6 +684,7 @@ export function MagazineEditor() {
           >
             매거진 생성하기
           </Button>
+          <LayoutSamplesSection />
         </div>
       </div>
     )
