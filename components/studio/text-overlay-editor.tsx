@@ -17,14 +17,14 @@ const ALIGNMENTS = [
 export function TextOverlayEditor() {
   const textOverlay = useStudioStore((s) => s.textOverlay);
   const setTextOverlay = useStudioStore((s) => s.setTextOverlay);
-  const [enabled, setEnabled] = useState(false);
+  const [enabled, setEnabled] = useState(() => textOverlay !== null);
 
   const overlay = textOverlay ?? DEFAULT_TEXT_OVERLAY;
 
   useEffect(() => {
     if (!enabled) setTextOverlay(null);
     else if (!textOverlay) setTextOverlay(DEFAULT_TEXT_OVERLAY);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enabled]);
 
   function update(patch: Partial<typeof overlay>) {

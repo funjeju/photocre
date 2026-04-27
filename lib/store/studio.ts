@@ -62,7 +62,7 @@ export interface StudioState {
 }
 
 const DEFAULT_TEXT_OVERLAY: TextOverlay = {
-  content: '',
+  content: '텍스트를 입력하세요',
   fontFamily: 'Noto Sans KR',
   fontSize: 32,
   color: '#FFFFFF',
@@ -84,7 +84,7 @@ export const useStudioStore = create<StudioState>((set) => ({
   frameId: 'polaroid-classic',
   backgroundId: 'studio-gray',
   customBackground: null,
-  textOverlay: null,
+  textOverlay: DEFAULT_TEXT_OVERLAY,
   generatedImageUrl: null,
   generationId: null,
   isGenerating: false,
