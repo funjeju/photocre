@@ -6,8 +6,8 @@
 /* ─── PERSON ──────────────────────────────────────────────── */
 export const STYLE_MAP: Record<string, string> = {
   'beauty':        `soft dreamy portrait, soft lighting, glowing skin, pastel tones, beauty filter look, shallow depth of field, cinematic bokeh, smooth skin texture`,
-  'ghibli':        `hand-drawn animation style, watercolor shading, soft natural lighting, warm nostalgic mood, slightly simplified facial features but still recognizable`,
-  'pixar-3d':      `stylized 3D character render, realistic skin shading, expressive eyes, soft global illumination, cinematic lighting, high detail`,
+  'ghibli':        `Studio Ghibli hand-drawn animation style, ink outlines, watercolor wash texture, tiny simplified nose, large round expressive eyes, soft warm earthy color palette, gentle cel shading, nostalgic storybook mood — fully commit to the Ghibli illustration look`,
+  'pixar-3d':      `Pixar CGI animation style, smooth subsurface scattering skin, very large round expressive eyes, rounded soft facial features, slightly enlarged head, bright saturated colors, studio 3-point lighting, polished 3D render — fully commit to the Pixar character design look`,
   'anime':         `anime style portrait, clean line art, cel shading, simplified shapes, expressive features, stylized but maintaining likeness`,
   'disney-3d':     `stylized cinematic 3D character, slightly larger eyes, rounded facial features, smooth skin, warm lighting, appealing character look`,
   'oil-painting':  `oil painting portrait, thick brush strokes, rich texture, classical painting style, dramatic lighting, detailed facial structure`,

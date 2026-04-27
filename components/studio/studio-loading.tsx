@@ -65,7 +65,6 @@ export function StudioLoading() {
       <div style={{ animation: 'studioLoadFloat 2.8s ease-in-out infinite' }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          key={slide.src}
           src={slide.src}
           alt="로딩 중"
           className="rounded-2xl shadow-sm"
