@@ -1,9 +1,9 @@
 'use client';
 
-import { Skeleton } from '@/components/ui/skeleton';
 import { useStudioStore } from '@/lib/store/studio';
 import { LivePreview } from './live-preview';
 import { ResultViewer } from './result-viewer';
+import { StudioLoading } from './studio-loading';
 
 export function CanvasPreview() {
   const { generatedImageUrl, isGenerating } = useStudioStore();
@@ -27,10 +27,7 @@ export function CanvasPreview() {
       {/* 콘텐츠 — desktop: overflow-y-auto (패널 내 스크롤), mobile: auto height (aside가 스크롤 담당) */}
       <div className="relative z-10 flex flex-1 items-start justify-center p-4 md:p-8 pt-6 md:pt-8 lg:overflow-y-auto">
         {isGenerating ? (
-          <div className="flex flex-col items-center gap-4">
-            <Skeleton className="w-[520px] max-w-full aspect-square rounded-2xl" />
-            <p className="text-xs text-muted-foreground animate-pulse">AI가 스타일을 변환하고 있어요...</p>
-          </div>
+          <StudioLoading />
         ) : generatedImageUrl ? (
           <ResultViewer />
         ) : (

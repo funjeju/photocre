@@ -22,7 +22,6 @@ const NAV_ITEMS = [
   { href: '/cover',    label: ko.nav.cover,    icon: Newspaper },
   { href: '/magazine', label: ko.nav.magazine, icon: BookImage },
   { href: '/dream',    label: ko.nav.dream,    icon: Sparkles },
-  { href: '/history',  label: ko.nav.history,  icon: History },
 ];
 
 export function Header() {
