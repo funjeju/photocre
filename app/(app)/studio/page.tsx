@@ -43,7 +43,7 @@ export default function StudioPage() {
 
       {/* ─── 우측 패널 ─── */}
       <aside className="w-full lg:w-[400px] lg:border-l border-border flex flex-col overflow-y-auto">
-        <div className="flex-1 space-y-6 p-6 pb-4">
+        <div className="flex-1 space-y-6 p-6 pb-24">
           <div>
             <h1 className="text-2xl font-semibold tracking-tight">{ko.studio.title}</h1>
           </div>
@@ -101,23 +101,34 @@ export default function StudioPage() {
 
         {/* ── 완성하기 / 다운로드 (sticky) ── */}
         <div className="sticky bottom-0 border-t border-border bg-background/95 backdrop-blur p-4">
-          <Button
-            onClick={handleComplete}
-            disabled={!hasImage}
-            className="w-full gap-2 rounded-2xl h-11 bg-accent text-accent-foreground hover:bg-accent/90 disabled:opacity-40"
-          >
-            {hasResult ? (
-              <>
+          {hasResult ? (
+            <div className="flex gap-2">
+              <Button
+                onClick={handleComplete}
+                variant="outline"
+                className="flex-1 gap-2 rounded-2xl h-11"
+              >
                 <Download className="size-4" />
                 {ko.studio.result.download}
-              </>
-            ) : (
-              <>
-                <PackageCheck className="size-4" />
-                완성하기
-              </>
-            )}
-          </Button>
+              </Button>
+              <Button
+                onClick={() => setGeneratedImageUrl(null)}
+                variant="ghost"
+                className="flex-1 gap-2 rounded-2xl h-11 text-muted-foreground"
+              >
+                다시 변환
+              </Button>
+            </div>
+          ) : (
+            <Button
+              onClick={handleComplete}
+              disabled={!hasImage}
+              className="w-full gap-2 rounded-2xl h-11 bg-accent text-accent-foreground hover:bg-accent/90 disabled:opacity-40"
+            >
+              <PackageCheck className="size-4" />
+              완성하기
+            </Button>
+          )}
         </div>
       </aside>
 

@@ -13,9 +13,54 @@ import {
    LOW-LEVEL CANVAS HELPERS
 ═══════════════════════════════════════════════════════════════ */
 
+function srcDims(src: CanvasImageSource): { w: number; h: number } {
+  if (src instanceof HTMLImageElement)  return { w: src.naturalWidth,  h: src.naturalHeight  };
+  if (src instanceof HTMLCanvasElement) return { w: src.width,         h: src.height         };
+  if (src instanceof ImageBitmap)       return { w: src.width,         h: src.height         };
+  return { w: (src as HTMLVideoElement).videoWidth, h: (src as HTMLVideoElement).videoHeight };
+}
+
+/**
+ * Progressive halving downsample using two ping-pong canvases.
+ * Halves until within 2× of target, then one final exact-size step.
+ */
+function progressiveDownsample(
+  src: HTMLImageElement,
+  targetW: number,
+  targetH: number,
+): HTMLCanvasElement {
+  const pingpong = [document.createElement('canvas'), document.createElement('canvas')] as const;
+  let cur: CanvasImageSource = src;
+  let curW = src.naturalWidth;
+  let curH = src.naturalHeight;
+  let flip = 0;
+
+  while (curW > targetW * 2 || curH > targetH * 2) {
+    const nextW = Math.max(Math.ceil(curW / 2), targetW);
+    const nextH = Math.max(Math.ceil(curH / 2), targetH);
+    const dst = pingpong[flip & 1];
+    dst.width = nextW; dst.height = nextH;
+    const dc = dst.getContext('2d')!;
+    dc.imageSmoothingEnabled = true;
+    dc.imageSmoothingQuality = 'high';
+    dc.drawImage(cur, 0, 0, nextW, nextH);
+    cur = dst; curW = nextW; curH = nextH;
+    flip++;
+  }
+
+  // Final step: exact target size (source is already near-target, bicubic is clean here)
+  const out = pingpong[flip & 1];
+  out.width = targetW; out.height = targetH;
+  const oc = out.getContext('2d')!;
+  oc.imageSmoothingEnabled = true;
+  oc.imageSmoothingQuality = 'high';
+  oc.drawImage(cur, 0, 0, targetW, targetH);
+  return out;
+}
+
 function drawAffine3(
   ctx: CanvasRenderingContext2D,
-  img: HTMLImageElement,
+  img: CanvasImageSource,
   s0x: number, s0y: number,
   s1x: number, s1y: number,
   s2x: number, s2y: number,
@@ -42,14 +87,14 @@ function drawAffine3(
 
 function quadWarp(
   ctx: CanvasRenderingContext2D,
-  img: HTMLImageElement,
+  img: CanvasImageSource,
   x0: number, y0: number,
   x1: number, y1: number,
   x2: number, y2: number,
   x3: number, y3: number,
   zoom = 1.0,
 ) {
-  const iw = img.naturalWidth, ih = img.naturalHeight;
+  const { w: iw, h: ih } = srcDims(img);
   const dw = Math.max(x1 - x0, x2 - x3);
   const dh = Math.max(y3 - y0, y2 - y1);
   const da = dw / dh, ia = iw / ih;
@@ -72,7 +117,7 @@ function quadWarp(
 
 function drawSlot(
   ctx: CanvasRenderingContext2D,
-  userImg: HTMLImageElement,
+  userImg: CanvasImageSource,
   W: number, H: number,
   cfg: SlotConfig,
 ) {
@@ -98,7 +143,7 @@ function drawSlot(
     ctx.beginPath();
     ctx.ellipse(cx, cy, sw / 2, sh / 2, rad, 0, Math.PI * 2);
     ctx.clip();
-    const iw = userImg.naturalWidth, ih = userImg.naturalHeight;
+    const { w: iw, h: ih } = srcDims(userImg);
     const scale = Math.max(sw / iw, sh / ih) * cfg.zoom;
     ctx.translate(cx, cy);
     ctx.rotate(rad);
@@ -116,7 +161,7 @@ function drawSlot(
     ctx.lineTo(x0 + sw, y0 + sh - botArc);                              // right corner rises
     ctx.quadraticCurveTo(cx, y0 + sh + botArc, x0, y0 + sh - botArc); // bottom: clips corners → bulges down
     ctx.closePath(); ctx.clip();
-    const iw = userImg.naturalWidth, ih = userImg.naturalHeight;
+    const { w: iw, h: ih } = srcDims(userImg);
     const da = sw / sh, ia = iw / ih;
     let sx = 0, sy = 0, srcW = iw, srcH = ih;
     if (ia > da) { srcW = ih * da; sx = (iw - srcW) / 2; }
@@ -182,20 +227,37 @@ function MockupCanvas({ slotIds, label, w, h, img, productImg, configs }: {
   configs: Record<string, SlotConfig>;
 }) {
   const ref = useRef<HTMLCanvasElement>(null);
-  const dpr = typeof window !== 'undefined' ? Math.min(window.devicePixelRatio ?? 1, 2) : 1;
+  // 최소 2x 렌더링으로 1x 모니터에서도 선명하게, 최대 3x
+  const dpr = typeof window !== 'undefined' ? Math.min(Math.max(window.devicePixelRatio ?? 1, 2), 3) : 2;
 
   useEffect(() => {
     const canvas = ref.current;
     if (!canvas || !img || !productImg) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
+
+    // Pre-downsample user image to canvas physical size (proportional).
+    // Avoids single-step naive resize from e.g. 1024px → 80px slot area.
+    const physMax = Math.max(w, h) * dpr;
+    const srcMax = Math.max(img.naturalWidth, img.naturalHeight);
+    const displayImg: CanvasImageSource =
+      srcMax > physMax * 2
+        ? progressiveDownsample(
+            img,
+            Math.round((img.naturalWidth / srcMax) * physMax),
+            Math.round((img.naturalHeight / srcMax) * physMax),
+          )
+        : img;
+
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
     ctx.clearRect(0, 0, w * dpr, h * dpr);
     ctx.save();
     ctx.scale(dpr, dpr);
     ctx.drawImage(productImg, 0, 0, w, h);
     for (const id of slotIds) {
       const cfg = configs[id];
-      if (cfg) drawSlot(ctx, img, w, h, cfg);
+      if (cfg) drawSlot(ctx, displayImg, w, h, cfg);
     }
     ctx.restore();
   }, [slotIds, img, productImg, w, h, dpr, configs]);
@@ -295,9 +357,19 @@ export function MockupPreview({ imageUrl }: { imageUrl: string }) {
       if (!tCtx) continue;
       tCtx.drawImage(prodImg, 0, 0, item.w, item.h);
       if (img) {
+        const slotMax = Math.max(item.w, item.h);
+        const srcMax = Math.max(img.naturalWidth, img.naturalHeight);
+        const slotImg: CanvasImageSource =
+          srcMax > slotMax * 2
+            ? progressiveDownsample(
+                img,
+                Math.round((img.naturalWidth / srcMax) * slotMax),
+                Math.round((img.naturalHeight / srcMax) * slotMax),
+              )
+            : img;
         for (const id of item.slotIds) {
           const cfg = configs[id];
-          if (cfg) drawSlot(tCtx, img, item.w, item.h, cfg);
+          if (cfg) drawSlot(tCtx, slotImg, item.w, item.h, cfg);
         }
       }
 

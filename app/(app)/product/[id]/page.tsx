@@ -9,8 +9,10 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { useStudioStore } from '@/lib/store/studio';
 import { useCartStore } from '@/lib/store/cart';
-import { PRODUCT_MAP, SHIPPING_FEE, FREE_SHIPPING_THRESHOLD } from '@/lib/presets/products';
+import { PRODUCT_MAP, SHIPPING_FEE, FREE_SHIPPING_THRESHOLD, type ProductOption } from '@/lib/presets/products';
 import { ko } from '@/lib/i18n/ko';
+import { getFirebaseDb } from '@/lib/firebase/client';
+import { doc, getDoc } from 'firebase/firestore';
 import { cn } from '@/lib/utils';
 import {
   getAllSlotConfigs, DEFAULT_SLOT_CONFIGS, SlotConfig,
@@ -137,6 +139,29 @@ export default function ProductPage() {
   const productId = params.id as string;
   const product = PRODUCT_MAP[productId];
 
+  // Firestore 어드민 override 로드
+  const [productOverride, setProductOverride] = useState<{
+    basePrice?: number;
+    description?: string;
+    deliveryDays?: number;
+    options?: ProductOption[];
+  } | null>(null);
+
+  useEffect(() => {
+    getDoc(doc(getFirebaseDb(), 'products', productId))
+      .then((snap) => { if (snap.exists()) setProductOverride(snap.data() as typeof productOverride); })
+      .catch(() => {});
+  }, [productId]);
+
+  // preset + override 병합 (mockupSrc, slotIds, canvasW/H는 항상 preset 기준)
+  const p = product ? {
+    ...product,
+    basePrice:    productOverride?.basePrice    ?? product.basePrice,
+    description:  productOverride?.description  ?? product.description,
+    deliveryDays: productOverride?.deliveryDays ?? product.deliveryDays,
+    options:      productOverride?.options      ?? product.options,
+  } : product;
+
   const studioImageUrl = useStudioStore((s) => s.generatedImageUrl);
   const studioGenId    = useStudioStore((s) => s.generationId);
   const imgParam = searchParams.get('img');
@@ -150,6 +175,18 @@ export default function ProductPage() {
     product?.options.forEach((o) => { defaults[o.key] = o.values[0]; });
     return defaults;
   });
+
+  // override로 옵션이 바뀌면 기존 선택값이 없는 옵션 초기화
+  useEffect(() => {
+    if (!productOverride?.options) return;
+    setSelectedOptions((prev) => {
+      const next = { ...prev };
+      productOverride.options!.forEach((o) => {
+        if (!o.values.includes(next[o.key])) next[o.key] = o.values[0] ?? '';
+      });
+      return next;
+    });
+  }, [productOverride]);
   const [quantity, setQuantity] = useState(1);
 
   // Canvas state
@@ -180,47 +217,46 @@ export default function ProductPage() {
     img.src = generatedImageUrl;
   }, [generatedImageUrl]);
 
-  // Render composite onto canvas
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas || !product || !productImg) return;
+    if (!canvas || !p || !productImg) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
-    const W = product.canvasW;
-    const H = product.canvasH;
+    const W = p.canvasW;
+    const H = p.canvasH;
     ctx.clearRect(0, 0, W * SCALE, H * SCALE);
     ctx.save();
     ctx.scale(SCALE, SCALE);
     ctx.drawImage(productImg, 0, 0, W, H);
     if (userImg) {
-      for (const id of product.slotIds) {
+      for (const id of p.slotIds) {
         const cfg = slotConfigs[id];
         if (cfg) drawSlot(ctx, userImg, W, H, cfg);
       }
     }
     ctx.restore();
-  }, [productImg, userImg, slotConfigs, product]);
+  }, [productImg, userImg, slotConfigs, p]);
 
-  if (!product) return null;
+  if (!p) return null;
 
-  const allOptionsSelected = product.options.every((o) => selectedOptions[o.key]);
+  const allOptionsSelected = p.options.every((o) => selectedOptions[o.key]);
   const canAdd = !!generatedImageUrl && allOptionsSelected;
-  const shippingLabel = (product.basePrice * quantity) >= FREE_SHIPPING_THRESHOLD
+  const shippingLabel = (p.basePrice * quantity) >= FREE_SHIPPING_THRESHOLD
     ? ko.shop.freeShipping
     : formatPrice(SHIPPING_FEE);
 
   function handleAddToCart() {
     if (!generatedImageUrl) { toast.error(ko.shop.noImage); return; }
     addItem({
-      productId: product.id,
-      productName: product.name,
+      productId: p.id,
+      productName: p.name,
       customImageUrl: generatedImageUrl,
       generationId,
       selectedOptions,
       quantity,
-      unitPrice: product.basePrice,
+      unitPrice: p.basePrice,
     });
-    toast.success(`${product.name}을(를) 장바구니에 담았습니다.`);
+    toast.success(`${p.name}을(를) 장바구니에 담았습니다.`);
   }
 
   function handleBuyNow() {
@@ -245,12 +281,12 @@ export default function ProductPage() {
           <div className="flex flex-col gap-3">
             <div
               className="w-full overflow-hidden rounded-2xl bg-muted/40 border border-border/40"
-              style={{ aspectRatio: `${product.canvasW} / ${product.canvasH}` }}
+              style={{ aspectRatio: `${p.canvasW} / ${p.canvasH}` }}
             >
               <canvas
                 ref={canvasRef}
-                width={product.canvasW * SCALE}
-                height={product.canvasH * SCALE}
+                width={p.canvasW * SCALE}
+                height={p.canvasH * SCALE}
                 style={{ width: '100%', height: 'auto', display: 'block' }}
                 className="rounded-2xl"
               />
@@ -270,24 +306,24 @@ export default function ProductPage() {
           {/* 상품 정보 */}
           <div className="flex flex-col gap-6">
             <div>
-              <h1 className="text-2xl font-semibold tracking-tight">{product.name}</h1>
-              <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{product.description}</p>
+              <h1 className="text-2xl font-semibold tracking-tight">{p.name}</h1>
+              <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{p.description}</p>
             </div>
 
             <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-bold">{formatPrice(product.basePrice)}</span>
+              <span className="text-3xl font-bold">{formatPrice(p.basePrice)}</span>
               <span className="text-sm text-muted-foreground">/ 1개</span>
             </div>
 
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Package className="size-4" />
-              {ko.shop.deliveryDays.replace('{{n}}', String(product.deliveryDays))}
+              {ko.shop.deliveryDays.replace('{{n}}', String(p.deliveryDays))}
             </div>
 
             <Separator />
 
             {/* 옵션 선택 */}
-            {product.options.map((opt) => (
+            {p.options.map((opt) => (
               <div key={opt.key} className="flex flex-col gap-2">
                 <label className="text-sm font-medium">{opt.label}</label>
                 <div className="flex flex-wrap gap-2">
