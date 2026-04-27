@@ -80,8 +80,10 @@ PERSON RULES (critical — NON-NEGOTIABLE):
 - The person should look like they were professionally photographed for this cover, but their face and appearance must remain completely unchanged.
 
 BACKGROUND RULES:
-- Keep IMAGE 1's background, text, logo, and all design elements intact
-- The only addition to IMAGE 1 is IMAGE 2's person placed in the correct position
+- Use IMAGE 1 purely as a layout and design REFERENCE — do not copy its pixels. Instead, recreate every element (logo, typography, graphic shapes, background color/texture) at full high resolution and maximum sharpness.
+- All text and lettering must be rendered crisp, clean, and perfectly legible — as if typeset by a professional designer, not sampled from a low-res source.
+- All edges, lines, and graphic elements must be sharp with no aliasing, blurriness, or compression artifacts.
+- The only addition beyond IMAGE 1's design is IMAGE 2's person placed in the correct position.
 ${textLines ? `\nTEXT OVERRIDE (replace these specific text elements from IMAGE 1 with the values below):\n${textLines}` : ''}
 
 OUTPUT: A complete, print-ready ${templateName} magazine cover at 3:4 aspect ratio. IMAGE 1's design with IMAGE 2's person naturally placed in it.`;
