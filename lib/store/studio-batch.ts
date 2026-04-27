@@ -5,13 +5,15 @@ export type ItemStatus = 'idle' | 'processing' | 'success' | 'failed';
 export interface BatchItem {
   id: string;
   fileName: string;
-  previewUrl: string;   // Object URL (original preview)
-  base64: string;       // 1024px resized webp base64 for API
+  previewUrl: string;      // Object URL (original preview)
+  base64: string;          // 1024px resized webp base64 for API
   imageType: string;
   status: ItemStatus;
-  resultUrl?: string;   // data: URL returned from Gemini
-  text: string;         // 사용자 입력 텍스트
+  resultUrl?: string;      // data: URL returned from Gemini
+  text: string;            // 사용자 입력 텍스트
   error?: string;
+  croppedBase64?: string;  // 개별 크롭 후 base64 (있으면 AI 변환 시 우선 사용)
+  croppedPreviewUrl?: string; // 크롭 썸네일 미리보기
 }
 
 export interface BatchTower {
@@ -20,6 +22,15 @@ export interface BatchTower {
   aspectRatio: string;
   customPrompt: string;
   backgroundPrompt: string;
+  // 텍스트 오버레이 (단일 모드와 동일한 방식)
+  textEnabled: boolean;
+  textFontFamily: string;
+  textFontSize: number;
+  textColor: string;
+  textBold: boolean;
+  textPosition: 'top' | 'center' | 'bottom';
+  textBgColor: string | null;
+  textAlignment: 'left' | 'center' | 'right';
 }
 
 const DEFAULT_TOWER: BatchTower = {
@@ -28,6 +39,14 @@ const DEFAULT_TOWER: BatchTower = {
   aspectRatio: '4:5',
   customPrompt: '',
   backgroundPrompt: '',
+  textEnabled: false,
+  textFontFamily: 'Noto Sans KR',
+  textFontSize: 36,
+  textColor: '#FFFFFF',
+  textBold: false,
+  textPosition: 'bottom',
+  textBgColor: null,
+  textAlignment: 'center',
 };
 
 interface StudioBatchState {

@@ -12,20 +12,24 @@ import JSZip from 'jszip';
 import {
   Upload, X, Loader2, CheckCircle2, XCircle, Wand2,
   Download, Save, ShoppingBag, ChevronDown, ChevronUp,
-  FolderPlus, Trash2, RotateCcw,
+  FolderPlus, Trash2, RotateCcw, Crop,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import Cropper from 'react-easy-crop';
+import type { Area } from 'react-easy-crop';
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { getCroppedBlob } from '@/lib/canvas/crop';
 import { getFirebaseDb } from '@/lib/firebase/client';
 import { useAuth } from '@/lib/firebase/auth-context';
 import { useStudioBatchStore, type BatchItem, type BatchTower } from '@/lib/store/studio-batch';
 import { useCartStore } from '@/lib/store/cart';
 import { PRODUCT_PRESETS, type ProductPreset } from '@/lib/presets/products';
 import { STYLES } from '@/lib/presets/styles';
+import { ALL_FONTS, loadGoogleFont, getFont } from '@/lib/presets/fonts';
 import { ko } from '@/lib/i18n/ko';
 
 const MAX_ITEMS = 50;
@@ -96,6 +100,79 @@ async function runConcurrent<T>(
 }
 
 /* ═══════════════════════════════════════════════════════════════
+   TEXT COMPOSITE UTIL
+   단일 모드와 동일: Canvas 2D로 이미지 위에 텍스트 합성
+═══════════════════════════════════════════════════════════════ */
+
+async function composeTextOnImage(
+  imageDataUrl: string,
+  text: string,
+  opts: {
+    fontFamily: string;
+    fontSize: number;
+    color: string;
+    bold: boolean;
+    position: 'top' | 'center' | 'bottom';
+    bgColor: string | null;
+    alignment: 'left' | 'center' | 'right';
+  },
+): Promise<string> {
+  const font = getFont(opts.fontFamily);
+  await loadGoogleFont(font);
+  const weight = opts.bold ? '700' : '400';
+  await document.fonts.load(`${weight} ${opts.fontSize}px "${opts.fontFamily}"`).catch(() => {});
+
+  return new Promise((resolve, reject) => {
+    const img = new window.Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) { reject(new Error('canvas unavailable')); return; }
+
+      ctx.drawImage(img, 0, 0);
+
+      // 단일 모드 fScale과 동일한 방식으로 폰트 크기 스케일
+      const fScale = canvas.width / 512;
+      const actualSize = Math.max(16, opts.fontSize * fScale);
+
+      const posYMap = {
+        top:    canvas.height * 0.08,
+        center: canvas.height * 0.50,
+        bottom: canvas.height * 0.88,
+      };
+      const y = posYMap[opts.position];
+      const x = opts.alignment === 'left'   ? 20
+               : opts.alignment === 'right'  ? canvas.width - 20
+               : canvas.width / 2;
+
+      ctx.font = `${weight} ${actualSize}px "${opts.fontFamily}", sans-serif`;
+      ctx.textAlign = opts.alignment as CanvasTextAlign;
+      ctx.textBaseline = 'top';
+
+      const lines = text.split('\n');
+      const lineH = actualSize * 1.35;
+      const totalH = lineH * lines.length + 16;
+
+      if (opts.bgColor) {
+        ctx.fillStyle = opts.bgColor;
+        ctx.fillRect(0, y - 8, canvas.width, totalH);
+      }
+
+      ctx.fillStyle = opts.color;
+      lines.forEach((line, i) => {
+        ctx.fillText(line, x, y + i * lineH);
+      });
+
+      resolve(canvas.toDataURL('image/png'));
+    };
+    img.onerror = reject;
+    img.src = imageDataUrl;
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════════
    CONTROL TOWER
 ═══════════════════════════════════════════════════════════════ */
 
@@ -118,34 +195,59 @@ function ControlTower({ tower, onChange, disabled }: {
 
       {open && (
         <div className="grid grid-cols-2 gap-4 border-t border-border/40 px-4 pb-4 pt-3 md:grid-cols-4 lg:grid-cols-6">
-          {/* 스타일 */}
-          <div className="flex flex-col gap-1.5">
+          {/* 스타일 — 썸네일 카드 */}
+          <div className="flex flex-col gap-1.5 col-span-2 md:col-span-4 lg:col-span-3">
             <Label className="text-xs">스타일</Label>
-            <select
-              value={tower.styleId}
-              onChange={(e) => onChange({ styleId: e.target.value })}
-              disabled={disabled}
-              className="rounded-xl border border-border bg-background px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-accent/30 disabled:opacity-50"
-            >
-              {STYLES.map((s) => (
-                <option key={s.id} value={s.id}>{s.name}</option>
-              ))}
-            </select>
+            <div className="flex gap-2 overflow-x-auto pb-1 snap-x snap-mandatory">
+              {STYLES.map((s) => {
+                const selected = tower.styleId === s.id;
+                return (
+                  <button
+                    key={s.id}
+                    onClick={() => onChange({ styleId: s.id })}
+                    disabled={disabled}
+                    className={`snap-start shrink-0 flex flex-col items-center gap-1 focus:outline-none disabled:opacity-50 group`}
+                  >
+                    <div className={`w-14 aspect-[4/5] rounded-xl overflow-hidden border-2 transition-all ${
+                      selected
+                        ? 'border-accent ring-2 ring-accent ring-offset-1'
+                        : 'border-border group-hover:border-foreground/30'
+                    }`}>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={s.thumbnailSrc}
+                        alt={s.name}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <span className={`text-[10px] font-medium leading-tight ${selected ? 'text-accent' : 'text-muted-foreground'}`}>
+                      {s.name}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           {/* 강도 */}
           <div className="flex flex-col gap-1.5">
             <Label className="text-xs">변환 강도</Label>
-            <select
-              value={tower.intensity}
-              onChange={(e) => onChange({ intensity: Number(e.target.value) })}
-              disabled={disabled}
-              className="rounded-xl border border-border bg-background px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-accent/30 disabled:opacity-50"
-            >
+            <div className="flex gap-1">
               {[30, 50, 70, 100].map((v) => (
-                <option key={v} value={v}>{v}%</option>
+                <button
+                  key={v}
+                  disabled={disabled}
+                  onClick={() => onChange({ intensity: v })}
+                  className={`flex-1 rounded-lg border py-1.5 text-[11px] font-medium transition-colors disabled:opacity-50 ${
+                    tower.intensity === v
+                      ? 'border-accent bg-accent/10 text-accent'
+                      : 'border-border text-muted-foreground hover:border-foreground/30'
+                  }`}
+                >
+                  {v}%
+                </button>
               ))}
-            </select>
+            </div>
           </div>
 
           {/* 출력 비율 */}
@@ -192,6 +294,143 @@ function ControlTower({ tower, onChange, disabled }: {
               className="rounded-xl text-xs h-8"
             />
           </div>
+
+          {/* ── 텍스트 오버레이 구분선 ── */}
+          <div className="col-span-2 md:col-span-4 lg:col-span-6 border-t border-border/40 pt-3 flex flex-col gap-3">
+            {/* 토글 헤더 */}
+            <div className="flex items-center justify-between">
+              <Label className="text-xs font-semibold">텍스트 오버레이</Label>
+              <button
+                onClick={() => onChange({ textEnabled: !tower.textEnabled })}
+                className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+                  tower.textEnabled ? 'bg-accent' : 'bg-muted border border-border'
+                }`}
+              >
+                <span className={`inline-block size-3.5 rounded-full bg-white shadow transition-transform ${
+                  tower.textEnabled ? 'translate-x-4' : 'translate-x-0.5'
+                }`} />
+              </button>
+            </div>
+
+            {tower.textEnabled && (
+              <div className="grid grid-cols-2 gap-3 md:grid-cols-4 lg:grid-cols-6">
+                {/* 폰트 */}
+                <div className="flex flex-col gap-1.5 md:col-span-2">
+                  <Label className="text-xs">폰트</Label>
+                  <select
+                    value={tower.textFontFamily}
+                    onChange={(e) => onChange({ textFontFamily: e.target.value })}
+                    className="rounded-xl border border-border bg-background px-2 py-1.5 text-xs focus:outline-none"
+                  >
+                    <optgroup label="한글">
+                      {ALL_FONTS.filter((f) => f.lang === 'ko').map((f) => (
+                        <option key={f.family} value={f.family}>{f.label}</option>
+                      ))}
+                    </optgroup>
+                    <optgroup label="English">
+                      {ALL_FONTS.filter((f) => f.lang === 'en').map((f) => (
+                        <option key={f.family} value={f.family}>{f.label}</option>
+                      ))}
+                    </optgroup>
+                  </select>
+                </div>
+
+                {/* 크기 + 볼드 + 정렬 */}
+                <div className="flex flex-col gap-1.5 md:col-span-2">
+                  <Label className="text-xs">크기 · 스타일</Label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="range" min={16} max={80} value={tower.textFontSize}
+                      onChange={(e) => onChange({ textFontSize: Number(e.target.value) })}
+                      className="flex-1 accent-accent"
+                    />
+                    <span className="text-xs text-muted-foreground w-6 text-right">{tower.textFontSize}</span>
+                    <button
+                      onClick={() => onChange({ textBold: !tower.textBold })}
+                      className={`size-7 rounded-lg text-xs font-bold border transition-colors ${
+                        tower.textBold ? 'border-accent bg-accent text-accent-foreground' : 'border-border text-muted-foreground'
+                      }`}
+                    >B</button>
+                  </div>
+                </div>
+
+                {/* 위치 */}
+                <div className="flex flex-col gap-1.5">
+                  <Label className="text-xs">위치</Label>
+                  <div className="flex gap-1">
+                    {(['top', 'center', 'bottom'] as const).map((p) => (
+                      <button
+                        key={p}
+                        onClick={() => onChange({ textPosition: p })}
+                        className={`flex-1 rounded-lg border py-1.5 text-[10px] font-medium transition-colors ${
+                          tower.textPosition === p
+                            ? 'border-accent bg-accent/10 text-accent'
+                            : 'border-border text-muted-foreground hover:border-foreground/30'
+                        }`}
+                      >
+                        {p === 'top' ? '상단' : p === 'center' ? '중앙' : '하단'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 정렬 */}
+                <div className="flex flex-col gap-1.5">
+                  <Label className="text-xs">정렬</Label>
+                  <div className="flex gap-1">
+                    {([['left','←'],['center','↔'],['right','→']] as const).map(([v, label]) => (
+                      <button
+                        key={v}
+                        onClick={() => onChange({ textAlignment: v })}
+                        className={`flex-1 rounded-lg border py-1.5 text-xs transition-colors ${
+                          tower.textAlignment === v
+                            ? 'border-accent bg-accent/10 text-accent'
+                            : 'border-border text-muted-foreground hover:border-foreground/30'
+                        }`}
+                      >{label}</button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 텍스트 색상 */}
+                <div className="flex flex-col gap-1.5 md:col-span-2">
+                  <Label className="text-xs">텍스트 색상</Label>
+                  <div className="flex gap-1.5 items-center">
+                    {['#FFFFFF','#000000','#F5E6C8','#C8D8F5','#F5C8C8'].map((c) => (
+                      <button
+                        key={c}
+                        onClick={() => onChange({ textColor: c })}
+                        className={`size-6 rounded-full border-2 transition-all ${tower.textColor === c ? 'border-accent scale-110' : 'border-border'}`}
+                        style={{ backgroundColor: c }}
+                      />
+                    ))}
+                    <label className="size-6 rounded-full border-2 border-dashed border-border cursor-pointer overflow-hidden">
+                      <input type="color" value={tower.textColor} onChange={(e) => onChange({ textColor: e.target.value })} className="opacity-0 w-full h-full cursor-pointer" />
+                    </label>
+                  </div>
+                </div>
+
+                {/* 텍스트 배경 */}
+                <div className="flex flex-col gap-1.5 md:col-span-2">
+                  <Label className="text-xs">텍스트 배경</Label>
+                  <div className="flex gap-1.5 items-center">
+                    <button
+                      onClick={() => onChange({ textBgColor: null })}
+                      className={`size-6 rounded-full border-2 flex items-center justify-center transition-all ${tower.textBgColor === null ? 'border-accent scale-110' : 'border-border'}`}
+                    ><span className="text-[9px] text-muted-foreground">∅</span></button>
+                    {['#000000','#FFFFFF','#FF000099','#00000099','#FFFFFF99'].map((c) => (
+                      <button
+                        key={c}
+                        onClick={() => onChange({ textBgColor: c })}
+                        className={`size-6 rounded-full border-2 transition-all ${tower.textBgColor === c ? 'border-accent scale-110' : 'border-border'}`}
+                        style={{ backgroundColor: c }}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>
@@ -202,10 +441,11 @@ function ControlTower({ tower, onChange, disabled }: {
    ITEM ROW
 ═══════════════════════════════════════════════════════════════ */
 
-function ItemRow({ item, onRemove, onTextChange, disabled }: {
+function ItemRow({ item, onRemove, onTextChange, onCrop, disabled }: {
   item: BatchItem;
   onRemove: () => void;
   onTextChange: (text: string) => void;
+  onCrop: () => void;
   disabled: boolean;
 }) {
   const statusIcon = {
@@ -215,19 +455,28 @@ function ItemRow({ item, onRemove, onTextChange, disabled }: {
     failed: <XCircle className="size-4 text-destructive" />,
   }[item.status];
 
+  // 크롭된 미리보기 우선, 결과 이미지 우선, 원본 순서
+  const thumbSrc = item.resultUrl ?? item.croppedPreviewUrl ?? item.previewUrl;
+
   return (
     <div className="flex items-center gap-3 rounded-2xl border border-border/50 bg-background p-3 transition-shadow hover:shadow-sm">
       {/* 썸네일 */}
       <div className="relative size-16 shrink-0 overflow-hidden rounded-xl border border-border/40">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src={item.resultUrl ?? item.previewUrl}
+          src={thumbSrc}
           alt={item.fileName}
           className="h-full w-full object-cover"
         />
         {item.status === 'processing' && (
           <div className="absolute inset-0 flex items-center justify-center bg-background/60 backdrop-blur-sm">
             <Loader2 className="size-4 animate-spin text-accent" />
+          </div>
+        )}
+        {/* 크롭 완료 배지 */}
+        {item.croppedBase64 && item.status !== 'success' && (
+          <div className="absolute bottom-0.5 right-0.5 rounded-full bg-accent p-0.5">
+            <Crop className="size-2.5 text-accent-foreground" />
           </div>
         )}
       </div>
@@ -244,12 +493,24 @@ function ItemRow({ item, onRemove, onTextChange, disabled }: {
         <Input
           value={item.text}
           onChange={(e) => onTextChange(e.target.value)}
-          placeholder="텍스트 입력 (선택, 이미지에 표시되지 않음)"
+          placeholder="텍스트 입력 (선택 · 위 텍스트 오버레이 설정대로 이미지에 합성됨)"
           disabled={disabled || item.status === 'processing'}
           maxLength={40}
           className="h-7 rounded-xl text-xs"
         />
       </div>
+
+      {/* 크롭 버튼 */}
+      <button
+        onClick={onCrop}
+        disabled={disabled || item.status === 'processing'}
+        title="크롭 조정"
+        className={`shrink-0 transition-colors disabled:opacity-40 ${
+          item.croppedBase64 ? 'text-accent hover:text-accent/70' : 'text-muted-foreground hover:text-foreground'
+        }`}
+      >
+        <Crop className="size-4" />
+      </button>
 
       {/* 삭제 버튼 */}
       <button
@@ -498,6 +759,132 @@ function GoodsDialog({ open, items, onClose }: {
 }
 
 /* ═══════════════════════════════════════════════════════════════
+   CROP UTILS + BATCH CROP DIALOG
+═══════════════════════════════════════════════════════════════ */
+
+async function blobToBase64Resized(blob: Blob, maxSide = 1024): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(blob);
+    const img = new window.Image();
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const { naturalWidth: w, naturalHeight: h } = img;
+      const scale = Math.min(1, maxSide / Math.max(w, h));
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(w * scale);
+      canvas.height = Math.round(h * scale);
+      canvas.getContext('2d')!.drawImage(img, 0, 0, canvas.width, canvas.height);
+      const dataUrl = canvas.toDataURL('image/webp', 0.85);
+      resolve(dataUrl.replace(/^data:[^;]+;base64,/, ''));
+    };
+    img.onerror = reject;
+    img.src = url;
+  });
+}
+
+const CROP_RATIOS = [
+  { label: '원본', num: 0 },
+  { label: '1:1',  num: 1 / 1 },
+  { label: '4:5',  num: 4 / 5 },
+  { label: '3:4',  num: 3 / 4 },
+  { label: '9:16', num: 9 / 16 },
+] as const;
+
+function BatchCropDialog({ imageUrl, open, onConfirm, onClose }: {
+  imageUrl: string;
+  open: boolean;
+  onConfirm: (croppedBase64: string, croppedPreviewUrl: string) => void;
+  onClose: () => void;
+}) {
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [ratioNum, setRatioNum] = useState<number>(4 / 5);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const handleConfirm = async () => {
+    if (!croppedAreaPixels) return;
+    setLoading(true);
+    try {
+      const { blob, previewUrl } = await getCroppedBlob(imageUrl, croppedAreaPixels);
+      const base64 = await blobToBase64Resized(blob);
+      onConfirm(base64, previewUrl);
+    } catch {
+      /* no-op */
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={(v) => { if (!v) onClose(); }}>
+      <DialogContent className="max-w-lg p-0 gap-0 overflow-hidden rounded-2xl">
+        <DialogHeader className="px-6 pt-6 pb-4">
+          <DialogTitle className="text-base font-medium">크롭 조정</DialogTitle>
+        </DialogHeader>
+
+        {/* 비율 선택 */}
+        <div className="flex gap-2 px-6 pb-4 overflow-x-auto">
+          {CROP_RATIOS.map((r) => (
+            <button
+              key={r.label}
+              onClick={() => setRatioNum(r.num)}
+              className={`shrink-0 rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+                ratioNum === r.num
+                  ? 'border-accent bg-accent text-accent-foreground'
+                  : 'border-border text-muted-foreground hover:border-foreground/30'
+              }`}
+            >
+              {r.label}
+            </button>
+          ))}
+        </div>
+
+        {/* 크롭 영역 */}
+        <div className="relative h-72 bg-black">
+          {imageUrl && (
+            <Cropper
+              image={imageUrl}
+              crop={crop}
+              zoom={zoom}
+              minZoom={0.5}
+              maxZoom={4}
+              aspect={ratioNum || undefined}
+              onCropChange={setCrop}
+              onZoomChange={setZoom}
+              onCropComplete={(_, areaPixels) => setCroppedAreaPixels(areaPixels)}
+              style={{ containerStyle: { borderRadius: 0 } }}
+            />
+          )}
+        </div>
+
+        {/* 줌 슬라이더 */}
+        <div className="flex items-center gap-3 px-6 py-3 border-t border-border">
+          <span className="text-xs text-muted-foreground shrink-0">축소</span>
+          <input
+            type="range" min={0.5} max={4} step={0.05} value={zoom}
+            onChange={(e) => setZoom(Number(e.target.value))}
+            className="flex-1 accent-accent"
+          />
+          <span className="text-xs text-muted-foreground shrink-0">확대</span>
+        </div>
+
+        <div className="flex justify-end gap-3 px-6 py-4">
+          <Button variant="outline" onClick={onClose} className="rounded-xl">취소</Button>
+          <Button
+            onClick={handleConfirm}
+            disabled={loading || !croppedAreaPixels}
+            className="rounded-xl bg-accent text-accent-foreground hover:bg-accent/90"
+          >
+            {loading ? '처리 중...' : '확인'}
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
    CREDIT CONFIRM DIALOG
 ═══════════════════════════════════════════════════════════════ */
 
@@ -550,6 +937,7 @@ export function BatchMode() {
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
   const [goodsDialogOpen, setGoodsDialogOpen] = useState(false);
   const [savingProgress, setSavingProgress] = useState<{ current: number; total: number } | null>(null);
+  const [cropItemId, setCropItemId] = useState<string | null>(null);
 
   const pendingItems = items.filter((i) => i.status === 'idle');
   const successItems = items.filter((i) => i.status === 'success');
@@ -599,7 +987,7 @@ export function BatchMode() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
           body: JSON.stringify({
-            imageBase64: item.base64,
+            imageBase64: item.croppedBase64 ?? item.base64,
             imageType: item.imageType,
             styleId: tower.styleId,
             aspectRatio: tower.aspectRatio,
@@ -627,6 +1015,24 @@ export function BatchMode() {
     toast.success(`완료: 성공 ${done}장 / 실패 ${fail}장`);
   }
 
+  /* ── 텍스트 합성 옵션 추출 ── */
+  function getTextOpts() {
+    return {
+      fontFamily: tower.textFontFamily,
+      fontSize: tower.textFontSize,
+      color: tower.textColor,
+      bold: tower.textBold,
+      position: tower.textPosition,
+      bgColor: tower.textBgColor,
+      alignment: tower.textAlignment,
+    };
+  }
+
+  async function applyText(item: BatchItem): Promise<string> {
+    if (!tower.textEnabled || !item.text.trim() || !item.resultUrl) return item.resultUrl ?? '';
+    return composeTextOnImage(item.resultUrl, item.text, getTextOpts());
+  }
+
   /* ── 일괄 저장 ── */
   async function handleSave(folderName: string) {
     if (!user) return;
@@ -640,15 +1046,16 @@ export function BatchMode() {
     });
     const folderId = folderRef.id;
 
-    // 2. 각 성공 이미지 저장
+    // 2. 각 성공 이미지 텍스트 합성 후 저장
     const successList = useStudioBatchStore.getState().items.filter((i) => i.status === 'success' && i.resultUrl);
     setSavingProgress({ current: 0, total: successList.length });
 
     const token = await user.getIdToken();
     for (let i = 0; i < successList.length; i++) {
       const item = successList[i];
-      const base64 = item.resultUrl!.replace(/^data:[^;]+;base64,/, '');
       try {
+        const finalDataUrl = await applyText(item);
+        const base64 = finalDataUrl.replace(/^data:[^;]+;base64,/, '');
         await fetch('/api/save-generation', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
@@ -684,11 +1091,14 @@ export function BatchMode() {
       (async () => {
         const JSZipLib = (await import('jszip')).default;
         const zip = new JSZipLib();
-        list.forEach((item, idx) => {
-          const base64 = item.resultUrl!.replace(/^data:[^;]+;base64,/, '');
+        // 텍스트 합성 후 ZIP에 추가
+        for (let idx = 0; idx < list.length; idx++) {
+          const item = list[idx];
+          const finalDataUrl = await applyText(item);
+          const base64 = finalDataUrl.replace(/^data:[^;]+;base64,/, '');
           const name = `${String(idx + 1).padStart(3, '0')}_${item.fileName.replace(/\.[^.]+$/, '')}.png`;
           zip.file(name, base64, { base64: true });
-        });
+        }
         const blob = await zip.generateAsync({ type: 'blob' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -742,6 +1152,7 @@ export function BatchMode() {
                 item={item}
                 onRemove={() => removeItem(item.id)}
                 onTextChange={(t) => updateText(item.id, t)}
+                onCrop={() => setCropItemId(item.id)}
                 disabled={isProcessing}
               />
             ))}
@@ -842,6 +1253,23 @@ export function BatchMode() {
           </div>
         </div>
       )}
+
+      {/* 개별 크롭 다이얼로그 */}
+      {cropItemId && (() => {
+        const cropItem = items.find((i) => i.id === cropItemId);
+        if (!cropItem) return null;
+        return (
+          <BatchCropDialog
+            imageUrl={cropItem.previewUrl}
+            open={true}
+            onConfirm={(croppedBase64, croppedPreviewUrl) => {
+              patchItem(cropItemId, { croppedBase64, croppedPreviewUrl });
+              setCropItemId(null);
+            }}
+            onClose={() => setCropItemId(null)}
+          />
+        );
+      })()}
 
       {/* 다이얼로그들 */}
       <CreditConfirmDialog
