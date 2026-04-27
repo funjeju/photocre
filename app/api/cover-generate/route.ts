@@ -70,11 +70,14 @@ TASK: Place IMAGE 2's person into IMAGE 1's canvas to create a complete, natural
 PERSON PLACEMENT BLUEPRINT — follow this precisely:
 ${layoutDescription}
 
-PERSON RULES (critical):
-- Use IMAGE 2's person exactly as they are: preserve their face, hair color, skin tone, and clothing without any alteration
-- Position, scale, and frame them exactly as described in the PERSON PLACEMENT BLUEPRINT
-- Adapt the lighting and color grading on the person to harmonize with IMAGE 1's atmosphere — but do not change their appearance
-- The person should look like they were professionally photographed specifically for this cover
+PERSON RULES (critical — NON-NEGOTIABLE):
+- FACE PRESERVATION IS ABSOLUTE: Do NOT alter, retouch, reshape, smooth, slim, enhance, or change the person's face in ANY way. Reproduce the face with 100% fidelity — every feature, expression, and characteristic exactly as in IMAGE 2.
+- Do NOT apply beauty filters, skin smoothing, facial reshaping, or AI enhancement to the face.
+- Do NOT change hair color, skin tone, eye shape, nose, lips, or any facial feature.
+- Preserve the person's clothing, body proportions, and overall appearance exactly as in IMAGE 2 — no alterations.
+- Position, scale, and frame them exactly as described in the PERSON PLACEMENT BLUEPRINT.
+- You may only adapt the lighting and color grading to harmonize with IMAGE 1's atmosphere — nothing else.
+- The person should look like they were professionally photographed for this cover, but their face and appearance must remain completely unchanged.
 
 BACKGROUND RULES:
 - Keep IMAGE 1's background, text, logo, and all design elements intact
