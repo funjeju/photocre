@@ -29,7 +29,7 @@ import { STYLES } from '@/lib/presets/styles';
 import { ko } from '@/lib/i18n/ko';
 
 const MAX_ITEMS = 50;
-const CONCURRENCY = 3;
+const CONCURRENCY = 1;
 const ASPECT_OPTIONS = ['1:1', '4:5', '3:4'] as const;
 
 /* ═══════════════════════════════════════════════════════════════

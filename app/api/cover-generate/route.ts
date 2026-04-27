@@ -99,15 +99,16 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json() as {
-    templateId: string;
+    templateId?: string;
+    userCoverUrl?: string;
+    userCoverName?: string;
     photoBase64s: string[];
     photoTypes: string[];
     texts: Record<string, string>;
   };
 
-  const template = getCoverTemplate(body.templateId);
-  if (!template) {
-    return NextResponse.json({ error: 'Invalid template' }, { status: 400 });
+  if (!body.templateId && !body.userCoverUrl) {
+    return NextResponse.json({ error: 'templateId or userCoverUrl required' }, { status: 400 });
   }
 
   if (!Array.isArray(body.photoBase64s) || body.photoBase64s.length === 0) {
@@ -130,8 +131,35 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const { base64: bgBase64, mimeType: bgMime } = readTemplateImageAsBase64(template.imagePath);
-    const prompt = composeCoverPrompt(template.layoutDescription, body.texts, template.name);
+    let bgBase64: string;
+    let bgMime: string;
+    let templateName: string;
+    let layoutDescription: string;
+
+    if (body.templateId) {
+      const template = getCoverTemplate(body.templateId);
+      if (!template) {
+        return NextResponse.json({ error: 'Invalid template' }, { status: 400 });
+      }
+      const result = readTemplateImageAsBase64(template.imagePath);
+      bgBase64 = result.base64;
+      bgMime = result.mimeType;
+      templateName = template.name;
+      layoutDescription = template.layoutDescription;
+    } else {
+      // 사용자 업로드 커버 — Storage URL에서 직접 fetch
+      const imageRes = await fetch(body.userCoverUrl!);
+      if (!imageRes.ok) {
+        return NextResponse.json({ error: 'Failed to fetch cover image' }, { status: 400 });
+      }
+      const arrayBuffer = await imageRes.arrayBuffer();
+      bgBase64 = Buffer.from(arrayBuffer).toString('base64');
+      bgMime = imageRes.headers.get('content-type') || 'image/jpeg';
+      templateName = body.userCoverName || '나만의 커버';
+      layoutDescription = `Place the person naturally in the main focal area of this cover template. Position them in the center, with their face in the upper-center third of the frame. Scale them to fill roughly 60–70% of the frame height. Adapt the lighting and color grading to harmonize with the template's atmosphere. Preserve all existing graphic elements, text, and layout of the cover — only add the person.`;
+    }
+
+    const prompt = composeCoverPrompt(layoutDescription, body.texts, templateName);
 
     const parts: unknown[] = [
       { text: prompt },
@@ -178,7 +206,10 @@ export async function POST(req: NextRequest) {
         prompt,
         model: MODEL,
         cost: 1,
-        presets: { templateId: body.templateId, texts: body.texts },
+        presets: {
+          ...(body.templateId ? { templateId: body.templateId } : { userCoverUrl: body.userCoverUrl }),
+          texts: body.texts,
+        },
         createdAt: new Date(),
         status: 'success',
         type: 'cover',
