@@ -23,6 +23,12 @@ export async function POST(req: NextRequest) {
     imageBase64: string;
     styleId?: string;
     customPrompt?: string;
+    // batch 저장 확장 필드
+    folderId?: string;
+    text?: string;
+    label?: string;
+    batchId?: string;
+    batchIndex?: number;
   };
 
   if (!body.imageBase64) {
@@ -52,6 +58,11 @@ export async function POST(req: NextRequest) {
       },
       createdAt: new Date(),
       status: 'success',
+      ...(body.folderId   != null && { folderId:   body.folderId }),
+      ...(body.text       != null && { text:       body.text }),
+      ...(body.label      != null && { label:      body.label }),
+      ...(body.batchId    != null && { batchId:    body.batchId }),
+      ...(body.batchIndex != null && { batchIndex: body.batchIndex }),
     });
 
     return NextResponse.json({ id: genRef.id, outputImagePath });

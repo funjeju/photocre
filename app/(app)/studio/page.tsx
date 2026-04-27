@@ -1,8 +1,9 @@
 'use client';
 
+import { useState } from 'react';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
-import { Crop, Download, PackageCheck } from 'lucide-react';
+import { Crop, Download, PackageCheck, Layers, ImageIcon } from 'lucide-react';
 import { CanvasPreview } from '@/components/studio/canvas-preview';
 import { CropDialog } from '@/components/studio/crop-dialog';
 import { ImageUploader } from '@/components/studio/image-uploader';
@@ -13,11 +14,15 @@ import { GenerateButton } from '@/components/studio/generate-button';
 import { FramePicker } from '@/components/studio/frame-picker';
 import { BackgroundPicker } from '@/components/studio/background-picker';
 import { TextOverlayEditor } from '@/components/studio/text-overlay-editor';
+import { BatchMode } from '@/components/studio/batch';
 import { useStudioStore } from '@/lib/store/studio';
 import { downloadRef } from '@/lib/canvas/download-ref';
 import { ko } from '@/lib/i18n/ko';
 
+type Mode = 'single' | 'batch';
+
 export default function StudioPage() {
+  const [mode, setMode] = useState<Mode>('single');
   const { croppedImage, generatedImageUrl, styleId, setGeneratedImageUrl, setIsCropDialogOpen } =
     useStudioStore();
 
@@ -36,100 +41,149 @@ export default function StudioPage() {
 
   return (
     <div className="flex flex-1 overflow-hidden">
-      {/* ─── 좌측: 캔버스 ─── */}
-      <div className="hidden lg:flex flex-1 p-6">
-        <CanvasPreview />
-      </div>
+      {/* ─── 좌측: 캔버스 (단일 모드만) ─── */}
+      {mode === 'single' && (
+        <div className="hidden lg:flex flex-1 p-6">
+          <CanvasPreview />
+        </div>
+      )}
+
+      {/* ─── 일괄처리 모드 (PC 전용) ─── */}
+      {mode === 'batch' && (
+        <div className="hidden lg:flex flex-1 overflow-hidden">
+          <BatchMode />
+        </div>
+      )}
 
       {/* ─── 우측 패널 ─── */}
       <aside className="w-full lg:w-[400px] lg:border-l border-border flex flex-col overflow-y-auto">
         <div className="flex-1 space-y-6 p-6 pb-24">
-          <div>
+          <div className="flex items-center justify-between">
             <h1 className="text-2xl font-semibold tracking-tight">{ko.studio.title}</h1>
+            {/* 모드 토글: PC 전용 */}
+            <div className="hidden lg:flex items-center gap-1 p-1 bg-muted rounded-xl">
+              <button
+                onClick={() => setMode('single')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                  mode === 'single'
+                    ? 'bg-background shadow-sm text-foreground'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <ImageIcon className="size-3.5" />
+                단일
+              </button>
+              <button
+                onClick={() => setMode('batch')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                  mode === 'batch'
+                    ? 'bg-background shadow-sm text-foreground'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <Layers className="size-3.5" />
+                일괄
+              </button>
+            </div>
           </div>
 
-          {/* 모바일 캔버스 */}
-          <div className="lg:hidden">
-            <CanvasPreview />
-          </div>
+          {/* 단일 모드 전용 콘텐츠 */}
+          {mode === 'single' && (
+            <>
+              {/* 모바일 캔버스 */}
+              <div className="lg:hidden">
+                <CanvasPreview />
+              </div>
 
-          {/* ── ① 사진 업로드 ── */}
-          <ImageUploader />
-          {croppedImage && (
-            <Button
-              variant="outline"
-              onClick={() => setIsCropDialogOpen(true)}
-              className="w-full gap-2 rounded-2xl"
-            >
-              <Crop className="size-4" />
-              크롭 조정
-            </Button>
+              {/* ── ① 사진 업로드 ── */}
+              <ImageUploader />
+              {croppedImage && (
+                <Button
+                  variant="outline"
+                  onClick={() => setIsCropDialogOpen(true)}
+                  className="w-full gap-2 rounded-2xl"
+                >
+                  <Crop className="size-4" />
+                  크롭 조정
+                </Button>
+              )}
+
+              <Separator />
+
+              {/* ── ② AI 스타일 변환 ── */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-semibold">{ko.studio.ai.title}</p>
+                  <span className="text-[10px] text-muted-foreground border border-border rounded-full px-2 py-0.5">
+                    선택 · {ko.studio.ai.credit}
+                  </span>
+                </div>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  AI로 스타일을 먼저 변환하면 더 풍부한 결과물을 얻을 수 있습니다.
+                  변환 없이 꾸미기만 해도 됩니다.
+                </p>
+                <StylePicker />
+                <IntensityPicker />
+                <BackgroundPicker />
+                <CustomPromptField />
+                {styleId !== 'none' && <GenerateButton />}
+              </div>
+
+              <Separator />
+
+              {/* ── ③ 꾸미기 ── */}
+              <div className="space-y-6">
+                <p className="text-sm font-semibold">{ko.studio.decorate.title}</p>
+                <FramePicker />
+                <Separator />
+                <TextOverlayEditor />
+              </div>
+            </>
           )}
 
-          <Separator />
-
-          {/* ── ② AI 스타일 변환 (선택사항, 꾸미기 전에 먼저 결정) ── */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <p className="text-sm font-semibold">{ko.studio.ai.title}</p>
-              <span className="text-[10px] text-muted-foreground border border-border rounded-full px-2 py-0.5">
-                선택 · {ko.studio.ai.credit}
-              </span>
+          {/* 일괄 모드: 모바일에서는 안내 메시지 */}
+          {mode === 'batch' && (
+            <div className="lg:hidden flex flex-col items-center justify-center py-12 gap-3 text-center">
+              <Layers className="size-10 text-muted-foreground" />
+              <p className="text-sm font-medium">일괄처리는 PC 전용입니다</p>
+              <p className="text-xs text-muted-foreground">PC 또는 태블릿에서 이용해주세요.</p>
             </div>
-            <p className="text-xs text-muted-foreground leading-relaxed">
-              AI로 스타일을 먼저 변환하면 더 풍부한 결과물을 얻을 수 있습니다.
-              변환 없이 꾸미기만 해도 됩니다.
-            </p>
-            <StylePicker />
-            <IntensityPicker />
-            <BackgroundPicker />
-            <CustomPromptField />
-            {/* styleId가 'none'이 아닐 때만 AI 변환 버튼 표시 */}
-            {styleId !== 'none' && <GenerateButton />}
-          </div>
-
-          <Separator />
-
-          {/* ── ③ 꾸미기 (AI 여부 무관, 항상 사용 가능) ── */}
-          <div className="space-y-6">
-            <p className="text-sm font-semibold">{ko.studio.decorate.title}</p>
-            <FramePicker />
-            <Separator />
-            <TextOverlayEditor />
-          </div>
+          )}
         </div>
 
-        {/* ── 완성하기 / 다운로드 (sticky) ── */}
-        <div className="sticky bottom-0 border-t border-border bg-background/95 backdrop-blur p-4">
-          {hasResult ? (
-            <div className="flex gap-2">
+        {/* ── 완성하기 / 다운로드 (sticky) — 단일 모드만 ── */}
+        {mode === 'single' && (
+          <div className="sticky bottom-0 border-t border-border bg-background/95 backdrop-blur p-4">
+            {hasResult ? (
+              <div className="flex gap-2">
+                <Button
+                  onClick={handleComplete}
+                  variant="outline"
+                  className="flex-1 gap-2 rounded-2xl h-11"
+                >
+                  <Download className="size-4" />
+                  {ko.studio.result.download}
+                </Button>
+                <Button
+                  onClick={() => setGeneratedImageUrl(null)}
+                  variant="ghost"
+                  className="flex-1 gap-2 rounded-2xl h-11 text-muted-foreground"
+                >
+                  다시 변환
+                </Button>
+              </div>
+            ) : (
               <Button
                 onClick={handleComplete}
-                variant="outline"
-                className="flex-1 gap-2 rounded-2xl h-11"
+                disabled={!hasImage}
+                className="w-full gap-2 rounded-2xl h-11 bg-accent text-accent-foreground hover:bg-accent/90 disabled:opacity-40"
               >
-                <Download className="size-4" />
-                {ko.studio.result.download}
+                <PackageCheck className="size-4" />
+                완성하기
               </Button>
-              <Button
-                onClick={() => setGeneratedImageUrl(null)}
-                variant="ghost"
-                className="flex-1 gap-2 rounded-2xl h-11 text-muted-foreground"
-              >
-                다시 변환
-              </Button>
-            </div>
-          ) : (
-            <Button
-              onClick={handleComplete}
-              disabled={!hasImage}
-              className="w-full gap-2 rounded-2xl h-11 bg-accent text-accent-foreground hover:bg-accent/90 disabled:opacity-40"
-            >
-              <PackageCheck className="size-4" />
-              완성하기
-            </Button>
-          )}
-        </div>
+            )}
+          </div>
+        )}
       </aside>
 
       <CropDialog />

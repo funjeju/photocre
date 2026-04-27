@@ -21,6 +21,7 @@
     "html-to-image": "^1.11.11",
     "html2canvas": "^1.4.1",
     "jspdf": "^4.2.1",
+    "jszip": "^3.10.1",
     "konva": "^10.2.5",
     "lucide-react": "^1.11.0",
     "motion": "^12.38.0",
@@ -39,6 +40,7 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@types/jszip": "^3.4.1",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
