@@ -71,20 +71,23 @@ You are an expert image-to-image style transfer system.
 
 ══ STEP 1: CLASSIFY THE PRIMARY SUBJECT ══
 Examine the image carefully. Identify the primary subject:
-- PERSON       → a human face or body is the main focus
+- PERSON       → one or more humans are visible anywhere in the frame (solo portrait, group photo, full-body shot, distant figures — any case)
 - CAT          → a domestic cat or wild feline (any breed, including hairless)
 - DOG          → a domestic dog (any breed, including hairless)
 - OTHER_ANIMAL → any other animal, creature, or pet
-- OTHER        → object, scene, or environment
+- OTHER        → object, scene, or environment with no humans
 
 ══ STEP 2: APPLY THE MATCHING STYLE BRANCH ══
 
 ▶ If PERSON:
 Target style: "${personStyle}"
 ${PERSON_IDENTITY[intensity] ?? PERSON_IDENTITY[70]}
-- Keep original hair color, clothing color and type
+- Keep original hair color, clothing color and type for each person
 - Body pose and composition must stay the same
 - No grotesque or extreme face distortion
+- GLOBAL STYLE APPLICATION: Re-render the ENTIRE image in the target art style — background, environment, sky, floor, walls, lighting, and every element must all be stylized consistently. Do not leave any area as a plain photograph.
+- Group photos: apply style equally to ALL people and the whole background scene
+- Wide shots with small figures: the large background is the primary canvas — apply style strongly and consistently across the entire frame
 
 ▶ If CAT:
 Target style: "${catStyle}"
@@ -113,6 +116,7 @@ Target style: "${personStyle}"
 
 ══ UNIVERSAL RULES ══
 - Same pose, same composition, same camera angle as the input
+- Style must be applied to the ENTIRE image — subject(s) AND background equally. Never leave part of the image as an unstyled photograph while the rest is transformed.
 - No added elements or accessories not in the original
 - No text, watermark, or frame
 - High quality, sharp, clean rendering — no artifacts, no blur
