@@ -5,46 +5,46 @@
 
 /* ─── PERSON ──────────────────────────────────────────────── */
 export const STYLE_MAP: Record<string, string> = {
-  'beauty':        `soft dreamy portrait, soft lighting, glowing skin, pastel tones, beauty filter look, shallow depth of field, cinematic bokeh, smooth skin texture`,
-  'ghibli':        `Studio Ghibli hand-drawn animation style, ink outlines, watercolor wash texture, tiny simplified nose, large round expressive eyes, soft warm earthy color palette, gentle cel shading, nostalgic storybook mood — fully commit to the Ghibli illustration look`,
-  'pixar-3d':      `Pixar CGI animation style, smooth subsurface scattering skin, very large round expressive eyes, rounded soft facial features, slightly enlarged head, bright saturated colors, studio 3-point lighting, polished 3D render — fully commit to the Pixar character design look`,
-  'anime':         `anime style portrait, clean line art, cel shading, simplified shapes, expressive features, stylized but maintaining likeness`,
-  'disney-3d':     `stylized cinematic 3D character, slightly larger eyes, rounded facial features, smooth skin, warm lighting, appealing character look`,
-  'oil-painting':  `oil painting portrait, thick brush strokes, rich texture, classical painting style, dramatic lighting, detailed facial structure`,
-  'pencil-sketch': `pencil sketch portrait, graphite drawing, cross hatching, monochrome, detailed shading, realistic proportions, hand-drawn texture`,
+  'beauty':        `Cinematic beauty retouch — transform the ENTIRE scene. Person: flawless glowing skin, soft pastel tones, luminous highlight on face and hair, silky smooth texture, large dewy eyes. Background/environment: dreamy soft-focus bokeh, cinematic haze, pastel-washed colors, gentle light bloom across the whole frame. Every surface — sky, ground, walls, objects — must take on a soft dreamy cinematic quality. No harsh photographic colors or textures should remain anywhere.`,
+  'ghibli':        `Studio Ghibli hand-drawn animation style — transform the ENTIRE image, person AND background, into a Ghibli film frame. Person: clean ink outlines, simplified nose, large round expressive eyes, soft cel shading, warm skin tones. Background/environment: hand-painted watercolor backgrounds with rich painterly detail, lush stylized landscape, luminous atmospheric depth with visible brushwork, warm earthy and teal/blue color palette, stylized sky with soft puffy clouds, Ghibli-signature glowing natural light. Sky, ground, sea, buildings, vehicles, vegetation — every element must look like a cel-painted Ghibli backdrop, not a photograph. No photographic texture should remain anywhere in the frame.`,
+  'pixar-3d':      `Pixar CGI animation style — transform the ENTIRE scene into a Pixar film frame. Person: smooth subsurface scattering skin, very large round expressive eyes, rounded soft facial features, slightly enlarged head, polished 3D character render. Background/environment: full Pixar CGI environment — stylized architecture, vibrant saturated colors, studio-quality 3-point lighting, global illumination, perfectly rendered 3D props and surfaces. Every element — sky, ground, buildings, objects — must look like it was rendered in a Pixar production pipeline. Zero photographic qualities anywhere in the frame.`,
+  'anime':         `Anime illustration style — transform the ENTIRE image into a high-quality anime scene. Person: clean precise ink line art, flat cel shading, large expressive eyes with detailed iris, simplified sharp facial features, anime-style hair rendering. Background/environment: detailed anime background art — clean painted sky, stylized architecture and environment with anime color palette, crisp cel-shaded surfaces. Every element — clouds, ground, buildings, objects — must look like it belongs in a high-production anime. No photographic textures anywhere.`,
+  'disney-3d':     `Disney CGI animation style — transform the ENTIRE scene into a Disney film frame. Person: large sparkling eyes with translucent iris detail, rounded appealing facial features, smooth polished skin, warm cinematic lighting. Background/environment: Disney-quality CGI environment — lush detailed 3D world, magical warm lighting with volumetric rays, vibrant color grading, richly rendered surfaces and props. Every element of the background must look like it was rendered for a Disney feature film. No photographic qualities anywhere.`,
+  'oil-painting':  `Classical oil painting — transform the ENTIRE image into a masterwork oil painting on canvas. Person: thick impasto brushwork on face and clothing, rich painterly skin tones, dramatic chiaroscuro lighting, visible bristle texture. Background/environment: fully painted background with bold gestural brushstrokes, rich deep colors, canvas texture visible throughout, painterly atmospheric depth, Old Masters color palette. Every element — sky, ground, walls, objects — must show visible paint texture and brushwork. The entire frame must look like it was painted by hand on canvas.`,
+  'pencil-sketch': `Graphite pencil sketch — transform the ENTIRE image into a detailed hand-drawn pencil drawing. Person: precise graphite line art with cross-hatching shading, monochrome tones, visible pencil stroke texture on skin and clothing, detailed hand-drawn features. Background/environment: full pencil-drawn environment — hatched and shaded architecture, sky, ground, and objects all rendered in graphite with visible paper grain. Every element must look like it was drawn by hand on white paper with a graphite pencil. No photographic colors or tones anywhere — pure monochrome graphite drawing.`,
 };
 
 /* ─── CAT (털 유무 무관 — 아트 기법 중심) ─────────────────── */
 export const CAT_STYLE_MAP: Record<string, string> = {
-  'beauty':        `soft dreamy style, glowing coat, pastel tones, light bloom, soft focus, cinematic bokeh, warm mood, ethereal glow`,
-  'ghibli':        `hand-drawn animation style, watercolor shading, soft natural lighting, warm nostalgic mood, slightly stylized but recognizable, expressive Ghibli creature eyes`,
-  'pixar-3d':      `stylized 3D animal render, ultra detailed surface texture, big expressive eyes with wet sheen, global illumination, soft shadows, subsurface scattering, high detail, masterpiece`,
-  'anime':         `anime style cat, clean line art, cel shading, stylized proportions, large expressive eyes, simplified but recognizable features`,
-  'disney-3d':     `stylized cute 3D cat, rounded shapes, big sparkling eyes, soft warm lighting, smooth texture, appealing storybook character look`,
-  'oil-painting':  `oil painting style, thick impasto brush strokes, rich texture, classical art composition, dramatic chiaroscuro lighting, canvas grain`,
-  'pencil-sketch': `pencil sketch, graphite drawing, cross hatching for surface depth, monochrome, detailed shading on face and body, expressive linework, visible paper grain`,
+  'beauty':        `cinematic beauty — glowing coat, ethereal soft light, pastel bloom, dreamy background with soft bokeh, warm cinematic color grade across entire scene`,
+  'ghibli':        `Studio Ghibli hand-drawn animation — cat AND entire background fully rendered as Ghibli illustration: watercolor painted environment, warm earthy palette, expressive Ghibli creature eyes, cel-shaded coat, hand-painted sky and ground`,
+  'pixar-3d':      `Pixar CGI — cat AND full environment rendered as Pixar film frame: ultra detailed fur/skin SSS, big wet expressive eyes, global illumination, fully 3D-rendered background props and environment`,
+  'anime':         `anime illustration — cat AND background fully in anime style: clean ink line art on animal, cel-shaded coat, large stylized eyes, detailed anime-painted background`,
+  'disney-3d':     `Disney CGI — cat AND full scene as Disney film frame: rounded appealing form, big sparkling eyes, fully rendered Disney-quality 3D environment and lighting`,
+  'oil-painting':  `oil painting — cat AND entire scene as canvas painting: impasto brushwork on fur, rich deep colors, dramatic chiaroscuro, visible canvas texture throughout entire background`,
+  'pencil-sketch': `graphite sketch — cat AND full scene as pencil drawing: detailed cross-hatch shading on fur and body, monochrome graphite, entire background rendered in pencil with visible paper grain`,
 };
 
 /* ─── DOG (털 유무 무관 — 아트 기법 중심) ─────────────────── */
 export const DOG_STYLE_MAP: Record<string, string> = {
-  'beauty':        `soft dreamy style, glowing coat, pastel tones, fluffy or smooth texture, soft focus, cinematic bokeh, warm mood`,
-  'ghibli':        `hand-drawn animation style, watercolor shading, soft natural lighting, warm nostalgic feeling, slightly stylized but recognizable`,
-  'pixar-3d':      `stylized 3D dog render, realistic surface texture, big expressive eyes, global illumination, soft shadows, high detail, masterpiece`,
-  'anime':         `anime style dog, clean line art, cel shading, stylized but recognizable features, expressive large eyes`,
-  'disney-3d':     `stylized cute 3D dog, rounded shapes, big expressive eyes, smooth texture, warm lighting, friendly character look`,
-  'oil-painting':  `oil painting style, thick brush strokes, rich texture, classical painting composition, dramatic lighting`,
-  'pencil-sketch': `pencil sketch dog, graphite drawing, cross hatching, monochrome, detailed surface strokes, hand-drawn texture`,
+  'beauty':        `cinematic beauty — glowing coat, soft pastel light bloom, dreamy bokeh, warm cinematic color grade across entire scene`,
+  'ghibli':        `Studio Ghibli hand-drawn animation — dog AND entire background fully rendered as Ghibli illustration: watercolor painted environment, warm earthy palette, expressive creature eyes, cel-shaded coat, hand-painted sky and surroundings`,
+  'pixar-3d':      `Pixar CGI — dog AND full environment rendered as Pixar film frame: detailed fur SSS, big expressive eyes, global illumination, fully 3D-rendered background and props`,
+  'anime':         `anime illustration — dog AND background fully in anime style: clean ink line art, cel-shaded coat, large stylized eyes, detailed anime-painted background`,
+  'disney-3d':     `Disney CGI — dog AND full scene as Disney film frame: rounded friendly form, big sparkling eyes, fully rendered Disney-quality 3D environment and lighting`,
+  'oil-painting':  `oil painting — dog AND entire scene as canvas painting: impasto brushwork on coat, rich deep colors, dramatic lighting, visible canvas grain throughout entire image`,
+  'pencil-sketch': `graphite sketch — dog AND full scene as pencil drawing: cross-hatch shading on fur, monochrome graphite, entire background rendered in pencil with paper grain`,
 };
 
 /* ─── OTHER ANIMAL (범용 폴백) ────────────────────────────── */
 export const ANIMAL_STYLE_MAP: Record<string, string> = {
-  'beauty':        `soft dreamy style, ethereal glow, pastel tones, light bloom, soft focus, cinematic bokeh`,
-  'ghibli':        `Studio Ghibli style, hand-drawn animation, watercolor shading, warm natural lighting, nostalgic mood, expressive creature eyes`,
-  'pixar-3d':      `Pixar-style 3D render, big expressive eyes, ultra detailed surface, global illumination, soft shadows, vibrant colors, masterpiece`,
-  'anime':         `anime style, clean line art, cel shading, stylized proportions, expressive animal face`,
-  'disney-3d':     `Disney-style 3D CGI, cute and magical, rounded shapes, sparkling big eyes, soft warm lighting`,
-  'oil-painting':  `classical oil painting, thick brush strokes, rich texture, dramatic lighting, canvas grain`,
-  'pencil-sketch': `graphite pencil sketch, cross-hatching, monochrome, detailed shading, expressive linework, paper grain`,
+  'beauty':        `cinematic beauty — ethereal soft glow, pastel light bloom, dreamy bokeh background, warm cinematic color grade across entire scene`,
+  'ghibli':        `Studio Ghibli hand-drawn animation — animal AND entire scene as Ghibli illustration: watercolor painted environment, warm palette, expressive creature eyes, hand-painted background`,
+  'pixar-3d':      `Pixar CGI — animal AND full environment as Pixar film frame: detailed SSS surface, big expressive eyes, global illumination, fully 3D-rendered background`,
+  'anime':         `anime illustration — animal AND full scene in anime style: clean ink line art, cel shading, large stylized eyes, anime-painted background`,
+  'disney-3d':     `Disney CGI — animal AND full scene as Disney film frame: rounded appealing form, sparkling eyes, fully rendered Disney-quality 3D environment`,
+  'oil-painting':  `oil painting — animal AND entire scene as canvas painting: impasto brushwork, rich colors, dramatic lighting, canvas texture throughout`,
+  'pencil-sketch': `graphite sketch — animal AND full scene as pencil drawing: cross-hatch shading, monochrome graphite, entire scene rendered in pencil with paper grain`,
 };
 
 /* ══════════════════════════════════════════════════════════════

@@ -69,6 +69,7 @@ export async function POST(req: NextRequest) {
       aspectRatio: body.aspectRatio,
       backgroundPrompt: body.backgroundPrompt,
       transformIntensity: body.transformIntensity,
+      requestId: `${uid.slice(-6)}-${Date.now().toString(36)}`,
     });
 
     const parts: unknown[] = [

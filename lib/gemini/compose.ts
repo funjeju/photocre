@@ -13,7 +13,7 @@ const INTENSITY_PROMPT: Record<number, string> = {
   30: 'TRANSFORMATION INTENSITY: 30% — Keep the image mostly photorealistic. Apply only a very subtle hint of the style. The original photo should dominate; style is barely noticeable.',
   50: 'TRANSFORMATION INTENSITY: 50% — Balance equally between the original photo and the target style. Both should be clearly visible.',
   70: 'TRANSFORMATION INTENSITY: 70% — Apply the style strongly. The style should clearly dominate while the subject (person, animal, or object) remains recognizable.',
-  100: 'TRANSFORMATION INTENSITY: 100% — Apply the style at MAXIMUM strength. Fully commit to the target style with no compromise. The result must look completely like the target art style.',
+  100: 'TRANSFORMATION INTENSITY: 100% — Apply the style at MAXIMUM strength with absolutely no restraint. The output must be indistinguishable from a hand-crafted illustration in the target art style. Zero photographic qualities should remain — no photographic textures, no camera noise, no lens effects. Every pixel of the image — sky, background, environment, clothing, skin — must be fully re-rendered in the target style.',
 };
 
 interface ComposeOptions {
@@ -22,6 +22,7 @@ interface ComposeOptions {
   aspectRatio?: string;
   backgroundPrompt?: string;
   transformIntensity?: number;
+  requestId?: string;
 }
 
 export function composePrompt(options: ComposeOptions): string {
@@ -61,6 +62,10 @@ ${options.backgroundPrompt.trim()}`,
 ${options.customPrompt.trim()}`,
     );
   }
+
+  // 연속 요청 시 Gemini가 동일 요청으로 처리하는 것을 방지하는 고유 ID
+  const seed = options.requestId ?? Math.random().toString(36).slice(2, 10);
+  parts.push('', `[Request ID: ${seed}]`);
 
   return parts.join('\n');
 }
