@@ -5,56 +5,98 @@
 
 /* ─── PERSON ──────────────────────────────────────────────── */
 export const STYLE_MAP: Record<string, string> = {
-  'beauty':        `Cinematic beauty retouch — transform the ENTIRE scene. Person: flawless glowing skin, soft pastel tones, luminous highlight on face and hair, silky smooth texture, large dewy eyes. Background/environment: dreamy soft-focus bokeh, cinematic haze, pastel-washed colors, gentle light bloom across the whole frame. Every surface — sky, ground, walls, objects — must take on a soft dreamy cinematic quality. No harsh photographic colors or textures should remain anywhere.`,
-  'ghibli':        `Studio Ghibli hand-drawn animation style — transform the ENTIRE image, person AND background, into a Ghibli film frame. Person: clean ink outlines, simplified nose, large round expressive eyes, soft cel shading, warm skin tones. Background/environment: hand-painted watercolor backgrounds with rich painterly detail, lush stylized landscape, luminous atmospheric depth with visible brushwork, warm earthy and teal/blue color palette, stylized sky with soft puffy clouds, Ghibli-signature glowing natural light. Sky, ground, sea, buildings, vehicles, vegetation — every element must look like a cel-painted Ghibli backdrop, not a photograph. No photographic texture should remain anywhere in the frame.`,
-  'pixar-3d':      `Pixar CGI animation style — transform the ENTIRE scene into a Pixar film frame. Person: smooth subsurface scattering skin, very large round expressive eyes, rounded soft facial features, slightly enlarged head, polished 3D character render. Background/environment: full Pixar CGI environment — stylized architecture, vibrant saturated colors, studio-quality 3-point lighting, global illumination, perfectly rendered 3D props and surfaces. Every element — sky, ground, buildings, objects — must look like it was rendered in a Pixar production pipeline. Zero photographic qualities anywhere in the frame.`,
-  'anime':         `Anime illustration style — transform the ENTIRE image into a high-quality anime scene. Person: clean precise ink line art, flat cel shading, large expressive eyes with detailed iris, simplified sharp facial features, anime-style hair rendering. Background/environment: detailed anime background art — clean painted sky, stylized architecture and environment with anime color palette, crisp cel-shaded surfaces. Every element — clouds, ground, buildings, objects — must look like it belongs in a high-production anime. No photographic textures anywhere.`,
-  'disney-3d':     `Disney CGI animation style — transform the ENTIRE scene into a Disney film frame. Person: large sparkling eyes with translucent iris detail, rounded appealing facial features, smooth polished skin, warm cinematic lighting. Background/environment: Disney-quality CGI environment — lush detailed 3D world, magical warm lighting with volumetric rays, vibrant color grading, richly rendered surfaces and props. Every element of the background must look like it was rendered for a Disney feature film. No photographic qualities anywhere.`,
-  'oil-painting':  `Classical oil painting — transform the ENTIRE image into a masterwork oil painting on canvas. Person: thick impasto brushwork on face and clothing, rich painterly skin tones, dramatic chiaroscuro lighting, visible bristle texture. Background/environment: fully painted background with bold gestural brushstrokes, rich deep colors, canvas texture visible throughout, painterly atmospheric depth, Old Masters color palette. Every element — sky, ground, walls, objects — must show visible paint texture and brushwork. The entire frame must look like it was painted by hand on canvas.`,
-  'pencil-sketch': `Graphite pencil sketch — transform the ENTIRE image into a detailed hand-drawn pencil drawing. Person: precise graphite line art with cross-hatching shading, monochrome tones, visible pencil stroke texture on skin and clothing, detailed hand-drawn features. Background/environment: full pencil-drawn environment — hatched and shaded architecture, sky, ground, and objects all rendered in graphite with visible paper grain. Every element must look like it was drawn by hand on white paper with a graphite pencil. No photographic colors or tones anywhere — pure monochrome graphite drawing.`,
+  'beauty': `High-end cinematic photo retouching. Enhance the ENTIRE image: flawless glowing skin with soft luminous highlight, silky smooth textures, large dewy eyes, pastel-washed color grade across the whole frame, dreamy soft-focus bokeh in background, gentle light bloom. Every element — sky, ground, walls, objects — takes on a soft cinematic quality. Output is a polished photograph, not a painting.`,
+
+  'ghibli': `Studio Ghibli 2D hand-drawn animation. MANDATORY TECHNICAL REQUIREMENTS:
+(1) FLAT CEL SHADING — no photographic gradients. Every surface uses 2–3 flat tones with crisp anime shading boundaries, exactly like hand-painted animation cels.
+(2) INK OUTLINES — visible black/dark ink contour lines on ALL elements: people, horse, fence posts, wind turbine, bridge pillars, clouds, ground, everything.
+(3) WATERCOLOR BACKGROUND — sky, sea, ground, and all backgrounds are rendered as soft hand-painted watercolor washes with visible brushwork and irregular edges. NOT photographic — looks painted.
+(4) STYLIZED TEXTURES — no photorealistic surface detail. Stone, wood, fabric, fur are all simplified into painted textures with visible brushstroke marks.
+(5) COLOR PALETTE — warm earthy tones, rich teal/blue skies, soft cream highlights, Ghibli-signature glowing atmospheric haze.
+OUTPUT STANDARD: Every pixel must look like a frame extracted from a Ghibli animated film (Spirited Away, Princess Mononoke, Howl's Moving Castle). If any part of the output looks photographic, the task has failed.`,
+
+  'pixar-3d': `Pixar CGI 3D animation. MANDATORY TECHNICAL REQUIREMENTS:
+(1) FULL 3D RENDER — every element is re-rendered as a smooth, polished 3D CGI object. No photographic textures remain anywhere.
+(2) SUBSURFACE SCATTERING — skin, fur, cloth all have the characteristic Pixar soft translucent quality.
+(3) STUDIO LIGHTING — three-point cinematic lighting, global illumination, soft ambient occlusion shadows. No harsh real-world shadows.
+(4) STYLIZED PROPORTIONS — slightly rounded, appealing forms. Wind turbine, fence, bridge all become clean stylized 3D props.
+(5) VIBRANT COLORS — saturated, clean CGI color palette. Sky is vivid azure, ground has smooth stylized texture.
+OUTPUT STANDARD: Must look identical to a rendered frame from Toy Story, Coco, or Up. Zero photographic qualities anywhere.`,
+
+  'anime': `Modern Japanese anime illustration. MANDATORY TECHNICAL REQUIREMENTS:
+(1) CLEAN LINE ART — precise sharp ink lines with controlled line weight variation on ALL elements. Everything has a drawn outline.
+(2) CEL SHADING — flat color fills with crisp shadow/highlight boundaries. No photographic gradients or depth-of-field blur.
+(3) ANIME COLOR PALETTE — clear saturated sky blue, soft skin tones with 2-tone shading, clean white for fabric and horse with anime-style shadow color.
+(4) ANIME BACKGROUNDS — sky with stylized cloud shapes, simplified architectural and natural elements with clean painted flat colors, exactly like high-quality anime production backgrounds.
+(5) NO PHOTOGRAPHY — no camera lens effects, no film grain, no photographic texture anywhere.
+OUTPUT STANDARD: Must look like a high-quality scene from a premium anime series. Every element fully illustrated, zero photographic residue.`,
+
+  'disney-3d': `Disney CGI animation style. MANDATORY TECHNICAL REQUIREMENTS:
+(1) FULL DISNEY 3D RENDER — all elements rebuilt as smooth polished CGI. No photographic surfaces.
+(2) MAGICAL WARM LIGHTING — volumetric light rays, warm golden-hour glow, soft magical ambient fill.
+(3) APPEALING STYLIZED FORMS — rounded, charming proportions. Fence posts, turbine, bridge all become stylized Disney props.
+(4) RICH DETAIL — Disney-level texture work on clothing (fabric weave, lace), horse fur (flowing silky strands), environment (cobblestone pattern).
+(5) CINEMATIC COLOR — vibrant yet harmonious palette, rich shadows, luminous highlights.
+OUTPUT STANDARD: Must look like a rendered frame from Moana, Encanto, or Tangled. Completely computer-generated appearance.`,
+
+  'oil-painting': `Classical oil painting on canvas. MANDATORY TECHNICAL REQUIREMENTS:
+(1) VISIBLE BRUSHWORK — every surface shows thick, directional paint strokes. Sky has broad gestural sweeps, ground has textured impasto, clothing has fabric-following brushwork.
+(2) CANVAS TEXTURE — underlying canvas grain visible throughout the entire image, especially in lighter areas.
+(3) PAINTERLY COLOR — colors are mixed/blended with visible transitions, rich deep shadows, luminous highlights built up in layers.
+(4) OLD MASTERS TECHNIQUE — chiaroscuro lighting, atmospheric perspective, painterly soft edges in distance.
+(5) NO PHOTOGRAPHY — no sharp photographic edges, no digital smoothness, no camera artifacts. Pure painted quality.
+OUTPUT STANDARD: Must look like it was physically painted with oil on canvas by a skilled painter. Indistinguishable from a real oil painting.`,
+
+  'pencil-sketch': `Graphite pencil sketch on white paper. MANDATORY TECHNICAL REQUIREMENTS:
+(1) MONOCHROME ONLY — entire image in shades of graphite grey, NO color whatsoever.
+(2) VISIBLE PENCIL STROKES — cross-hatching for shadow areas, fine parallel lines for mid-tones, clean white paper showing through for highlights.
+(3) PAPER TEXTURE — white paper grain visible throughout, especially in light areas.
+(4) LINE-BASED RENDERING — all forms defined by drawn lines and hatching, not photographic tones.
+(5) HAND-DRAWN QUALITY — slight irregularity in lines, natural pencil pressure variation.
+OUTPUT STANDARD: Must look like a skilled artist drew this by hand on paper with graphite pencils. No color, no digital smoothness, pure pencil drawing.`,
 };
 
 /* ─── CAT (털 유무 무관 — 아트 기법 중심) ─────────────────── */
 export const CAT_STYLE_MAP: Record<string, string> = {
-  'beauty':        `cinematic beauty — glowing coat, ethereal soft light, pastel bloom, dreamy background with soft bokeh, warm cinematic color grade across entire scene`,
-  'ghibli':        `Studio Ghibli hand-drawn animation — cat AND entire background fully rendered as Ghibli illustration: watercolor painted environment, warm earthy palette, expressive Ghibli creature eyes, cel-shaded coat, hand-painted sky and ground`,
-  'pixar-3d':      `Pixar CGI — cat AND full environment rendered as Pixar film frame: ultra detailed fur/skin SSS, big wet expressive eyes, global illumination, fully 3D-rendered background props and environment`,
-  'anime':         `anime illustration — cat AND background fully in anime style: clean ink line art on animal, cel-shaded coat, large stylized eyes, detailed anime-painted background`,
-  'disney-3d':     `Disney CGI — cat AND full scene as Disney film frame: rounded appealing form, big sparkling eyes, fully rendered Disney-quality 3D environment and lighting`,
-  'oil-painting':  `oil painting — cat AND entire scene as canvas painting: impasto brushwork on fur, rich deep colors, dramatic chiaroscuro, visible canvas texture throughout entire background`,
-  'pencil-sketch': `graphite sketch — cat AND full scene as pencil drawing: detailed cross-hatch shading on fur and body, monochrome graphite, entire background rendered in pencil with visible paper grain`,
+  'beauty':        `cinematic beauty retouch — glowing coat with soft luminous highlight, ethereal soft light, pastel bokeh background, warm cinematic color grade across entire scene`,
+  'ghibli':        `Studio Ghibli 2D hand-drawn animation — cat AND entire background as a Ghibli film frame: flat cel-shaded fur with ink outlines, expressive large Ghibli eyes, hand-painted watercolor environment, warm earthy palette. No photographic texture anywhere.`,
+  'pixar-3d':      `Pixar CGI 3D — cat AND full environment as Pixar film frame: detailed SSS fur rendering, big wet expressive eyes, global illumination, fully 3D-rendered props and background. No photography.`,
+  'anime':         `anime illustration — cat AND background fully drawn in anime style: clean ink line art on body, cel-shaded coat with flat colors, large stylized eyes, detailed anime-painted background. No photographic elements.`,
+  'disney-3d':     `Disney CGI — cat AND full scene as Disney film frame: rounded appealing form, big sparkling eyes, fully rendered Disney-quality 3D environment and magical lighting. No photography.`,
+  'oil-painting':  `oil painting — cat AND entire scene as canvas painting: impasto brushwork on fur, rich deep colors, visible canvas texture throughout, dramatic chiaroscuro. No photography.`,
+  'pencil-sketch': `graphite sketch — cat AND full scene as pencil drawing: detailed cross-hatch shading on fur, monochrome graphite only, entire scene rendered with pencil strokes on white paper. No color, no photography.`,
 };
 
 /* ─── DOG (털 유무 무관 — 아트 기법 중심) ─────────────────── */
 export const DOG_STYLE_MAP: Record<string, string> = {
-  'beauty':        `cinematic beauty — glowing coat, soft pastel light bloom, dreamy bokeh, warm cinematic color grade across entire scene`,
-  'ghibli':        `Studio Ghibli hand-drawn animation — dog AND entire background fully rendered as Ghibli illustration: watercolor painted environment, warm earthy palette, expressive creature eyes, cel-shaded coat, hand-painted sky and surroundings`,
-  'pixar-3d':      `Pixar CGI — dog AND full environment rendered as Pixar film frame: detailed fur SSS, big expressive eyes, global illumination, fully 3D-rendered background and props`,
-  'anime':         `anime illustration — dog AND background fully in anime style: clean ink line art, cel-shaded coat, large stylized eyes, detailed anime-painted background`,
-  'disney-3d':     `Disney CGI — dog AND full scene as Disney film frame: rounded friendly form, big sparkling eyes, fully rendered Disney-quality 3D environment and lighting`,
-  'oil-painting':  `oil painting — dog AND entire scene as canvas painting: impasto brushwork on coat, rich deep colors, dramatic lighting, visible canvas grain throughout entire image`,
-  'pencil-sketch': `graphite sketch — dog AND full scene as pencil drawing: cross-hatch shading on fur, monochrome graphite, entire background rendered in pencil with paper grain`,
+  'beauty':        `cinematic beauty retouch — glowing coat, soft pastel light bloom, dreamy bokeh, warm cinematic color grade across entire scene`,
+  'ghibli':        `Studio Ghibli 2D hand-drawn animation — dog AND entire background as a Ghibli film frame: flat cel-shaded coat with ink outlines, expressive creature eyes, hand-painted watercolor environment, warm earthy palette. No photographic texture anywhere.`,
+  'pixar-3d':      `Pixar CGI 3D — dog AND full environment as Pixar film frame: detailed fur SSS, big expressive eyes, global illumination, fully 3D-rendered background and props. No photography.`,
+  'anime':         `anime illustration — dog AND background fully drawn in anime style: clean ink line art, cel-shaded coat, large stylized eyes, detailed anime-painted background. No photographic elements.`,
+  'disney-3d':     `Disney CGI — dog AND full scene as Disney film frame: rounded friendly form, big sparkling eyes, fully rendered Disney-quality 3D environment. No photography.`,
+  'oil-painting':  `oil painting — dog AND entire scene as canvas painting: impasto brushwork on coat, rich deep colors, canvas grain throughout. No photography.`,
+  'pencil-sketch': `graphite sketch — dog AND full scene as pencil drawing: cross-hatch shading on fur, monochrome graphite, entire scene on white paper with pencil strokes. No color, no photography.`,
 };
 
 /* ─── OTHER ANIMAL (범용 폴백) ────────────────────────────── */
 export const ANIMAL_STYLE_MAP: Record<string, string> = {
-  'beauty':        `cinematic beauty — ethereal soft glow, pastel light bloom, dreamy bokeh background, warm cinematic color grade across entire scene`,
-  'ghibli':        `Studio Ghibli hand-drawn animation — animal AND entire scene as Ghibli illustration: watercolor painted environment, warm palette, expressive creature eyes, hand-painted background`,
-  'pixar-3d':      `Pixar CGI — animal AND full environment as Pixar film frame: detailed SSS surface, big expressive eyes, global illumination, fully 3D-rendered background`,
-  'anime':         `anime illustration — animal AND full scene in anime style: clean ink line art, cel shading, large stylized eyes, anime-painted background`,
-  'disney-3d':     `Disney CGI — animal AND full scene as Disney film frame: rounded appealing form, sparkling eyes, fully rendered Disney-quality 3D environment`,
-  'oil-painting':  `oil painting — animal AND entire scene as canvas painting: impasto brushwork, rich colors, dramatic lighting, canvas texture throughout`,
-  'pencil-sketch': `graphite sketch — animal AND full scene as pencil drawing: cross-hatch shading, monochrome graphite, entire scene rendered in pencil with paper grain`,
+  'beauty':        `cinematic beauty retouch — ethereal soft glow, pastel light bloom, dreamy bokeh background, warm cinematic color grade across entire scene`,
+  'ghibli':        `Studio Ghibli 2D hand-drawn animation — animal AND entire scene as Ghibli film frame: flat cel shading with ink outlines, expressive eyes, hand-painted watercolor background. No photography.`,
+  'pixar-3d':      `Pixar CGI 3D — animal AND full environment as Pixar film frame: detailed SSS surface, big expressive eyes, global illumination, fully 3D-rendered background. No photography.`,
+  'anime':         `anime illustration — animal AND full scene in anime style: clean ink line art, cel shading, large stylized eyes, anime-painted background. No photography.`,
+  'disney-3d':     `Disney CGI — animal AND full scene as Disney film frame: rounded appealing form, sparkling eyes, fully rendered Disney-quality 3D environment. No photography.`,
+  'oil-painting':  `oil painting — animal AND entire scene as canvas painting: impasto brushwork, rich colors, canvas texture throughout. No photography.`,
+  'pencil-sketch': `graphite sketch — animal AND full scene as pencil drawing: cross-hatch shading, monochrome graphite on white paper. No color, no photography.`,
 };
 
 /* ══════════════════════════════════════════════════════════════
    PERSON IDENTITY — 변환 강도별 (사람 전용)
 ══════════════════════════════════════════════════════════════ */
 const PERSON_IDENTITY: Record<number, string> = {
-  30:  `PERSON IDENTITY (STRICT): preserve at ~90% — only faintest style hint on skin/hair. Viewer must immediately recognize the same person.`,
-  50:  `PERSON IDENTITY (BALANCED): preserve at ~60% — clearly recognizable, allow mild cel shading or style-appropriate skin rendering.`,
-  70:  `PERSON IDENTITY (LOOSE): preserve at ~30% — style dominates, still the same person but heavily stylized.`,
-  100: `PERSON IDENTITY (NONE): ignore identity entirely. Full artistic transformation — face, skin, hair, clothing all 100% in target style.`,
+  30:  `PERSON IDENTITY (STRICT): preserve at ~90% — faintest style hint only. Viewer immediately recognizes the same person.`,
+  50:  `PERSON IDENTITY (BALANCED): preserve at ~60% — clearly recognizable, allow style-appropriate rendering.`,
+  70:  `PERSON IDENTITY (LOOSE): preserve at ~30% — style strongly dominates, person still identifiable but heavily stylized.`,
+  100: `PERSON IDENTITY (NONE): ignore photographic identity entirely. Fully re-draw face, skin, hair, clothing 100% in target art style.`,
 };
 
 /* ══════════════════════════════════════════════════════════════
@@ -67,57 +109,54 @@ export const FINAL_PROMPT = (
   otherAnimalStyle: string,
   intensity:        number = 70,
 ) => `
-You are an expert image-to-image style transfer system.
+You are an expert artistic style transfer system. Your task is to re-render the provided image in a completely different art style.
+
+⚠ CRITICAL RULE: The input image provides COMPOSITION and SUBJECT REFERENCE ONLY. It does NOT define the output rendering style. You must break free from the photographic appearance of the input and fully commit to the target art style. If the output looks like a photograph, you have failed.
 
 ══ STEP 1: CLASSIFY THE PRIMARY SUBJECT ══
-Examine the image carefully. Identify the primary subject:
-- PERSON       → one or more humans are visible anywhere in the frame (solo portrait, group photo, full-body shot, distant figures — any case)
-- CAT          → a domestic cat or wild feline (any breed, including hairless)
-- DOG          → a domestic dog (any breed, including hairless)
-- OTHER_ANIMAL → any other animal, creature, or pet
-- OTHER        → object, scene, or environment with no humans
+Identify the primary subject:
+- PERSON       → one or more humans visible anywhere (portrait, group, full-body, distant figures)
+- CAT          → domestic cat or wild feline (any breed, including hairless)
+- DOG          → domestic dog (any breed, including hairless)
+- OTHER_ANIMAL → any other animal or creature
+- OTHER        → object, scene, or environment with no humans or animals
 
 ══ STEP 2: APPLY THE MATCHING STYLE BRANCH ══
 
 ▶ If PERSON:
-Target style: "${personStyle}"
+Target art style: "${personStyle}"
 ${PERSON_IDENTITY[intensity] ?? PERSON_IDENTITY[70]}
 - Keep original hair color, clothing color and type for each person
-- Body pose and composition must stay the same
+- Keep body pose and composition
 - No grotesque or extreme face distortion
-- GLOBAL STYLE APPLICATION: Re-render the ENTIRE image in the target art style — background, environment, sky, floor, walls, lighting, and every element must all be stylized consistently. Do not leave any area as a plain photograph.
-- Group photos: apply style equally to ALL people and the whole background scene
-- Wide shots with small figures: the large background is the primary canvas — apply style strongly and consistently across the entire frame
+- Re-render the ENTIRE image in the target art style: background, sky, environment, floor, walls, lighting — everything. No area left as a plain photograph.
+- Group photos: apply style equally to ALL people and the whole background
+- Wide shots: the large background is the primary canvas — stylize it strongly
 
 ▶ If CAT:
-Target style: "${catStyle}"
-- Preserve: exact breed/type, body markings, coat pattern, eye color, pose, expression
-- Apply the art style to surface texture, eyes, body, and background
-- Style technique overrides surface material — works on both furry and hairless cats
-- Intensity: ${intensity === 100 ? 'full artistic transformation' : intensity >= 70 ? 'style strongly dominates, cat still recognizable' : intensity === 50 ? 'balance photo realism and target style' : 'subtle style hint, nearly photorealistic'}
+Target art style: "${catStyle}"
+- Preserve: breed/type, body markings, coat pattern, eye color, pose, expression
+- Re-render subject AND entire background in the target art style
 
 ▶ If DOG:
-Target style: "${dogStyle}"
-- Preserve: exact breed/type, body markings, coat pattern, eye color, pose, expression
-- Apply the art style to surface texture, eyes, body, and background
-- Style technique overrides surface material — works on both furry and hairless dogs
-- Intensity: ${intensity === 100 ? 'full artistic transformation' : intensity >= 70 ? 'style strongly dominates, dog still recognizable' : intensity === 50 ? 'balance photo realism and target style' : 'subtle style hint, nearly photorealistic'}
+Target art style: "${dogStyle}"
+- Preserve: breed/type, body markings, coat pattern, eye color, pose, expression
+- Re-render subject AND entire background in the target art style
 
 ▶ If OTHER_ANIMAL:
-Target style: "${otherAnimalStyle}"
+Target art style: "${otherAnimalStyle}"
 - Preserve species, body markings, pose, and expression
-- Apply the art style consistently across the entire subject and background
-- Intensity: ${intensity === 100 ? 'full artistic transformation' : intensity >= 70 ? 'strong stylization' : intensity === 50 ? 'balanced' : 'subtle'}
+- Re-render subject AND entire background in the target art style
 
 ▶ If OTHER:
-Target style: "${personStyle}"
+Target art style: "${personStyle}"
 - Apply the style uniformly across all surfaces and materials
-- Preserve original composition and structure
 
 ══ UNIVERSAL RULES ══
 - Same pose, same composition, same camera angle as the input
-- Style must be applied to the ENTIRE image — subject(s) AND background equally. Never leave part of the image as an unstyled photograph while the rest is transformed.
+- Style applied to the ENTIRE image — subject(s) AND background equally
 - No added elements or accessories not in the original
 - No text, watermark, or frame
-- High quality, sharp, clean rendering — no artifacts, no blur
+- High quality, sharp, clean rendering in the target art style
+- The output must be CLEARLY AND UNMISTAKABLY rendered in the target art style — not a photograph with a filter applied
 `.trim();

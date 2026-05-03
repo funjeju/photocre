@@ -10,10 +10,10 @@ const ASPECT_RATIO_LABELS: Record<string, string> = {
 };
 
 const INTENSITY_PROMPT: Record<number, string> = {
-  30: 'TRANSFORMATION INTENSITY: 30% — Keep the entire image mostly photorealistic. Apply only a very subtle hint of the style. The original should dominate; style is barely noticeable.',
-  50: 'TRANSFORMATION INTENSITY: 50% — Balance equally between the original image and the target style. Both the source scene and the style should be clearly visible across all elements.',
-  70: 'TRANSFORMATION INTENSITY: 70% — Apply the style strongly to the ENTIRE image. Every element (people, backgrounds, objects) should visibly reflect the target style.',
-  100: 'TRANSFORMATION INTENSITY: 100% — Apply the style at MAXIMUM strength to EVERY element. Fully commit to the target style with zero compromise anywhere in the image.',
+  30: 'TRANSFORMATION INTENSITY: 30% — Preserve ~90% of the original image. Apply only the faintest hint of the target style — a slight color shift or texture. Viewer should immediately recognize this as the same photo with a very subtle artistic touch.',
+  50: 'TRANSFORMATION INTENSITY: 50% — Balance the original and the target style equally. The source scene composition and the art style should both be clearly visible. About half of the photographic quality can remain.',
+  70: 'TRANSFORMATION INTENSITY: 70% — The target art style takes clear priority. Re-render all elements (characters, backgrounds, sky, objects, textures) visibly in the target style. Only ~30% photographic reference remains. The result should LOOK LIKE the target art style first.',
+  100: 'TRANSFORMATION INTENSITY: 100% — COMPLETE ARTISTIC TRANSFORMATION. This is NOT photo enhancement. Re-render the ENTIRE image as if it was originally CREATED in the target art style — never photographed. Every pixel: people, sky, ground, objects, textures, lighting — must be 100% in the target art style. The output must be INDISTINGUISHABLE from a native work in that style. If any part looks photographic, the task has failed.',
 };
 
 interface ComposeOptions {
