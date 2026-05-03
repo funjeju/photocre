@@ -10,10 +10,10 @@ const ASPECT_RATIO_LABELS: Record<string, string> = {
 };
 
 const INTENSITY_PROMPT: Record<number, string> = {
-  30: 'TRANSFORMATION INTENSITY: 30% — Keep the image mostly photorealistic. Apply only a very subtle hint of the style. The original photo should dominate; style is barely noticeable.',
-  50: 'TRANSFORMATION INTENSITY: 50% — Balance equally between the original photo and the target style. Both should be clearly visible.',
-  70: 'TRANSFORMATION INTENSITY: 70% — Apply the style strongly. The style should clearly dominate while the subject (person, animal, or object) remains recognizable.',
-  100: 'TRANSFORMATION INTENSITY: 100% — Apply the style at MAXIMUM strength with absolutely no restraint. The output must be indistinguishable from a hand-crafted illustration in the target art style. Zero photographic qualities should remain — no photographic textures, no camera noise, no lens effects. Every pixel of the image — sky, background, environment, clothing, skin — must be fully re-rendered in the target style.',
+  30: 'TRANSFORMATION INTENSITY: 30% — Keep the entire image mostly photorealistic. Apply only a very subtle hint of the style. The original should dominate; style is barely noticeable.',
+  50: 'TRANSFORMATION INTENSITY: 50% — Balance equally between the original image and the target style. Both the source scene and the style should be clearly visible across all elements.',
+  70: 'TRANSFORMATION INTENSITY: 70% — Apply the style strongly to the ENTIRE image. Every element (people, backgrounds, objects) should visibly reflect the target style.',
+  100: 'TRANSFORMATION INTENSITY: 100% — Apply the style at MAXIMUM strength to EVERY element. Fully commit to the target style with zero compromise anywhere in the image.',
 };
 
 interface ComposeOptions {
