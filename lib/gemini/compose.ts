@@ -14,7 +14,7 @@ interface ComposeOptions {
   customPrompt?: string;
   aspectRatio?: string;
   backgroundPrompt?: string;
-  transformIntensity?: 30 | 50 | 70 | 100;
+  transformIntensity?: number;
   requestId?: string;
 }
 
